@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateQuestionNumbers() {
         document.querySelectorAll('.question-card').forEach((card, index) => {
-            card.querySelector('.question-number').textContent = `Question Nº ${index + 1}`;
+            card.querySelector('.question-number').textContent = `Question ${index + 1}`;
         });
     }
     
