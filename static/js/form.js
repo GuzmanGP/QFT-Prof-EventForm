@@ -1,3 +1,4 @@
+// Form Configuration Management
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('formConfiguration');
     let questionCounter = 0;
@@ -70,6 +71,9 @@ document.addEventListener('DOMContentLoaded', function() {
             container.innerHTML = '';
         });
         updateQuestionList();
+        
+        // Clear any validation errors
+        clearValidationErrors();
     });
     
     // Form validation and submission
@@ -81,7 +85,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const formData = {
-            title: document.getElementById('title').value,
             category: document.getElementById('category').value,
             subcategory: document.getElementById('subcategory').value,
             category_metadata: getMetadataValues('categoryMetadata'),
@@ -116,151 +119,142 @@ document.addEventListener('DOMContentLoaded', function() {
             showAlert('danger', error.message);
         }
     });
-    
-    // Form validation
-    function validateForm() {
-        let isValid = true;
-        const errors = [];
-        
-        // Clear previous validation errors
-        document.querySelectorAll('.is-invalid').forEach(element => {
-            element.classList.remove('is-invalid');
-        });
-        
-        document.querySelectorAll('.invalid-feedback').forEach(element => {
-            element.remove();
-        });
-        
-        const errorSummary = document.querySelector('.error-summary');
-        if (errorSummary) {
-            errorSummary.remove();
-        }
-        
-        // Validate title
-        const titleInput = document.getElementById('title');
-        if (!titleInput.value.trim()) {
-            showFieldError(titleInput, 'Title is required');
-            errors.push('Title is required');
-            isValid = false;
-        }
-        
-        // Validate category
-        const categoryInput = document.getElementById('category');
-        if (!categoryInput.value.trim()) {
-            showFieldError(categoryInput, 'Category is required');
-            errors.push('Category is required');
-            isValid = false;
-        }
-        
-        // Validate questions
-        const questions = document.querySelectorAll('.question-card');
-        if (questions.length === 0) {
-            errors.push('At least one question is required');
-            isValid = false;
-            showAlert('danger', 'At least one question is required');
-        }
-        
-        questions.forEach((card, index) => {
-            const title = card.querySelector('.question-title');
-            const content = card.querySelector('.question-content');
-            
-            if (!title.value.trim()) {
-                showFieldError(title, 'Question title is required');
-                errors.push(`Question ${index + 1}: Title is required`);
-                isValid = false;
-            }
-            
-            if (!content.value.trim()) {
-                showFieldError(content, 'Question content is required');
-                errors.push(`Question ${index + 1}: Content is required`);
-                isValid = false;
-            }
-        });
-        
-        if (!isValid) {
-            showErrorSummary(errors);
-        }
-        
-        return isValid;
-    }
-    
-    function showFieldError(element, message) {
-        element.classList.add('is-invalid');
-        const feedback = document.createElement('div');
-        feedback.className = 'invalid-feedback';
-        feedback.textContent = message;
-        element.parentNode.appendChild(feedback);
-        
-        element.classList.add('validation-shake');
-        setTimeout(() => element.classList.remove('validation-shake'), 500);
-    }
-    
-    function showErrorSummary(errors) {
-        const summary = document.createElement('div');
-        summary.className = 'error-summary';
-        
-        const heading = document.createElement('h5');
-        heading.textContent = 'Please correct the following errors:';
-        summary.appendChild(heading);
-        
-        const list = document.createElement('ul');
-        errors.forEach(error => {
-            const li = document.createElement('li');
-            li.textContent = error;
-            list.appendChild(li);
-        });
-        
-        summary.appendChild(list);
-        form.insertBefore(summary, form.firstChild);
-    }
-    
-    function showAlert(type, message) {
-        const alertContainer = document.querySelector('.alert-container');
-        if (!alertContainer) return;
-        
-        const alert = document.createElement('div');
-        alert.className = `alert alert-${type} alert-dismissible fade show`;
-        alert.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        alertContainer.appendChild(alert);
-        setTimeout(() => alert.remove(), 5000);
-    }
-    
-    function updateQuestionNumbers() {
-        const questions = document.querySelectorAll('.question-card');
-        questions.forEach((card, index) => {
-            card.querySelector('.question-number').textContent = `Question ${index + 1}`;
-        });
-        questionCounter = questions.length;
-        document.getElementById('questionCount').textContent = questionCounter;
-    }
-    
-    function setupMetadataCounters(container) {
-        container.querySelectorAll('.counter-button').forEach(button => {
-            button.addEventListener('click', function() {
-                const isIncrease = this.classList.contains('increase-count');
-                const targetContainer = this.closest('.metadata-section')
-                    .querySelector('.metadata-container');
-                const counterDisplay = this.closest('.metadata-section')
-                    .querySelector('.counter-display');
-                let count = parseInt(counterDisplay.textContent);
-                
-                count = isIncrease ? count + 1 : count - 1;
-                if (count >= 0 && count <= 20) {
-                    updateMetadataFields(targetContainer, count);
-                    counterDisplay.textContent = count;
-                }
-            });
-        });
-    }
-    
-    // Initialize existing metadata counters
-    document.querySelectorAll('.metadata-section').forEach(section => {
-        setupMetadataCounters(section);
-    });
 });
+
+// Utility Functions
+function clearValidationErrors() {
+    document.querySelectorAll('.is-invalid').forEach(element => {
+        element.classList.remove('is-invalid', 'validation-shake');
+    });
+    
+    document.querySelectorAll('.invalid-feedback').forEach(element => {
+        element.remove();
+    });
+    
+    const errorSummary = document.querySelector('.error-summary');
+    if (errorSummary) {
+        errorSummary.remove();
+    }
+}
+
+function validateForm() {
+    let isValid = true;
+    const errors = [];
+    
+    clearValidationErrors();
+    
+    // Validate category
+    const categoryInput = document.getElementById('category');
+    if (!categoryInput.value.trim()) {
+        showFieldError(categoryInput, 'Category is required');
+        errors.push('Category is required');
+        isValid = false;
+    }
+    
+    // Validate questions
+    const questions = document.querySelectorAll('.question-card');
+    if (questions.length === 0) {
+        errors.push('At least one question is required');
+        isValid = false;
+        showAlert('danger', 'At least one question is required');
+    }
+    
+    questions.forEach((card, index) => {
+        const title = card.querySelector('.question-title');
+        const content = card.querySelector('.question-content');
+        
+        if (!title.value.trim()) {
+            showFieldError(title, 'Question title is required');
+            errors.push(`Question ${index + 1}: Title is required`);
+            isValid = false;
+        }
+        
+        if (!content.value.trim()) {
+            showFieldError(content, 'Question content is required');
+            errors.push(`Question ${index + 1}: Content is required`);
+            isValid = false;
+        }
+    });
+    
+    if (!isValid) {
+        showErrorSummary(errors);
+    }
+    
+    return isValid;
+}
+
+function showFieldError(element, message) {
+    element.classList.add('is-invalid');
+    const feedback = document.createElement('div');
+    feedback.className = 'invalid-feedback';
+    feedback.textContent = message;
+    element.parentNode.appendChild(feedback);
+    
+    element.classList.add('validation-shake');
+    setTimeout(() => element.classList.remove('validation-shake'), 500);
+}
+
+function showErrorSummary(errors) {
+    const summary = document.createElement('div');
+    summary.className = 'error-summary';
+    
+    const heading = document.createElement('h5');
+    heading.textContent = 'Please correct the following errors:';
+    summary.appendChild(heading);
+    
+    const list = document.createElement('ul');
+    errors.forEach(error => {
+        const li = document.createElement('li');
+        li.textContent = error;
+        list.appendChild(li);
+    });
+    
+    summary.appendChild(list);
+    const form = document.getElementById('formConfiguration');
+    form.insertBefore(summary, form.firstChild);
+}
+
+function showAlert(type, message) {
+    const alertContainer = document.querySelector('.alert-container');
+    if (!alertContainer) return;
+    
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertContainer.appendChild(alert);
+    setTimeout(() => alert.remove(), 5000);
+}
+
+function updateQuestionNumbers() {
+    const questions = document.querySelectorAll('.question-card');
+    questions.forEach((card, index) => {
+        card.querySelector('.question-number').textContent = `Question ${index + 1}`;
+    });
+    questionCounter = questions.length;
+    document.getElementById('questionCount').textContent = questionCounter;
+}
+
+function setupMetadataCounters(container) {
+    container.querySelectorAll('.counter-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const isIncrease = this.classList.contains('increase-count');
+            const targetContainer = this.closest('.metadata-section')
+                .querySelector('.metadata-container');
+            const counterDisplay = this.closest('.metadata-section')
+                .querySelector('.counter-display');
+            let count = parseInt(counterDisplay.textContent);
+            
+            count = isIncrease ? count + 1 : count - 1;
+            if (count >= 0 && count <= 20) {
+                updateMetadataFields(targetContainer, count);
+                counterDisplay.textContent = count;
+            }
+        });
+    });
+}
 
 function addMetadataField(container) {
     const field = document.createElement('div');
@@ -336,14 +330,12 @@ function updateQuestionList() {
         item.className = 'list-group-item list-group-item-action';
         item.textContent = `Question ${index + 1}: ${title}`;
         
-        // Handle click event
         item.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             
             const questionCard = card.querySelector('.card-header');
             if (questionCard) {
-                // Remove any validation classes temporarily
                 const invalidFields = card.querySelectorAll('.is-invalid');
                 const tempRemoved = [];
                 
@@ -355,10 +347,8 @@ function updateQuestionList() {
                     field.classList.remove('is-invalid', 'validation-shake');
                 });
                 
-                // Perform smooth scroll
                 questionCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 
-                // Restore validation classes after scroll
                 setTimeout(() => {
                     tempRemoved.forEach(item => {
                         item.element.classList.add(...item.classes);
@@ -370,3 +360,10 @@ function updateQuestionList() {
         list.appendChild(item);
     });
 }
+
+// Initialize metadata counters when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.metadata-section').forEach(section => {
+        setupMetadataCounters(section);
+    });
+});

@@ -6,7 +6,6 @@ from sqlalchemy import JSON
 # Use JSON instead of JSONB for SQLite compatibility
 class FormConfiguration(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
     category = db.Column(db.String(100), nullable=False)
     subcategory = db.Column(db.String(100))
     category_metadata = db.Column(JSON, default=dict)

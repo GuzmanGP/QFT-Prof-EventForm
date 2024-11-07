@@ -16,11 +16,6 @@ def validate_form_data(data):
     errors = []
     
     # Validate required fields
-    if not data.get('title'):
-        errors.append('Title is required')
-    elif len(data['title']) > 200:
-        errors.append('Title must be less than 200 characters')
-        
     if not data.get('category'):
         errors.append('Category is required')
     elif len(data['category']) > 100:
@@ -65,7 +60,6 @@ def create_form():
             return jsonify({'success': False, 'error': str(e)}), 400
         
         form = FormConfiguration(
-            title=data.get('title', 'Untitled Form'),
             category=data['category'],
             subcategory=data.get('subcategory'),
             category_metadata=data.get('category_metadata', {}),
