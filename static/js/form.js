@@ -3,21 +3,34 @@ document.addEventListener('DOMContentLoaded', function() {
     let questionCounter = 0;
     
     function addMetadataField(container) {
-        // If container is a string (ID), get the element
+        // Ensure we have a valid DOM element
         const targetContainer = typeof container === 'string' ? 
             document.getElementById(container) : container;
         
-        if (!targetContainer) {
+        if (!targetContainer || !(targetContainer instanceof HTMLElement)) {
             console.error('Invalid container:', container);
             return;
         }
         
         const field = document.createElement('div');
-        field.className = 'input-group';
+        field.className = 'input-group mb-2';
         field.innerHTML = `
             <input type="text" class="form-control" placeholder="Key">
             <input type="text" class="form-control" placeholder="Value">
+            <button type="button" class="btn btn-outline-danger remove-field">×</button>
         `;
+
+        // Add click handler for remove button
+        const removeBtn = field.querySelector('.remove-field');
+        removeBtn.addEventListener('click', () => {
+            field.remove();
+            // Update counter display
+            const metadataSection = targetContainer.closest('.metadata-section');
+            const counterDisplay = metadataSection.querySelector('.counter-display');
+            const currentCount = parseInt(counterDisplay.textContent);
+            counterDisplay.textContent = currentCount - 1;
+        });
+        
         targetContainer.appendChild(field);
     }
     
@@ -30,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const container = document.getElementById(containerId);
-        if (!container) {
+        if (!container || !(container instanceof HTMLElement)) {
             console.error('Container not found:', containerId);
             return false;
         }
@@ -60,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
             count = 0;
         }
         
-        if (!container) {
+        if (!container || !(container instanceof HTMLElement)) {
             console.error('Container not found');
             return false;
         }
@@ -87,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
             container = document.getElementById(container);
         }
         
-        if (!container) {
+        if (!container || !(container instanceof HTMLElement)) {
             console.error('Invalid container for metadata values');
             return {};
         }
@@ -193,24 +206,36 @@ document.addEventListener('DOMContentLoaded', function() {
         
         clearValidationErrors();
         
+        // Validate title
         const titleInput = document.getElementById('title');
         if (!titleInput.value.trim()) {
             showFieldError(titleInput, 'Title is required');
             errors.push('Title is required');
             isValid = false;
+        } else if (titleInput.value.length > 200) {
+            showFieldError(titleInput, 'Title must be less than 200 characters');
+            errors.push('Title must be less than 200 characters');
+            isValid = false;
         }
         
+        // Validate category
         const categoryInput = document.getElementById('category');
         if (!categoryInput.value.trim()) {
             showFieldError(categoryInput, 'Category is required');
             errors.push('Category is required');
             isValid = false;
+        } else if (categoryInput.value.length > 100) {
+            showFieldError(categoryInput, 'Category must be less than 100 characters');
+            errors.push('Category must be less than 100 characters');
+            isValid = false;
         }
         
+        // Validate questions
         const questions = document.querySelectorAll('.question-card');
         if (questions.length === 0) {
             errors.push('At least one question is required');
             isValid = false;
+            showAlert('danger', 'At least one question is required');
         }
         
         questions.forEach((card, index) => {
@@ -220,6 +245,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!title.value.trim()) {
                 showFieldError(title, 'Question title is required');
                 errors.push(`Question ${index + 1}: Title is required`);
+                isValid = false;
+            } else if (title.value.length > 50) {
+                showFieldError(title, 'Question title must be less than 50 characters');
+                errors.push(`Question ${index + 1}: Title must be less than 50 characters`);
                 isValid = false;
             }
             
@@ -266,7 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const errorSummary = document.querySelector('.error-summary');
         if (errorSummary) {
-            errorSummary.classList.remove('show');
+            errorSummary.remove();
         }
     }
     
