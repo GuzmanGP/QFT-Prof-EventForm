@@ -9,19 +9,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const card = clone.querySelector('.card');
         
         // Update question number
-        questionCounter++;
         const questionNumber = card.querySelector('.question-number');
-        questionNumber.textContent = `Question ${questionCounter}`;
+        questionNumber.textContent = `Question ${questionCounter + 1}`;
         
         // Set unique IDs for checkboxes
         const requiredCheckbox = card.querySelector('.question-required');
         const aiCheckbox = card.querySelector('.question-ai');
-        requiredCheckbox.id = `required_${questionCounter}`;
-        aiCheckbox.id = `ai_${questionCounter}`;
+        requiredCheckbox.id = `required_${questionCounter + 1}`;
+        aiCheckbox.id = `ai_${questionCounter + 1}`;
         
         // Update labels
-        card.querySelector('[for="required_TEMPLATE"]').setAttribute('for', `required_${questionCounter}`);
-        card.querySelector('[for="ai_TEMPLATE"]').setAttribute('for', `ai_${questionCounter}`);
+        card.querySelector('[for="required_TEMPLATE"]').setAttribute('for', `required_${questionCounter + 1}`);
+        card.querySelector('[for="ai_TEMPLATE"]').setAttribute('for', `ai_${questionCounter + 1}`);
         
         // Add title change handler for real-time updates
         card.querySelector('.question-title').addEventListener('input', function() {
@@ -40,6 +39,22 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add to questions container
         document.getElementById('questions').appendChild(card);
+        questionCounter = document.querySelectorAll('.question-card').length;
+        document.getElementById('questionCount').textContent = questionCounter;
+        updateQuestionList();
+    });
+    
+    // Form reset handler
+    form.addEventListener('reset', function() {
+        questionCounter = 0;
+        document.getElementById('questionCount').textContent = '0';
+        document.getElementById('questions').innerHTML = '';
+        document.querySelectorAll('.counter-display').forEach(display => {
+            display.textContent = '0';
+        });
+        document.querySelectorAll('.metadata-container').forEach(container => {
+            container.innerHTML = '';
+        });
         updateQuestionList();
     });
     
@@ -80,12 +95,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 showAlert('success', 'Form saved successfully');
                 form.reset();
-                document.getElementById('questions').innerHTML = '';
-                document.querySelectorAll('.counter-display').forEach(display => {
-                    display.textContent = '0';
-                });
-                updateQuestionNumbers();
-                updateQuestionList();
             } else {
                 throw new Error(data.error || 'Failed to save form');
             }
@@ -206,10 +215,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateQuestionNumbers() {
-        document.querySelectorAll('.question-card').forEach((card, index) => {
+        const questions = document.querySelectorAll('.question-card');
+        questions.forEach((card, index) => {
             card.querySelector('.question-number').textContent = `Question ${index + 1}`;
         });
-        questionCounter = document.querySelectorAll('.question-card').length;
+        questionCounter = questions.length;
         document.getElementById('questionCount').textContent = questionCounter;
     }
     
@@ -312,7 +322,7 @@ function updateQuestionList() {
         item.className = 'list-group-item list-group-item-action';
         item.textContent = `Question ${index + 1}: ${title}`;
         
-        // Prevent default button behavior and handle click directly
+        // Handle click event
         item.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
