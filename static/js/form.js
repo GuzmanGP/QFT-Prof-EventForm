@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => alert.remove(), 5000);
     }
     
-    // Helper function to update question numbers
+    // Helper functions
     function updateQuestionNumbers() {
         document.querySelectorAll('.question-card').forEach((card, index) => {
             card.querySelector('.question-number').textContent = `Question ${index + 1}`;
@@ -208,7 +208,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('questionCount').textContent = questionCounter;
     }
     
-    // Setup metadata counter event handlers
     function setupMetadataCounters(container) {
         container.querySelectorAll('.counter-button').forEach(button => {
             button.addEventListener('click', function() {
@@ -234,7 +233,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Function to add metadata field
 function addMetadataField(container) {
     const field = document.createElement('div');
     field.className = 'input-group mb-2';
@@ -255,7 +253,6 @@ function addMetadataField(container) {
     container.appendChild(field);
 }
 
-// Function to update metadata fields
 function updateMetadataFields(container, count) {
     if (count > 20) {
         showAlert('warning', 'Maximum 20 metadata fields allowed');
@@ -274,7 +271,6 @@ function updateMetadataFields(container, count) {
     }
 }
 
-// Helper function to get metadata values
 function getMetadataValues(container) {
     if (typeof container === 'string') {
         container = document.getElementById(container);
@@ -296,7 +292,6 @@ function getMetadataValues(container) {
     return metadata;
 }
 
-// Question list update function
 function updateQuestionList() {
     const list = document.getElementById('questionNavList');
     const listContainer = document.getElementById('questionsList');
