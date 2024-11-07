@@ -95,6 +95,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
     
+    function updateQuestionCount() {
+        const count = document.querySelectorAll('.question-card').length;
+        const countDisplay = document.getElementById('questionCount');
+        if (countDisplay) {
+            countDisplay.textContent = count;
+        }
+    }
+    
     function getMetadataValues(container) {
         if (typeof container === 'string') {
             container = document.getElementById(container);
@@ -133,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.question-card').forEach((card, index) => {
             card.querySelector('.question-number').textContent = `Question ${index + 1}`;
         });
+        updateQuestionCount();
     }
     
     function addQuestion() {
@@ -158,12 +167,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const increaseBtn = questionElement.querySelector('.increase-count');
         const counterDisplay = questionElement.querySelector('.counter-display');
         
-        decreaseBtn.addEventListener('click', () => {
+        decreaseBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event bubbling
             const currentCount = parseInt(counterDisplay.textContent);
             updateQuestionMetadataFields(metaContainer, currentCount - 1);
         });
         
-        increaseBtn.addEventListener('click', () => {
+        increaseBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event bubbling
             const currentCount = parseInt(counterDisplay.textContent);
             updateQuestionMetadataFields(metaContainer, currentCount + 1);
         });
@@ -356,6 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 form.reset();
                 document.getElementById('questions').innerHTML = '';
                 clearValidationErrors();
+                updateQuestionCount();
                 
                 // Reset counter displays
                 document.querySelectorAll('.counter-display').forEach(display => {
@@ -372,6 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event Listeners for counter buttons
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('increase-count') || e.target.classList.contains('decrease-count')) {
+            e.stopPropagation(); // Prevent event bubbling
             const targetId = e.target.dataset.target;
             const counterDisplay = e.target.parentNode.querySelector('.counter-display');
             const currentCount = parseInt(counterDisplay.textContent);
