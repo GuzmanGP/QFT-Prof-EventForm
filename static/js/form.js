@@ -33,6 +33,20 @@ document.addEventListener('DOMContentLoaded', function() {
             updateQuestionNumbers();
             updateQuestionList();
         });
+
+        // Add back to menu button handler
+        card.querySelector('.back-to-menu').addEventListener('click', function() {
+            const questionsHeader = document.querySelector('.questions-header');
+            const questionsList = document.getElementById('questionsList');
+            
+            // Expand the menu if it's collapsed
+            if (!questionsList.classList.contains('show')) {
+                new bootstrap.Collapse(questionsList).show();
+            }
+            
+            // Scroll to questions header
+            questionsHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
         
         // Add metadata counter handlers
         setupMetadataCounters(card);

@@ -207,7 +207,7 @@ textarea.form-control {
 
 .question-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: 0.5rem;
     margin-top: 1rem;
     padding-top: 1rem;
@@ -311,4 +311,10 @@ textarea.form-control {
 .error-summary h5 {
     color: var(--error-color);
     margin-bottom: 1rem;
+}
+
+.back-to-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 }
