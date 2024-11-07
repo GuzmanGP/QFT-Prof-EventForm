@@ -23,6 +23,11 @@ document.addEventListener('DOMContentLoaded', function() {
         card.querySelector('[for="required_TEMPLATE"]').setAttribute('for', `required_${questionCounter}`);
         card.querySelector('[for="ai_TEMPLATE"]').setAttribute('for', `ai_${questionCounter}`);
         
+        // Add title change handler for real-time updates
+        card.querySelector('.question-title').addEventListener('input', function() {
+            updateQuestionList();
+        });
+        
         // Add remove button handler
         card.querySelector('.remove-question').addEventListener('click', function() {
             card.remove();
@@ -80,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     display.textContent = '0';
                 });
                 updateQuestionNumbers();
+                updateQuestionList();
             } else {
                 throw new Error(data.error || 'Failed to save form');
             }
@@ -199,7 +205,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => alert.remove(), 5000);
     }
     
-    // Helper functions
     function updateQuestionNumbers() {
         document.querySelectorAll('.question-card').forEach((card, index) => {
             card.querySelector('.question-number').textContent = `Question ${index + 1}`;
@@ -304,7 +309,7 @@ function updateQuestionList() {
     
     list.innerHTML = '';
     questions.forEach((card, index) => {
-        const title = card.querySelector('.question-title').value || 'Untitled Question';
+        const title = card.querySelector('.question-title').value.trim() || 'Untitled Question';
         const item = document.createElement('button');
         item.className = 'list-group-item list-group-item-action';
         item.textContent = `Question ${index + 1}: ${title}`;
