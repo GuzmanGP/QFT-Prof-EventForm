@@ -37,6 +37,17 @@
                 </div>
             </div>
 
+            <hr>
+            <h4>Questions</h4>
+            <div id="questions"></div>
+            
+            <div class="question-actions">
+                <button type="button" class="btn btn-primary" id="addQuestion">
+                    Add Question
+                </button>
+            </div>
+
+            <hr>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Save</button>
                 <button type="reset" class="btn btn-secondary">Reset</button>
@@ -44,4 +55,49 @@
         </form>
     </div>
 </div>
+
+<!-- Question Template -->
+<template id="questionTemplate">
+    <div class="card question-card">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Abbreviated Title (Keywords)<span class="text-danger">*</span></label>
+                <input type="text" class="form-control question-title" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Question Content<span class="text-danger">*</span></label>
+                <textarea class="form-control expandable-textarea question-content" required></textarea>
+            </div>
+
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input question-required" id="required_TEMPLATE">
+                <label class="form-check-label" for="required_TEMPLATE">Required</label>
+            </div>
+
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input question-ai" id="ai_TEMPLATE">
+                <label class="form-check-label" for="ai_TEMPLATE">AI Post-processing</label>
+            </div>
+
+            <div class="ai-instructions">
+                <label class="form-label">AI Instructions</label>
+                <textarea class="form-control expandable-textarea question-ai-instructions"></textarea>
+            </div>
+
+            <div class="metadata-section mt-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6>Question Metadata</h6>
+                    <input type="number" class="form-control metadata-counter question-meta-count" 
+                           value="0" min="0" max="20">
+                </div>
+                <div class="question-metadata metadata-container"></div>
+            </div>
+
+            <div class="question-actions">
+                <button type="button" class="btn btn-danger btn-sm remove-question">Remove</button>
+            </div>
+        </div>
+    </div>
+</template>
 {% endblock %}
