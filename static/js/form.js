@@ -303,8 +303,6 @@ function updateQuestionList() {
     if (!list || !listContainer) return;
     
     const questions = document.querySelectorAll('.question-card');
-    
-    // Show/hide the list based on question count
     listContainer.classList.toggle('d-none', questions.length === 0);
     
     list.innerHTML = '';
@@ -313,12 +311,38 @@ function updateQuestionList() {
         const item = document.createElement('button');
         item.className = 'list-group-item list-group-item-action';
         item.textContent = `Question ${index + 1}: ${title}`;
-        item.addEventListener('click', () => {
+        
+        // Prevent default button behavior and handle click directly
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
             const questionCard = card.querySelector('.card-header');
             if (questionCard) {
+                // Remove any validation classes temporarily
+                const invalidFields = card.querySelectorAll('.is-invalid');
+                const tempRemoved = [];
+                
+                invalidFields.forEach(field => {
+                    tempRemoved.push({
+                        element: field,
+                        classes: [...field.classList]
+                    });
+                    field.classList.remove('is-invalid', 'validation-shake');
+                });
+                
+                // Perform smooth scroll
                 questionCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Restore validation classes after scroll
+                setTimeout(() => {
+                    tempRemoved.forEach(item => {
+                        item.element.classList.add(...item.classes);
+                    });
+                }, 100);
             }
         });
+        
         list.appendChild(item);
     });
 }
