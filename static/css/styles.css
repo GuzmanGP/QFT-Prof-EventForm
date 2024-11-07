@@ -53,7 +53,7 @@ textarea.form-control {
     border: 1px solid var(--input-border);
     border-radius: 0.25rem;
     overflow: hidden;
-    margin-bottom: 1.5rem;  /* Added margin below counter controls */
+    margin-bottom: 1.5rem;
 }
 
 .counter-button {
@@ -177,11 +177,11 @@ textarea.form-control {
 }
 
 .metadata-section {
-    margin-top: 2.5rem;  /* Increased top margin */
+    margin-top: 2.5rem;
 }
 
 .metadata-section h6 {
-    margin-bottom: 1rem;  /* Added margin after metadata title */
+    margin-bottom: 1rem;
 }
 
 .metadata-container {
@@ -212,6 +212,26 @@ textarea.form-control {
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid var(--input-border);
+}
+
+/* Question List Styles */
+.question-list {
+    margin: 1rem 0;
+    border: 1px solid var(--input-border);
+    border-radius: 0.25rem;
+    padding: 1rem;
+    background-color: var(--input-bg);
+}
+
+.question-list .list-group-item {
+    background-color: transparent;
+    border-color: var(--input-border);
+    color: #fff;
+    transition: all 0.15s ease-in-out;
+}
+
+.question-list .list-group-item:hover {
+    background-color: var(--input-hover-bg);
 }
 
 /* Form validation styles */

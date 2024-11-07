@@ -46,13 +46,13 @@
             <hr>
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4>Questions (<span id="questionCount">0</span>)</h4>
-                <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="questionNavDropdown" data-bs-toggle="dropdown">
-                        Navigate to Question
-                    </button>
-                    <ul class="dropdown-menu" id="questionNavMenu"></ul>
-                </div>
             </div>
+            
+            <div id="questionsList" class="question-list d-none">
+                <h6 class="mb-2">Questions List:</h6>
+                <div class="list-group" id="questionNavList"></div>
+            </div>
+            
             <div id="questions"></div>
             
             <div class="question-actions">
