@@ -59,15 +59,18 @@
 <!-- Question Template -->
 <template id="questionTemplate">
     <div class="card question-card">
+        <div class="card-header">
+            <h5 class="question-number mb-0">Question Nº 1</h5>
+        </div>
         <div class="card-body">
             <div class="mb-3">
                 <label class="form-label">Abbreviated Title (Keywords)<span class="text-danger">*</span></label>
-                <input type="text" class="form-control question-title" required>
+                <input type="text" class="form-control question-title" required placeholder="Introduce question keywords">
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Question Content<span class="text-danger">*</span></label>
-                <textarea class="form-control expandable-textarea question-content" required></textarea>
+                <textarea class="form-control expandable-textarea question-content" required placeholder="Introduce full question text"></textarea>
             </div>
 
             <div class="form-check">
@@ -82,7 +85,7 @@
 
             <div class="ai-instructions">
                 <label class="form-label">AI Instructions</label>
-                <textarea class="form-control expandable-textarea question-ai-instructions"></textarea>
+                <textarea class="form-control expandable-textarea question-ai-instructions" placeholder="Introduce user's response processing"></textarea>
             </div>
 
             <div class="metadata-section mt-3">

@@ -76,6 +76,12 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => alert.remove(), 5000);
     }
     
+    function updateQuestionNumbers() {
+        document.querySelectorAll('.question-card').forEach((card, index) => {
+            card.querySelector('.question-number').textContent = `Question Nº ${index + 1}`;
+        });
+    }
+    
     function addQuestion() {
         questionCounter++;
         const template = document.getElementById('questionTemplate');
@@ -111,9 +117,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         questionElement.querySelector('.remove-question').addEventListener('click', () => {
             document.getElementById(uniqueId).remove();
+            updateQuestionNumbers();
         });
         
         questionContainer.appendChild(questionElement);
+        updateQuestionNumbers();
     }
     
     function getQuestionsData() {
