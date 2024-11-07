@@ -53,6 +53,7 @@ textarea.form-control {
     border: 1px solid var(--input-border);
     border-radius: 0.25rem;
     overflow: hidden;
+    margin-bottom: 1.5rem;  /* Added margin below counter controls */
 }
 
 .counter-button {
@@ -176,7 +177,11 @@ textarea.form-control {
 }
 
 .metadata-section {
-    margin-top: 2rem;
+    margin-top: 2.5rem;  /* Increased top margin */
+}
+
+.metadata-section h6 {
+    margin-bottom: 1rem;  /* Added margin after metadata title */
 }
 
 .metadata-container {
