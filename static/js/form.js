@@ -88,11 +88,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const questionElement = template.content.cloneNode(true);
         const questionContainer = document.getElementById('questions');
         
-        // Update IDs to be unique
         const uniqueId = `question_${questionCounter}`;
         questionElement.querySelector('.question-card').id = uniqueId;
         
-        // Update checkbox IDs and labels
         const requiredCheckbox = questionElement.querySelector('.question-required');
         const aiCheckbox = questionElement.querySelector('.question-ai');
         requiredCheckbox.id = `required_${uniqueId}`;
@@ -100,7 +98,6 @@ document.addEventListener('DOMContentLoaded', function() {
         requiredCheckbox.nextElementSibling.htmlFor = requiredCheckbox.id;
         aiCheckbox.nextElementSibling.htmlFor = aiCheckbox.id;
         
-        // Add event listeners
         const metaCounter = questionElement.querySelector('.question-meta-count');
         const metaContainer = questionElement.querySelector('.question-metadata');
         
@@ -139,9 +136,124 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         return questions;
     }
+
+    function validateForm() {
+        let isValid = true;
+        const errors = [];
+        
+        clearValidationErrors();
+        
+        const titleInput = document.getElementById('title');
+        if (!titleInput.value.trim()) {
+            showFieldError(titleInput, 'Title is required');
+            errors.push('Title is required');
+            isValid = false;
+        }
+        
+        const categoryInput = document.getElementById('category');
+        if (!categoryInput.value.trim()) {
+            showFieldError(categoryInput, 'Category is required');
+            errors.push('Category is required');
+            isValid = false;
+        }
+        
+        const questions = document.querySelectorAll('.question-card');
+        if (questions.length === 0) {
+            errors.push('At least one question is required');
+            isValid = false;
+        }
+        
+        questions.forEach((card, index) => {
+            const title = card.querySelector('.question-title');
+            const content = card.querySelector('.question-content');
+            
+            if (!title.value.trim()) {
+                showFieldError(title, 'Question title is required');
+                errors.push(`Question ${index + 1}: Title is required`);
+                isValid = false;
+            }
+            
+            if (!content.value.trim()) {
+                showFieldError(content, 'Question content is required');
+                errors.push(`Question ${index + 1}: Content is required`);
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            showErrorSummary(errors);
+            const firstError = document.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.classList.add('validation-shake');
+                setTimeout(() => firstError.classList.remove('validation-shake'), 500);
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+        
+        return isValid;
+    }
+    
+    function showFieldError(element, message) {
+        element.classList.add('is-invalid');
+        
+        let feedback = element.nextElementSibling;
+        if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+            feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            element.parentNode.insertBefore(feedback, element.nextSibling);
+        }
+        feedback.textContent = message;
+    }
+    
+    function clearValidationErrors() {
+        document.querySelectorAll('.is-invalid').forEach(element => {
+            element.classList.remove('is-invalid');
+        });
+        
+        document.querySelectorAll('.invalid-feedback').forEach(element => {
+            element.remove();
+        });
+        
+        const errorSummary = document.querySelector('.error-summary');
+        if (errorSummary) {
+            errorSummary.classList.remove('show');
+        }
+    }
+    
+    function showErrorSummary(errors) {
+        let errorSummary = document.querySelector('.error-summary');
+        
+        if (!errorSummary) {
+            errorSummary = document.createElement('div');
+            errorSummary.className = 'error-summary';
+            const heading = document.createElement('h5');
+            heading.textContent = 'Please correct the following errors:';
+            errorSummary.appendChild(heading);
+            form.insertBefore(errorSummary, form.firstChild);
+        }
+        
+        const errorList = document.createElement('ul');
+        errors.forEach(error => {
+            const li = document.createElement('li');
+            li.textContent = error;
+            errorList.appendChild(li);
+        });
+        
+        const existingList = errorSummary.querySelector('ul');
+        if (existingList) {
+            existingList.remove();
+        }
+        
+        errorSummary.appendChild(errorList);
+        errorSummary.classList.add('show');
+    }
     
     async function submitForm(event) {
         event.preventDefault();
+        
+        if (!validateForm()) {
+            return;
+        }
         
         const formData = {
             title: document.getElementById('title').value,
@@ -164,8 +276,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 showAlert('success', 'Form saved successfully');
                 form.reset();
                 document.getElementById('questions').innerHTML = '';
+                clearValidationErrors();
             } else {
-                throw new Error(data.error);
+                throw new Error(data.error || 'Failed to save form');
             }
         } catch (error) {
             showAlert('danger', error.message);
@@ -184,4 +297,17 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addQuestion').addEventListener('click', addQuestion);
     
     form.addEventListener('submit', submitForm);
+    
+    // Add input event listeners for live validation
+    form.querySelectorAll('input, textarea').forEach(input => {
+        input.addEventListener('input', () => {
+            if (input.classList.contains('is-invalid')) {
+                input.classList.remove('is-invalid');
+                const feedback = input.nextElementSibling;
+                if (feedback && feedback.classList.contains('invalid-feedback')) {
+                    feedback.remove();
+                }
+            }
+        });
+    });
 });
