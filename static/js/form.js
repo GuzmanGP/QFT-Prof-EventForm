@@ -2,6 +2,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('formConfiguration');
     let questionCounter = 0;
     
+    function addMetadataField(container) {
+        // If container is a string (ID), get the element
+        const targetContainer = typeof container === 'string' ? 
+            document.getElementById(container) : container;
+        
+        if (!targetContainer) {
+            console.error('Invalid container:', container);
+            return;
+        }
+        
+        const field = document.createElement('div');
+        field.className = 'input-group';
+        field.innerHTML = `
+            <input type="text" class="form-control" placeholder="Key">
+            <input type="text" class="form-control" placeholder="Value">
+        `;
+        targetContainer.appendChild(field);
+    }
+    
     function updateMetadataFields(containerId, count) {
         if (count > 20) {
             showAlert('warning', 'Maximum 20 metadata fields allowed');
@@ -11,12 +30,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const container = document.getElementById(containerId);
+        if (!container) {
+            console.error('Container not found:', containerId);
+            return false;
+        }
+        
         const currentFields = container.querySelectorAll('.input-group');
         const counterDisplay = document.querySelector(`[data-target="${containerId}"]`).parentNode.querySelector('.counter-display');
         
         if (count > currentFields.length) {
             for (let i = currentFields.length; i < count; i++) {
-                addMetadataField(containerId);
+                addMetadataField(container);
             }
         } else {
             while (container.children.length > count) {
@@ -36,8 +60,13 @@ document.addEventListener('DOMContentLoaded', function() {
             count = 0;
         }
         
+        if (!container) {
+            console.error('Container not found');
+            return false;
+        }
+        
         const currentFields = container.querySelectorAll('.input-group');
-        const counterDisplay = container.parentNode.querySelector('.counter-display');
+        const counterDisplay = container.closest('.metadata-section').querySelector('.counter-display');
         
         if (count > currentFields.length) {
             for (let i = currentFields.length; i < count; i++) {
@@ -53,17 +82,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
     
-    function addMetadataField(container) {
-        const field = document.createElement('div');
-        field.className = 'input-group';
-        field.innerHTML = `
-            <input type="text" class="form-control" placeholder="Key">
-            <input type="text" class="form-control" placeholder="Value">
-        `;
-        container.appendChild(field);
-    }
-    
     function getMetadataValues(container) {
+        if (typeof container === 'string') {
+            container = document.getElementById(container);
+        }
+        
+        if (!container) {
+            console.error('Invalid container for metadata values');
+            return {};
+        }
+        
         const metadata = {};
         container.querySelectorAll('.input-group').forEach(group => {
             const inputs = group.querySelectorAll('input');
@@ -147,12 +175,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const questions = [];
         document.querySelectorAll('.question-card').forEach((card, index) => {
             questions.push({
-                title: card.querySelector('.question-title').value,
+                reference: card.querySelector('.question-title').value,
                 content: card.querySelector('.question-content').value,
                 required: card.querySelector('.question-required').checked,
                 ai_processing: card.querySelector('.question-ai').checked,
                 ai_instructions: card.querySelector('.question-ai-instructions').value,
-                metadata: getMetadataValues(card.querySelector('.question-metadata')),
+                question_metadata: getMetadataValues(card.querySelector('.question-metadata')),
                 order: index + 1
             });
         });
@@ -281,8 +309,8 @@ document.addEventListener('DOMContentLoaded', function() {
             title: document.getElementById('title').value,
             category: document.getElementById('category').value,
             subcategory: document.getElementById('subcategory').value,
-            category_metadata: getMetadataValues(document.getElementById('categoryMetadata')),
-            subcategory_metadata: getMetadataValues(document.getElementById('subcategoryMetadata')),
+            category_metadata: getMetadataValues('categoryMetadata'),
+            subcategory_metadata: getMetadataValues('subcategoryMetadata'),
             questions: getQuestionsData()
         };
         
