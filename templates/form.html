@@ -16,8 +16,11 @@
                 <div class="metadata-section mt-2">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6>Category Metadata</h6>
-                        <input type="number" class="form-control metadata-counter" 
-                               id="categoryMetaCount" value="0" min="0" max="20">
+                        <div class="counter-group">
+                            <button type="button" class="counter-button decrease-count" data-target="categoryMetadata">-</button>
+                            <span class="counter-display" id="categoryMetaCount">0</span>
+                            <button type="button" class="counter-button increase-count" data-target="categoryMetadata">+</button>
+                        </div>
                     </div>
                     <div id="categoryMetadata" class="metadata-container"></div>
                 </div>
@@ -30,8 +33,11 @@
                 <div class="metadata-section mt-2">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6>Subcategory Metadata</h6>
-                        <input type="number" class="form-control metadata-counter" 
-                               id="subcategoryMetaCount" value="0" min="0" max="20">
+                        <div class="counter-group">
+                            <button type="button" class="counter-button decrease-count" data-target="subcategoryMetadata">-</button>
+                            <span class="counter-display" id="subcategoryMetaCount">0</span>
+                            <button type="button" class="counter-button increase-count" data-target="subcategoryMetadata">+</button>
+                        </div>
                     </div>
                     <div id="subcategoryMetadata" class="metadata-container"></div>
                 </div>
@@ -91,8 +97,11 @@
             <div class="metadata-section mt-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <h6>Question Metadata</h6>
-                    <input type="number" class="form-control metadata-counter question-meta-count" 
-                           value="0" min="0" max="20">
+                    <div class="counter-group">
+                        <button type="button" class="counter-button decrease-count" data-target="question-metadata">-</button>
+                        <span class="counter-display question-meta-count">0</span>
+                        <button type="button" class="counter-button increase-count" data-target="question-metadata">+</button>
+                    </div>
                 </div>
                 <div class="question-metadata metadata-container"></div>
             </div>

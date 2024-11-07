@@ -45,63 +45,46 @@ textarea.form-control {
     min-height: 200px;
 }
 
-/* Number input styling with separate up/down buttons */
-input[type="number"] {
-    text-align: center;
-    -moz-appearance: textfield;
-    position: relative;
-    width: 80px;
-    padding-right: 1.5rem;
+/* Counter group styles */
+.counter-group {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 0.25rem;
+    overflow: hidden;
 }
 
-/* Remove default spinners */
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-/* Custom number input container */
-.metadata-counter {
-    position: relative;
-    display: inline-block;
-}
-
-/* Add custom spinner buttons */
-.metadata-counter::after,
-.metadata-counter::before {
-    content: "";
-    position: absolute;
-    right: 0;
-    width: 1.5rem;
-    height: 50%;
+.counter-button {
     background-color: var(--spinner-button-bg);
-    pointer-events: none;
-    transition: background-color 0.15s ease;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1.25rem;
+    height: 38px;
+    line-height: 1;
+    padding: 0.375rem 0.75rem;
+    transition: background-color 0.15s ease-in-out;
+    user-select: none;
 }
 
-/* Up arrow */
-.metadata-counter::before {
-    top: 0;
-    border-top-right-radius: 0.25rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' viewBox='0 0 12 6'%3E%3Cpath d='M6 0l6 6H0z' fill='%23ffffff'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-/* Down arrow */
-.metadata-counter::after {
-    bottom: 0;
-    border-bottom-right-radius: 0.25rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' viewBox='0 0 12 6'%3E%3Cpath d='M6 6l6-6H0z' fill='%23ffffff'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-/* Hover states for spinner buttons */
-.metadata-counter:hover::before,
-.metadata-counter:hover::after {
+.counter-button:hover {
     background-color: var(--spinner-button-hover-bg);
+}
+
+.counter-button:active {
+    background-color: var(--input-border);
+}
+
+.counter-display {
+    background-color: var(--input-bg);
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    min-width: 50px;
+    padding: 0.375rem;
+    text-align: center;
+    user-select: none;
 }
 
 .btn-primary {
@@ -168,8 +151,8 @@ input[type="number"]::-webkit-inner-spin-button {
     gap: 1rem;
 }
 
-.metadata-counter {
-    margin-left: auto;
+.metadata-section {
+    margin-top: 1rem;
 }
 
 .input-group {

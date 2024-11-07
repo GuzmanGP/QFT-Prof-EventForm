@@ -5,11 +5,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateMetadataFields(containerId, count) {
         if (count > 20) {
             showAlert('warning', 'Maximum 20 metadata fields allowed');
-            return;
+            return false;
+        } else if (count < 0) {
+            count = 0;
         }
         
         const container = document.getElementById(containerId);
         const currentFields = container.querySelectorAll('.input-group');
+        const counterDisplay = document.querySelector(`[data-target="${containerId}"]`).parentNode.querySelector('.counter-display');
         
         if (count > currentFields.length) {
             for (let i = currentFields.length; i < count; i++) {
@@ -20,15 +23,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 container.removeChild(container.lastChild);
             }
         }
+        
+        counterDisplay.textContent = count;
+        return true;
     }
     
     function updateQuestionMetadataFields(container, count) {
         if (count > 20) {
             showAlert('warning', 'Maximum 20 metadata fields allowed');
-            return;
+            return false;
+        } else if (count < 0) {
+            count = 0;
         }
         
         const currentFields = container.querySelectorAll('.input-group');
+        const counterDisplay = container.parentNode.querySelector('.counter-display');
         
         if (count > currentFields.length) {
             for (let i = currentFields.length; i < count; i++) {
@@ -39,6 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 container.removeChild(container.lastChild);
             }
         }
+        
+        counterDisplay.textContent = count;
+        return true;
     }
     
     function addMetadataField(container) {
@@ -98,11 +110,21 @@ document.addEventListener('DOMContentLoaded', function() {
         requiredCheckbox.nextElementSibling.htmlFor = requiredCheckbox.id;
         aiCheckbox.nextElementSibling.htmlFor = aiCheckbox.id;
         
-        const metaCounter = questionElement.querySelector('.question-meta-count');
         const metaContainer = questionElement.querySelector('.question-metadata');
         
-        metaCounter.addEventListener('change', (e) => {
-            updateQuestionMetadataFields(metaContainer, parseInt(e.target.value));
+        // Setup counter buttons for question metadata
+        const decreaseBtn = questionElement.querySelector('.decrease-count');
+        const increaseBtn = questionElement.querySelector('.increase-count');
+        const counterDisplay = questionElement.querySelector('.counter-display');
+        
+        decreaseBtn.addEventListener('click', () => {
+            const currentCount = parseInt(counterDisplay.textContent);
+            updateQuestionMetadataFields(metaContainer, currentCount - 1);
+        });
+        
+        increaseBtn.addEventListener('click', () => {
+            const currentCount = parseInt(counterDisplay.textContent);
+            updateQuestionMetadataFields(metaContainer, currentCount + 1);
         });
         
         const aiProcessingCheckbox = questionElement.querySelector('.question-ai');
@@ -277,6 +299,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 form.reset();
                 document.getElementById('questions').innerHTML = '';
                 clearValidationErrors();
+                
+                // Reset counter displays
+                document.querySelectorAll('.counter-display').forEach(display => {
+                    display.textContent = '0';
+                });
             } else {
                 throw new Error(data.error || 'Failed to save form');
             }
@@ -285,17 +312,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Event Listeners
-    document.getElementById('categoryMetaCount').addEventListener('change', (e) => {
-        updateMetadataFields('categoryMetadata', parseInt(e.target.value));
-    });
-    
-    document.getElementById('subcategoryMetaCount').addEventListener('change', (e) => {
-        updateMetadataFields('subcategoryMetadata', parseInt(e.target.value));
+    // Event Listeners for counter buttons
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('increase-count') || e.target.classList.contains('decrease-count')) {
+            const targetId = e.target.dataset.target;
+            const counterDisplay = e.target.parentNode.querySelector('.counter-display');
+            const currentCount = parseInt(counterDisplay.textContent);
+            const newCount = e.target.classList.contains('increase-count') ? currentCount + 1 : currentCount - 1;
+            
+            if (targetId === 'question-metadata') {
+                const metadataContainer = e.target.closest('.metadata-section').querySelector('.metadata-container');
+                updateQuestionMetadataFields(metadataContainer, newCount);
+            } else {
+                updateMetadataFields(targetId, newCount);
+            }
+        }
     });
     
     document.getElementById('addQuestion').addEventListener('click', addQuestion);
-    
     form.addEventListener('submit', submitForm);
     
     // Add input event listeners for live validation
