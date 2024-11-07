@@ -23,6 +23,14 @@ document.addEventListener('DOMContentLoaded', function() {
         card.querySelector('[for="required_TEMPLATE"]').setAttribute('for', `required_${questionCounter + 1}`);
         card.querySelector('[for="ai_TEMPLATE"]').setAttribute('for', `ai_${questionCounter + 1}`);
         
+        // Add answer type change handler
+        const answerTypeSelect = card.querySelector('.answer-type');
+        const listOptions = card.querySelector('.list-options');
+        
+        answerTypeSelect.addEventListener('change', function() {
+            listOptions.classList.toggle('d-none', this.value !== 'list');
+        });
+        
         // Add title change handler for real-time updates
         card.querySelector('.question-title').addEventListener('input', function() {
             updateQuestionList();
@@ -40,12 +48,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const questionsHeader = document.querySelector('.questions-header');
             const questionsList = document.getElementById('questionsList');
             
-            // Expand the menu if it's collapsed
             if (!questionsList.classList.contains('show')) {
                 new bootstrap.Collapse(questionsList).show();
             }
             
-            // Scroll to questions header
             questionsHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
         
@@ -71,8 +77,6 @@ document.addEventListener('DOMContentLoaded', function() {
             container.innerHTML = '';
         });
         updateQuestionList();
-        
-        // Clear any validation errors
         clearValidationErrors();
     });
     
@@ -92,6 +96,10 @@ document.addEventListener('DOMContentLoaded', function() {
             questions: Array.from(document.querySelectorAll('.question-card')).map((card, index) => ({
                 reference: card.querySelector('.question-title').value,
                 content: card.querySelector('.question-content').value,
+                answer_type: card.querySelector('.answer-type').value,
+                options: card.querySelector('.answer-type').value === 'list' 
+                    ? card.querySelector('.list-options input').value.split(',').map(opt => opt.trim()).filter(opt => opt)
+                    : [],
                 required: card.querySelector('.question-required').checked,
                 ai_processing: card.querySelector('.question-ai').checked,
                 ai_instructions: card.querySelector('.question-ai-instructions').value,
@@ -110,7 +118,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             if (data.success) {
-                showAlert('success', 'Form saved successfully');
+                const details = formData.questions.map(q => ({
+                    title: q.reference,
+                    type: q.answer_type,
+                    metadata: Object.keys(q.question_metadata).length
+                }));
+                showAlert('success', 'Form saved successfully', details);
                 form.reset();
             } else {
                 throw new Error(data.error || 'Failed to save form');
@@ -151,6 +164,20 @@ function validateForm() {
         isValid = false;
     }
     
+    // Validate metadata for duplicate keys
+    const categoryMetadata = getMetadataValues('categoryMetadata', true);
+    const subcategoryMetadata = getMetadataValues('subcategoryMetadata', true);
+    
+    if (!categoryMetadata.isValid) {
+        errors.push('Category metadata contains duplicate keys');
+        isValid = false;
+    }
+    
+    if (!subcategoryMetadata.isValid) {
+        errors.push('Subcategory metadata contains duplicate keys');
+        isValid = false;
+    }
+    
     // Validate questions
     const questions = document.querySelectorAll('.question-card');
     if (questions.length === 0) {
@@ -162,6 +189,8 @@ function validateForm() {
     questions.forEach((card, index) => {
         const title = card.querySelector('.question-title');
         const content = card.querySelector('.question-content');
+        const answerType = card.querySelector('.answer-type');
+        const listOptions = card.querySelector('.list-options input');
         
         if (!title.value.trim()) {
             showFieldError(title, 'Question title is required');
@@ -172,6 +201,18 @@ function validateForm() {
         if (!content.value.trim()) {
             showFieldError(content, 'Question content is required');
             errors.push(`Question ${index + 1}: Content is required`);
+            isValid = false;
+        }
+        
+        if (answerType.value === 'list' && !listOptions.value.trim()) {
+            showFieldError(listOptions, 'List options are required for list type questions');
+            errors.push(`Question ${index + 1}: List options are required`);
+            isValid = false;
+        }
+        
+        const questionMetadata = getMetadataValues(card.querySelector('.question-metadata'), true);
+        if (!questionMetadata.isValid) {
+            errors.push(`Question ${index + 1}: Metadata contains duplicate keys`);
             isValid = false;
         }
     });
@@ -214,16 +255,44 @@ function showErrorSummary(errors) {
     form.insertBefore(summary, form.firstChild);
 }
 
-function showAlert(type, message) {
+function showAlert(type, message, details = null) {
     const alertContainer = document.querySelector('.alert-container');
     if (!alertContainer) return;
     
     const alert = document.createElement('div');
     alert.className = `alert alert-${type} alert-dismissible fade show`;
-    alert.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    
+    let alertContent = `
+        <div class="d-flex justify-content-between align-items-start">
+            <div>${message}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     `;
+    
+    if (details && type === 'success') {
+        alertContent += `
+            <div class="mt-2">
+                <button class="btn btn-sm btn-outline-light" type="button" data-bs-toggle="collapse" data-bs-target="#alertDetails">
+                    Show Details ▼
+                </button>
+                <div class="collapse mt-2" id="alertDetails">
+                    <div class="card card-body bg-light text-dark">
+                        <h6 class="mb-2">Questions Summary:</h6>
+                        <ul class="list-unstyled mb-0">
+                            ${details.map(q => `
+                                <li>
+                                    <strong>${q.title}</strong> (${q.type})
+                                    ${q.metadata > 0 ? `<span class="badge bg-secondary">${q.metadata} metadata</span>` : ''}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    alert.innerHTML = alertContent;
     alertContainer.appendChild(alert);
     setTimeout(() => alert.remove(), 5000);
 }
@@ -294,25 +363,41 @@ function updateMetadataFields(container, count) {
     }
 }
 
-function getMetadataValues(container) {
+function getMetadataValues(container, validateDuplicates = false) {
     if (typeof container === 'string') {
         container = document.getElementById(container);
     }
     
     if (!container) {
-        return {};
+        return validateDuplicates ? { isValid: true, data: {} } : {};
     }
     
     const metadata = {};
-    container.querySelectorAll('.input-group').forEach(group => {
+    const keyErrors = [];
+    
+    container.querySelectorAll('.input-group').forEach((group, index) => {
         const inputs = group.querySelectorAll('input');
         const key = inputs[0].value.trim();
         const value = inputs[1].value.trim();
+        
         if (key && value) {
+            if (validateDuplicates && metadata.hasOwnProperty(key)) {
+                keyErrors.push(key);
+                inputs[0].classList.add('is-invalid');
+                if (!inputs[0].nextElementSibling?.classList.contains('invalid-feedback')) {
+                    const feedback = document.createElement('div');
+                    feedback.className = 'invalid-feedback';
+                    feedback.textContent = 'Duplicate key';
+                    inputs[0].parentNode.appendChild(feedback);
+                }
+            }
             metadata[key] = value;
         }
     });
-    return metadata;
+    
+    return validateDuplicates 
+        ? { isValid: keyErrors.length === 0, data: metadata }
+        : metadata;
 }
 
 function updateQuestionList() {
@@ -326,9 +411,10 @@ function updateQuestionList() {
     list.innerHTML = '';
     questions.forEach((card, index) => {
         const title = card.querySelector('.question-title').value.trim() || 'Untitled Question';
+        const type = card.querySelector('.answer-type').value;
         const item = document.createElement('button');
         item.className = 'list-group-item list-group-item-action';
-        item.textContent = `Question ${index + 1}: ${title}`;
+        item.innerHTML = `Question ${index + 1}: ${title} <span class="badge bg-secondary">${type}</span>`;
         
         item.addEventListener('click', (e) => {
             e.preventDefault();
