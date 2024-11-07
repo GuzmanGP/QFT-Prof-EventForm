@@ -234,6 +234,20 @@ textarea.form-control {
     background-color: var(--input-hover-bg);
 }
 
+/* Questions Header Styles */
+.questions-header {
+    cursor: pointer;
+    user-select: none;
+}
+
+.questions-header .toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.questions-header[aria-expanded="true"] .toggle-icon {
+    transform: rotate(180deg);
+}
+
 /* Form validation styles */
 .form-control.is-invalid {
     border-color: var(--error-color);
