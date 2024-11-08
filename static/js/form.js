@@ -51,6 +51,10 @@ function addMetadataField(container) {
     
     field.querySelector('.remove-field').addEventListener('click', () => {
         field.remove();
+        const metaCounter = container.closest('.metadata-section').querySelector('.counter-display');
+        if (metaCounter) {
+            metaCounter.textContent = container.querySelectorAll('.input-group').length;
+        }
     });
     
     container.appendChild(field);
@@ -77,11 +81,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('formConfiguration');
     
     // Add initial question immediately if none exist
-    if (!document.querySelectorAll('.question-card').length) {
-        const addQuestionBtn = document.getElementById('addQuestion');
-        if (addQuestionBtn) {
-            addQuestionBtn.click();
-        }
+    const addQuestionBtn = document.getElementById('addQuestion');
+    if (addQuestionBtn) {
+        addQuestionBtn.click();
     }
     
     // Initialize metadata counters
@@ -104,7 +106,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Add Question button handler
-    const addQuestionBtn = document.getElementById('addQuestion');
     if (addQuestionBtn) {
         addQuestionBtn.addEventListener('click', function() {
             const template = document.getElementById('questionTemplate');
@@ -113,6 +114,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const questionNumber = document.querySelectorAll('.question-card').length + 1;
             card.querySelector('.question-number').textContent = `Question ${questionNumber}`;
+            
+            // Set default values for first question
+            if (document.querySelectorAll('.question-card').length === 0) {
+                card.querySelector('.question-title').value = 'Q1';
+                card.querySelector('.question-content').value = 'Enter your question here';
+                card.querySelector('.answer-type').value = 'text';
+                card.querySelector('.question-required').checked = true;
+            }
             
             // Initialize metadata counter for new question
             const metadataSection = card.querySelector('.metadata-section');
@@ -151,12 +160,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Updated remove question handler
             card.querySelector('.remove-question').addEventListener('click', function() {
-                if (updateQuestionCount() <= 1) {
+                const questions = document.querySelectorAll('.question-card');
+                if (questions.length <= 1) {
                     showAlert('warning', 'At least one question is required');
                     return;
                 }
                 card.remove();
-                // Update question numbers and count
+                // Update question numbers
                 document.querySelectorAll('.question-card').forEach((card, index) => {
                     card.querySelector('.question-number').textContent = `Question ${index + 1}`;
                 });
@@ -327,12 +337,12 @@ function validateForm(form) {
         }
         
         // Validate metadata keys
-        validateMetadataContainer(card.querySelector('.question-metadata'), errors, isValid);
+        validateMetadataContainer(card.querySelector('.question-metadata'), errors);
     });
     
     // Validate category and subcategory metadata
-    validateMetadataContainer(document.getElementById('categoryMetadata'), errors, isValid);
-    validateMetadataContainer(document.getElementById('subcategoryMetadata'), errors, isValid);
+    validateMetadataContainer(document.getElementById('categoryMetadata'), errors);
+    validateMetadataContainer(document.getElementById('subcategoryMetadata'), errors);
     
     if (!isValid) {
         showErrorSummary(errors);
@@ -341,24 +351,22 @@ function validateForm(form) {
     return isValid;
 }
 
-function validateMetadataContainer(container, errors, isValid) {
+function validateMetadataContainer(container, errors) {
     const keys = new Set();
     container.querySelectorAll('.input-group').forEach(group => {
         const keyInput = group.querySelector('.metadata-key');
-        const valueInput = group.querySelector('input:not(.metadata-key)');
+        const valueInput = group.querySelector('.metadata-value');
         const key = keyInput.value.trim();
         const value = valueInput.value.trim();
         
         if (key && !value) {
             showFieldError(valueInput, 'Value is required when key is provided');
             errors.push('Metadata value is required when key is provided');
-            isValid = false;
         }
         
         if (key && keys.has(key)) {
             showFieldError(keyInput, 'Duplicate key found');
             errors.push(`Duplicate metadata key "${key}"`);
-            isValid = false;
         }
         keys.add(key);
     });
