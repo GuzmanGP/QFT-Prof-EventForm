@@ -1,4 +1,81 @@
 // Utility Functions
+function updateMetadataFields(container, count) {
+    if (count > 20) {
+        showAlert('warning', 'Maximum 20 metadata fields allowed');
+        return;
+    }
+    
+    const currentFields = container.querySelectorAll('.input-group');
+    if (count > currentFields.length) {
+        for (let i = currentFields.length; i < count; i++) {
+            addMetadataField(container);
+        }
+    } else {
+        while (container.children.length > count) {
+            container.removeChild(container.lastChild);
+        }
+    }
+}
+
+function addMetadataField(container) {
+    const field = document.createElement('div');
+    field.className = 'input-group mb-2';
+    field.innerHTML = `
+        <input type="text" class="form-control metadata-key" placeholder="Key">
+        <input type="text" class="form-control" placeholder="Value">
+        <button type="button" class="btn btn-outline-danger remove-field">×</button>
+    `;
+    
+    field.querySelector('.metadata-key').addEventListener('input', function() {
+        validateMetadataKey(this);
+    });
+    
+    field.querySelector('.remove-field').addEventListener('click', () => {
+        field.remove();
+        validateMetadataKeys(container);
+    });
+    
+    container.appendChild(field);
+}
+
+function validateMetadataKey(input) {
+    const container = input.closest('.metadata-container');
+    const currentKey = input.value.trim();
+    let isDuplicate = false;
+    
+    container.querySelectorAll('.metadata-key').forEach(keyInput => {
+        if (keyInput !== input && keyInput.value.trim() === currentKey && currentKey !== '') {
+            isDuplicate = true;
+        }
+    });
+    
+    if (isDuplicate) {
+        showFieldError(input, 'Duplicate metadata key found');
+        return false;
+    } else {
+        input.classList.remove('is-invalid');
+        const feedback = input.nextElementSibling;
+        if (feedback?.classList.contains('invalid-feedback')) {
+            feedback.remove();
+        }
+        return true;
+    }
+}
+
+function validateMetadataKeys(container) {
+    const keys = new Set();
+    let isValid = true;
+    container.querySelectorAll('.metadata-key').forEach(input => {
+        const key = input.value.trim();
+        if (key && keys.has(key)) {
+            showFieldError(input, 'Duplicate metadata key found');
+            isValid = false;
+        }
+        keys.add(key);
+    });
+    return isValid;
+}
+
 function setupMetadataCounters(container) {
     const buttons = container.querySelectorAll('.counter-button');
     const metadataContainer = container.querySelector('.metadata-container');
@@ -18,37 +95,6 @@ function setupMetadataCounters(container) {
             }
         });
     });
-}
-
-function validateMetadataKey(input) {
-    const container = input.closest('.metadata-container');
-    const currentKey = input.value.trim();
-    let isDuplicate = false;
-    
-    container.querySelectorAll('.metadata-key').forEach(keyInput => {
-        if (keyInput !== input && keyInput.value.trim() === currentKey && currentKey !== '') {
-            isDuplicate = true;
-        }
-    });
-    
-    if (isDuplicate) {
-        input.classList.add('is-invalid');
-        let feedback = input.nextElementSibling;
-        if (!feedback || !feedback.classList.contains('invalid-feedback')) {
-            feedback = document.createElement('div');
-            feedback.className = 'invalid-feedback';
-            input.parentNode.insertBefore(feedback, input.nextElementSibling);
-        }
-        feedback.textContent = 'Duplicate key found';
-    } else {
-        input.classList.remove('is-invalid');
-        const feedback = input.nextElementSibling;
-        if (feedback?.classList.contains('invalid-feedback')) {
-            feedback.remove();
-        }
-    }
-    
-    return !isDuplicate;
 }
 
 // Form Configuration Management
@@ -102,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.setAttribute('aria-required', 'true');
             }
         });
-
+        
         // Add AI checkbox handler
         card.querySelector('.question-ai').addEventListener('change', function() {
             const aiInstructions = this.closest('.card-body').querySelector('.ai-instructions');
@@ -297,6 +343,20 @@ function validateForm() {
         }
     });
     
+    // Validate metadata
+    document.querySelectorAll('.metadata-container').forEach((container, index) => {
+        const keys = new Set();
+        container.querySelectorAll('.metadata-key').forEach(input => {
+            const key = input.value.trim();
+            if (key && keys.has(key)) {
+                showFieldError(input, 'Duplicate metadata key found');
+                errors.push(`Metadata section ${index + 1}: Duplicate key "${key}"`);
+                isValid = false;
+            }
+            keys.add(key);
+        });
+    });
+    
     if (errors.length) {
         showErrorSummary(errors);
     }
@@ -408,48 +468,11 @@ function updateQuestionList() {
         item.className = 'list-group-item list-group-item-action';
         item.innerHTML = `Question ${index + 1}: ${title} <span class="badge bg-secondary">${type}</span>`;
         
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const questionCard = card.querySelector('.card-header');
-            if (questionCard) {
-                questionCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+        item.addEventListener('click', () => {
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            new bootstrap.Collapse(listContainer).hide();
         });
         
         list.appendChild(item);
     });
-}
-
-function addMetadataField(container) {
-    if (typeof container === 'string') {
-        container = document.getElementById(container);
-    }
-    
-    const field = document.createElement('div');
-    field.className = 'input-group mb-2';
-    field.innerHTML = `
-        <input type="text" class="form-control metadata-key" placeholder="Key">
-        <input type="text" class="form-control" placeholder="Value">
-        <button type="button" class="btn btn-outline-danger remove-field">×</button>
-    `;
-    
-    const keyInput = field.querySelector('.metadata-key');
-    keyInput.addEventListener('input', function() {
-        validateMetadataKey(this);
-    });
-    
-    field.querySelector('.remove-field').addEventListener('click', () => {
-        field.remove();
-        const metadataSection = container.closest('.metadata-section');
-        if (metadataSection) {
-            const display = metadataSection.querySelector('.counter-display');
-            if (display) {
-                display.textContent = container.querySelectorAll('.input-group').length;
-            }
-        }
-    });
-    
-    container.appendChild(field);
 }
