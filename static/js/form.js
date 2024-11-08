@@ -25,21 +25,16 @@ function validateMetadataKey(input) {
     const currentKey = input.value.trim();
     let isDuplicate = false;
     
-    // Check for duplicate keys
     container.querySelectorAll('.metadata-key').forEach(keyInput => {
         if (keyInput !== input && keyInput.value.trim() === currentKey && currentKey !== '') {
             isDuplicate = true;
         }
     });
     
-    // Show/hide error message
     if (isDuplicate) {
         input.classList.add('is-invalid');
-        let feedback = input.nextElementSibling?.classList.contains('invalid-feedback') 
-            ? input.nextElementSibling 
-            : null;
-            
-        if (!feedback) {
+        let feedback = input.nextElementSibling;
+        if (!feedback || !feedback.classList.contains('invalid-feedback')) {
             feedback = document.createElement('div');
             feedback.className = 'invalid-feedback';
             input.parentNode.insertBefore(feedback, input.nextElementSibling);
@@ -65,7 +60,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.metadata-section').forEach(section => {
         setupMetadataCounters(section);
         
-        // Add event delegation for metadata validation
         const container = section.querySelector('.metadata-container');
         if (container) {
             container.addEventListener('input', function(e) {
@@ -102,6 +96,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         answerTypeSelect.addEventListener('change', function() {
             listOptions.classList.toggle('d-none', this.value !== 'list');
+            if (this.value === 'list') {
+                const input = listOptions.querySelector('input');
+                input.required = true;
+                input.setAttribute('aria-required', 'true');
+            }
         });
         
         // Add title change handler for real-time updates
@@ -131,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize metadata counters for the new question
         setupMetadataCounters(card);
         
-        // Add event delegation for metadata validation
+        // Add metadata validation
         const container = card.querySelector('.metadata-container');
         if (container) {
             container.addEventListener('input', function(e) {
@@ -166,6 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form validation and submission
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+        clearValidationErrors();
         
         if (!validateForm()) {
             return;
@@ -201,18 +201,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             if (data.success) {
-                const details = formData.questions.map(q => ({
-                    title: q.reference,
-                    type: q.answer_type,
-                    metadata: Object.keys(q.question_metadata).length
-                }));
-                showAlert('success', 'Form saved successfully', details);
+                showAlert('success', 'Form saved successfully', {
+                    questions: formData.questions.map(q => ({
+                        title: q.reference,
+                        type: q.answer_type,
+                        metadata: Object.keys(q.question_metadata).length
+                    }))
+                });
                 form.reset();
             } else {
                 throw new Error(data.error || 'Failed to save form');
             }
         } catch (error) {
             showAlert('danger', error.message);
+            showErrorSummary([error.message]);
         }
     });
 });
@@ -245,6 +247,7 @@ function validateForm() {
     if (!questions.length) {
         errors.push('At least one question is required');
         isValid = false;
+        showAlert('danger', 'At least one question is required');
     }
     
     questions.forEach((card, index) => {
@@ -263,7 +266,6 @@ function validateForm() {
             isValid = false;
         }
         
-        // Validate list options if answer type is list
         const answerType = card.querySelector('.answer-type');
         if (answerType.value === 'list') {
             const listOptions = card.querySelector('.list-options input');
@@ -284,13 +286,21 @@ function validateForm() {
 
 function showFieldError(field, message) {
     field.classList.add('is-invalid', 'validation-shake');
-    const feedback = document.createElement('div');
-    feedback.className = 'invalid-feedback';
+    let feedback = field.nextElementSibling;
+    if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+        feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback';
+        field.parentNode.appendChild(feedback);
+    }
     feedback.textContent = message;
-    field.parentNode.appendChild(feedback);
 }
 
 function showErrorSummary(errors) {
+    const existingSummary = document.querySelector('.error-summary');
+    if (existingSummary) {
+        existingSummary.remove();
+    }
+    
     const summary = document.createElement('div');
     summary.className = 'error-summary';
     summary.innerHTML = `
@@ -300,18 +310,23 @@ function showErrorSummary(errors) {
         </ul>
     `;
     document.querySelector('.alert-container').appendChild(summary);
+    summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function showAlert(type, message, details = null) {
+    const alertContainer = document.querySelector('.alert-container');
+    const existingAlerts = alertContainer.querySelectorAll('.alert');
+    existingAlerts.forEach(alert => alert.remove());
+    
     const alert = document.createElement('div');
     alert.className = `alert alert-${type} alert-dismissible fade show`;
     
     let alertContent = message;
-    if (details) {
+    if (details && details.questions) {
         alertContent += '<hr><div class="collapse" id="formDetails">';
         alertContent += '<h6>Form Details:</h6><ul>';
-        details.forEach(q => {
-            alertContent += `<li>Question: ${q.title} (${q.type})`;
+        details.questions.forEach(q => {
+            alertContent += `<li>${q.title} (${q.type})`;
             if (q.metadata > 0) {
                 alertContent += ` - ${q.metadata} metadata fields`;
             }
@@ -326,8 +341,8 @@ function showAlert(type, message, details = null) {
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
     
-    document.querySelector('.alert-container').appendChild(alert);
-    setTimeout(() => alert.remove(), 5000);
+    alertContainer.appendChild(alert);
+    setTimeout(() => alert.remove(), 8000);
 }
 
 function updateQuestionNumbers() {
@@ -339,6 +354,10 @@ function updateQuestionNumbers() {
 }
 
 function getMetadataValues(container) {
+    if (typeof container === 'string') {
+        container = document.getElementById(container);
+    }
+    
     const fields = container.querySelectorAll('.input-group');
     const metadata = {};
     
@@ -384,6 +403,10 @@ function updateQuestionList() {
 }
 
 function addMetadataField(container) {
+    if (typeof container === 'string') {
+        container = document.getElementById(container);
+    }
+    
     const field = document.createElement('div');
     field.className = 'input-group mb-2';
     field.innerHTML = `
@@ -392,7 +415,6 @@ function addMetadataField(container) {
         <button type="button" class="btn btn-outline-danger remove-field">×</button>
     `;
     
-    // Add real-time key validation
     const keyInput = field.querySelector('.metadata-key');
     keyInput.addEventListener('input', function() {
         validateMetadataKey(this);
@@ -410,6 +432,10 @@ function addMetadataField(container) {
 }
 
 function updateMetadataFields(container, count) {
+    if (typeof container === 'string') {
+        container = document.getElementById(container);
+    }
+    
     if (count > 20) {
         showAlert('warning', 'Maximum 20 metadata fields allowed');
         return;
