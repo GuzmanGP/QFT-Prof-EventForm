@@ -20,6 +20,42 @@ function setupMetadataCounters(container) {
     });
 }
 
+function validateMetadataKey(input) {
+    const container = input.closest('.metadata-container');
+    const currentKey = input.value.trim();
+    let isDuplicate = false;
+    
+    // Check for duplicate keys
+    container.querySelectorAll('.metadata-key').forEach(keyInput => {
+        if (keyInput !== input && keyInput.value.trim() === currentKey && currentKey !== '') {
+            isDuplicate = true;
+        }
+    });
+    
+    // Show/hide error message
+    if (isDuplicate) {
+        input.classList.add('is-invalid');
+        let feedback = input.nextElementSibling?.classList.contains('invalid-feedback') 
+            ? input.nextElementSibling 
+            : null;
+            
+        if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            input.parentNode.insertBefore(feedback, input.nextElementSibling);
+        }
+        feedback.textContent = 'Duplicate key found';
+    } else {
+        input.classList.remove('is-invalid');
+        const feedback = input.nextElementSibling;
+        if (feedback?.classList.contains('invalid-feedback')) {
+            feedback.remove();
+        }
+    }
+    
+    return !isDuplicate;
+}
+
 // Form Configuration Management
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('formConfiguration');
@@ -28,6 +64,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize metadata counter buttons for all sections
     document.querySelectorAll('.metadata-section').forEach(section => {
         setupMetadataCounters(section);
+        
+        // Add event delegation for metadata validation
+        const container = section.querySelector('.metadata-container');
+        if (container) {
+            container.addEventListener('input', function(e) {
+                if (e.target.classList.contains('metadata-key')) {
+                    validateMetadataKey(e.target);
+                }
+            });
+        }
     });
     
     // Add Question button handler
@@ -69,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateQuestionNumbers();
             updateQuestionList();
         });
-
+        
         // Add back to menu button handler
         card.querySelector('.back-to-menu').addEventListener('click', function() {
             const questionsHeader = document.querySelector('.questions-header');
@@ -84,6 +130,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Initialize metadata counters for the new question
         setupMetadataCounters(card);
+        
+        // Add event delegation for metadata validation
+        const container = card.querySelector('.metadata-container');
+        if (container) {
+            container.addEventListener('input', function(e) {
+                if (e.target.classList.contains('metadata-key')) {
+                    validateMetadataKey(e.target);
+                }
+            });
+        }
         
         // Add to questions container
         document.getElementById('questions').appendChild(card);
@@ -206,6 +262,17 @@ function validateForm() {
             errors.push(`Question ${index + 1}: Content is required`);
             isValid = false;
         }
+        
+        // Validate list options if answer type is list
+        const answerType = card.querySelector('.answer-type');
+        if (answerType.value === 'list') {
+            const listOptions = card.querySelector('.list-options input');
+            if (!listOptions.value.trim()) {
+                showFieldError(listOptions, 'List options are required for list type questions');
+                errors.push(`Question ${index + 1}: List options are required`);
+                isValid = false;
+            }
+        }
     });
     
     if (errors.length) {
@@ -324,6 +391,12 @@ function addMetadataField(container) {
         <input type="text" class="form-control" placeholder="Value">
         <button type="button" class="btn btn-outline-danger remove-field">×</button>
     `;
+    
+    // Add real-time key validation
+    const keyInput = field.querySelector('.metadata-key');
+    keyInput.addEventListener('input', function() {
+        validateMetadataKey(this);
+    });
     
     field.querySelector('.remove-field').addEventListener('click', () => {
         field.remove();
