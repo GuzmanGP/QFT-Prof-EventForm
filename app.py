@@ -21,5 +21,6 @@ db.init_app(app)
 
 with app.app_context():
     import models
+    db.drop_all()  # Drop all tables
+    db.create_all()  # Recreate all tables
     import routes
-    db.create_all()

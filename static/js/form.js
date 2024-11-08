@@ -108,7 +108,7 @@ function showErrorSummary(errors) {
     }
     
     const summary = document.createElement('div');
-    summary.className = 'error-summary';
+    summary.className = 'error-summary alert alert-danger';
     summary.innerHTML = `
         <h5>Please correct the following errors:</h5>
         <ul>
@@ -145,12 +145,13 @@ function clearValidationErrors() {
 }
 
 function validateForm() {
+    const form = document.getElementById('formConfiguration');
     clearValidationErrors();
     let isValid = true;
     const errors = [];
     
     // Validate title
-    const title = document.getElementById('title');
+    const title = form.querySelector('#title');
     if (!title.value.trim()) {
         showFieldError(title, 'Form title is required');
         errors.push('Form title is required');
@@ -162,7 +163,7 @@ function validateForm() {
     }
     
     // Validate category
-    const category = document.getElementById('category');
+    const category = form.querySelector('#category');
     if (!category.value.trim()) {
         showFieldError(category, 'Category is required');
         errors.push('Category is required');
@@ -174,7 +175,7 @@ function validateForm() {
     }
     
     // Validate questions
-    const questions = document.querySelectorAll('.question-card');
+    const questions = form.querySelectorAll('.question-card');
     if (!questions.length) {
         errors.push('At least one question is required');
         isValid = false;
@@ -213,7 +214,7 @@ function validateForm() {
     });
     
     // Validate metadata
-    document.querySelectorAll('.metadata-container').forEach(container => {
+    form.querySelectorAll('.metadata-container').forEach(container => {
         if (!validateMetadataKeys(container)) {
             isValid = false;
         }
@@ -321,12 +322,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const formData = {
-            title: document.getElementById('title').value.trim(),
-            category: document.getElementById('category').value.trim(),
-            subcategory: document.getElementById('subcategory').value.trim(),
+            title: form.querySelector('#title').value.trim(),
+            category: form.querySelector('#category').value.trim(),
+            subcategory: form.querySelector('#subcategory').value.trim(),
             category_metadata: getMetadataValues('categoryMetadata'),
             subcategory_metadata: getMetadataValues('subcategoryMetadata'),
-            questions: Array.from(document.querySelectorAll('.question-card')).map((card, index) => ({
+            questions: Array.from(form.querySelectorAll('.question-card')).map((card, index) => ({
                 reference: card.querySelector('.question-title').value.trim(),
                 content: card.querySelector('.question-content').value.trim(),
                 answer_type: card.querySelector('.answer-type').value,
