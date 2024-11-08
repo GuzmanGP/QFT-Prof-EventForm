@@ -90,12 +90,11 @@ textarea.form-control {
 
 .input-group {
     position: relative;
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: stretch;
-    width: 100%;
-    gap: 0;
     margin-bottom: 1.5rem;
+}
+
+.metadata-container .input-group:last-child {
+    margin-bottom: 0.5rem;
 }
 
 .input-group input {
@@ -110,6 +109,14 @@ textarea.form-control {
 
 .input-group input:nth-child(2) {
     border-radius: 0;
+}
+
+.metadata-error {
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+    font-size: 0.875rem;
+    color: var(--error-color);
 }
 
 .remove-field {

@@ -140,7 +140,7 @@ function clearValidationErrors() {
         element.classList.remove('is-invalid', 'validation-shake');
     });
     
-    document.querySelectorAll('.invalid-feedback').forEach(element => {
+    document.querySelectorAll('.invalid-feedback, .metadata-error').forEach(element => {
         element.remove();
     });
     
@@ -207,6 +207,43 @@ function validateForm() {
     }
     
     return isValid;
+}
+
+function validateMetadataKey(input) {
+    const container = input.closest('.metadata-container');
+    const currentKey = input.value.trim();
+    let isDuplicate = false;
+    
+    container.querySelectorAll('.metadata-key').forEach(keyInput => {
+        if (keyInput !== input && keyInput.value.trim() === currentKey && currentKey !== '') {
+            isDuplicate = true;
+        }
+    });
+    
+    if (isDuplicate) {
+        input.classList.add('is-invalid');
+        
+        // Create or update error message
+        let feedback = input.closest('.input-group').querySelector('.metadata-error');
+        if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.className = 'metadata-error text-danger small mt-1';
+            input.closest('.input-group').appendChild(feedback);
+        }
+        feedback.textContent = 'Duplicate key found';
+    } else {
+        input.classList.remove('is-invalid');
+        const feedback = input.closest('.input-group').querySelector('.metadata-error');
+        if (feedback) {
+            feedback.remove();
+        }
+    }
+}
+
+function validateAllMetadataKeys(container) {
+    container.querySelectorAll('.metadata-key').forEach(keyInput => {
+        validateMetadataKey(keyInput);
+    });
 }
 
 function showFieldError(element, message) {
@@ -310,40 +347,6 @@ function addMetadataField(container) {
     container.appendChild(field);
 }
 
-function validateMetadataKey(input) {
-    const container = input.closest('.metadata-container');
-    const currentKey = input.value.trim();
-    let isDuplicate = false;
-    
-    container.querySelectorAll('.metadata-key').forEach(keyInput => {
-        if (keyInput !== input && keyInput.value.trim() === currentKey && currentKey !== '') {
-            isDuplicate = true;
-        }
-    });
-    
-    if (isDuplicate) {
-        input.classList.add('is-invalid');
-        if (!input.nextElementSibling?.classList.contains('invalid-feedback')) {
-            const feedback = document.createElement('div');
-            feedback.className = 'invalid-feedback';
-            feedback.textContent = 'Duplicate key';
-            input.parentNode.insertBefore(feedback, input.nextElementSibling);
-        }
-    } else {
-        input.classList.remove('is-invalid');
-        const feedback = input.nextElementSibling;
-        if (feedback?.classList.contains('invalid-feedback')) {
-            feedback.remove();
-        }
-    }
-}
-
-function validateAllMetadataKeys(container) {
-    container.querySelectorAll('.metadata-key').forEach(keyInput => {
-        validateMetadataKey(keyInput);
-    });
-}
-
 function updateMetadataFields(container, count) {
     if (count > 20) {
         showAlert('warning', 'Maximum 20 metadata fields allowed');
@@ -406,7 +409,6 @@ function updateQuestionList() {
                 const invalidFields = card.querySelectorAll('.is-invalid');
                 const tempRemoved = [];
                 
-                // Temporarily remove validation classes
                 invalidFields.forEach(field => {
                     tempRemoved.push({
                         element: field,
@@ -428,10 +430,3 @@ function updateQuestionList() {
         list.appendChild(item);
     });
 }
-
-// Initialize metadata counters when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.metadata-section').forEach(section => {
-        setupMetadataCounters(section);
-    });
-});
