@@ -4,6 +4,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 class FormConfiguration(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
     category = db.Column(db.String(100), nullable=False)
     subcategory = db.Column(db.String(100))
     category_metadata = db.Column(JSONB, default=dict)

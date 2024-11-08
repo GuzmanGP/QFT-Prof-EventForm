@@ -1,6 +1,7 @@
 from flask import render_template, request, jsonify, flash
 from app import app, db
 from models import FormConfiguration, Question
+from sheets_sync import sync_form_to_sheet
 import time
 
 def retry_database_operation(operation, max_retries=3, delay=1):
@@ -16,6 +17,11 @@ def validate_form_data(data):
     errors = []
     
     # Validate required fields
+    if not data.get('title'):
+        errors.append('Form title is required')
+    elif len(data['title']) > 200:
+        errors.append('Form title must be less than 200 characters')
+
     if not data.get('category'):
         errors.append('Category is required')
     elif len(data['category']) > 100:
@@ -60,6 +66,7 @@ def create_form():
             return jsonify({'success': False, 'error': str(e)}), 400
         
         form = FormConfiguration(
+            title=data['title'],
             category=data['category'],
             subcategory=data.get('subcategory'),
             category_metadata=data.get('category_metadata', {}),
@@ -82,6 +89,9 @@ def create_form():
         def save_form():
             db.session.add(form)
             db.session.commit()
+            
+            # Sync to Google Sheets
+            sync_form_to_sheet(form)
         
         retry_database_operation(save_form)
         return jsonify({'success': True, 'id': form.id})
