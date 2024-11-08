@@ -144,8 +144,7 @@ function clearValidationErrors() {
     });
 }
 
-function validateForm() {
-    const form = document.getElementById('formConfiguration');
+function validateForm(form) {
     clearValidationErrors();
     let isValid = true;
     const errors = [];
@@ -313,66 +312,67 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Form submission handler
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        clearValidationErrors();
-        
-        if (!validateForm()) {
-            return;
-        }
-        
-        const formData = {
-            title: form.querySelector('#title').value.trim(),
-            category: form.querySelector('#category').value.trim(),
-            subcategory: form.querySelector('#subcategory').value.trim(),
-            category_metadata: getMetadataValues('categoryMetadata'),
-            subcategory_metadata: getMetadataValues('subcategoryMetadata'),
-            questions: Array.from(form.querySelectorAll('.question-card')).map((card, index) => ({
-                reference: card.querySelector('.question-title').value.trim(),
-                content: card.querySelector('.question-content').value.trim(),
-                answer_type: card.querySelector('.answer-type').value,
-                options: card.querySelector('.answer-type').value === 'list' 
-                    ? card.querySelector('.list-options input').value.split(',').map(opt => opt.trim()).filter(opt => opt)
-                    : [],
-                required: card.querySelector('.question-required').checked,
-                ai_processing: card.querySelector('.question-ai').checked,
-                ai_instructions: card.querySelector('.question-ai-instructions').value.trim(),
-                question_metadata: getMetadataValues(card.querySelector('.question-metadata')),
-                order: index + 1
-            }))
-        };
-        
-        try {
-            const response = await fetch('/api/forms', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            const data = await response.json();
-            
-            if (data.success) {
-                let message = 'Form saved successfully';
-                if (!data.sheets_sync) {
-                    message += ' (Google Sheets sync failed - please check API permissions)';
-                }
-                showAlert('success', message);
-                form.reset();
-                document.getElementById('questions').innerHTML = '';
-                document.querySelectorAll('.counter-display').forEach(display => {
-                    display.textContent = '0';
-                });
-                document.querySelectorAll('.metadata-container').forEach(container => {
-                    container.innerHTML = '';
-                });
-            } else {
-                throw new Error(data.error || 'Failed to save form');
+            if (!validateForm(form)) {
+                return;
             }
-        } catch (error) {
-            showAlert('danger', error.message);
-            showErrorSummary([error.message]);
-        }
-    });
+            
+            const formData = {
+                title: form.querySelector('#title').value.trim(),
+                category: form.querySelector('#category').value.trim(),
+                subcategory: form.querySelector('#subcategory').value.trim(),
+                category_metadata: getMetadataValues('categoryMetadata'),
+                subcategory_metadata: getMetadataValues('subcategoryMetadata'),
+                questions: Array.from(form.querySelectorAll('.question-card')).map((card, index) => ({
+                    reference: card.querySelector('.question-title').value.trim(),
+                    content: card.querySelector('.question-content').value.trim(),
+                    answer_type: card.querySelector('.answer-type').value,
+                    options: card.querySelector('.answer-type').value === 'list' 
+                        ? card.querySelector('.list-options input').value.split(',').map(opt => opt.trim()).filter(opt => opt)
+                        : [],
+                    required: card.querySelector('.question-required').checked,
+                    ai_processing: card.querySelector('.question-ai').checked,
+                    ai_instructions: card.querySelector('.question-ai-instructions').value.trim(),
+                    question_metadata: getMetadataValues(card.querySelector('.question-metadata')),
+                    order: index + 1
+                }))
+            };
+            
+            try {
+                const response = await fetch('/api/forms', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    let message = 'Form saved successfully';
+                    if (!data.sheets_sync) {
+                        message += ' (Google Sheets sync failed - please check API permissions)';
+                    }
+                    showAlert('success', message);
+                    form.reset();
+                    document.getElementById('questions').innerHTML = '';
+                    document.querySelectorAll('.counter-display').forEach(display => {
+                        display.textContent = '0';
+                    });
+                    document.querySelectorAll('.metadata-container').forEach(container => {
+                        container.innerHTML = '';
+                    });
+                } else {
+                    throw new Error(data.error || 'Failed to save form');
+                }
+            } catch (error) {
+                showAlert('danger', error.message);
+                showErrorSummary([error.message]);
+            }
+        });
+    }
 });
 
 function getMetadataValues(container) {

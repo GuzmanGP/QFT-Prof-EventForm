@@ -28,8 +28,12 @@ def sync_form_to_sheet(form_config):
             workbook = client.open(form_config.title)
         except gspread.SpreadsheetNotFound:
             workbook = client.create(form_config.title)
-            # Share with service account email
-            workbook.share('form-config-sync@replit-439821.iam.gserviceaccount.com', 'writer')
+            # Share with service account email with proper parameters
+            workbook.share(
+                email='form-config-sync@replit-439821.iam.gserviceaccount.com',
+                role='writer',
+                notify=False
+            )
         
         sheet = workbook.sheet1
         
