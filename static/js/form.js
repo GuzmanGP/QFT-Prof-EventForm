@@ -1,4 +1,13 @@
 // Utility Functions
+function updateQuestionCount() {
+    const count = document.querySelectorAll('.question-card').length;
+    const countDisplay = document.getElementById('questionCount');
+    if (countDisplay) {
+        countDisplay.textContent = count;
+    }
+    return count;
+}
+
 function updateMetadataFields(container, count) {
     if (typeof container === 'string') {
         container = document.getElementById(container);
@@ -67,9 +76,12 @@ function showAlert(type, message) {
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('formConfiguration');
     
-    // Add initial question if none exist
+    // Add initial question immediately if none exist
     if (!document.querySelectorAll('.question-card').length) {
-        document.getElementById('addQuestion').click();
+        const addQuestionBtn = document.getElementById('addQuestion');
+        if (addQuestionBtn) {
+            addQuestionBtn.click();
+        }
     }
     
     // Initialize metadata counters
@@ -139,19 +151,20 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Updated remove question handler
             card.querySelector('.remove-question').addEventListener('click', function() {
-                const questions = document.querySelectorAll('.question-card');
-                if (questions.length <= 1) {
+                if (updateQuestionCount() <= 1) {
                     showAlert('warning', 'At least one question is required');
                     return;
                 }
                 card.remove();
-                // Update question numbers
+                // Update question numbers and count
                 document.querySelectorAll('.question-card').forEach((card, index) => {
                     card.querySelector('.question-number').textContent = `Question ${index + 1}`;
                 });
+                updateQuestionCount();
             });
             
             document.getElementById('questions').appendChild(card);
+            updateQuestionCount();
         });
     }
     
@@ -202,8 +215,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     showAlert('success', message);
                     form.reset();
                     document.getElementById('questions').innerHTML = '';
-                    // Add initial question after form reset
+                    
+                    // Ensure there's at least one question after reset
                     document.getElementById('addQuestion').click();
+                    
                     document.querySelectorAll('.counter-display').forEach(display => {
                         display.textContent = '0';
                     });
@@ -245,6 +260,14 @@ function validateForm(form) {
     // Clear previous errors
     clearAllErrors();
     
+    // Validate questions count first
+    const questionCount = updateQuestionCount();
+    if (questionCount === 0) {
+        errors.push('At least one question is required');
+        isValid = false;
+        document.getElementById('addQuestion').click();
+    }
+    
     // Validate title
     const title = form.querySelector('#title');
     if (!title.value.trim()) {
@@ -261,18 +284,11 @@ function validateForm(form) {
         isValid = false;
     }
     
-    // Validate questions
-    const questions = form.querySelectorAll('.question-card');
-    if (!questions.length) {
-        errors.push('At least one question is required');
-        isValid = false;
-    }
-    
     // Check for duplicate questions
     const references = new Set();
     const contents = new Set();
     
-    questions.forEach((card, index) => {
+    document.querySelectorAll('.question-card').forEach((card, index) => {
         const reference = card.querySelector('.question-title').value.trim();
         const content = card.querySelector('.question-content').value.trim();
         
