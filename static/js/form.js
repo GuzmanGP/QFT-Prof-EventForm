@@ -164,20 +164,6 @@ function validateForm() {
         isValid = false;
     }
     
-    // Validate metadata for duplicate keys
-    const categoryMetadata = getMetadataValues('categoryMetadata', true);
-    const subcategoryMetadata = getMetadataValues('subcategoryMetadata', true);
-    
-    if (!categoryMetadata.isValid) {
-        errors.push('Category metadata contains duplicate keys');
-        isValid = false;
-    }
-    
-    if (!subcategoryMetadata.isValid) {
-        errors.push('Subcategory metadata contains duplicate keys');
-        isValid = false;
-    }
-    
     // Validate questions
     const questions = document.querySelectorAll('.question-card');
     if (questions.length === 0) {
@@ -209,12 +195,11 @@ function validateForm() {
             errors.push(`Question ${index + 1}: List options are required`);
             isValid = false;
         }
-        
-        const questionMetadata = getMetadataValues(card.querySelector('.question-metadata'), true);
-        if (!questionMetadata.isValid) {
-            errors.push(`Question ${index + 1}: Metadata contains duplicate keys`);
-            isValid = false;
-        }
+    });
+    
+    // Validate all metadata containers
+    document.querySelectorAll('.metadata-container').forEach(container => {
+        validateAllMetadataKeys(container);
     });
     
     if (!isValid) {
@@ -297,42 +282,20 @@ function showAlert(type, message, details = null) {
     setTimeout(() => alert.remove(), 5000);
 }
 
-function updateQuestionNumbers() {
-    const questions = document.querySelectorAll('.question-card');
-    questions.forEach((card, index) => {
-        card.querySelector('.question-number').textContent = `Question ${index + 1}`;
-    });
-    questionCounter = questions.length;
-    document.getElementById('questionCount').textContent = questionCounter;
-}
-
-function setupMetadataCounters(container) {
-    container.querySelectorAll('.counter-button').forEach(button => {
-        button.addEventListener('click', function() {
-            const isIncrease = this.classList.contains('increase-count');
-            const targetContainer = this.closest('.metadata-section')
-                .querySelector('.metadata-container');
-            const counterDisplay = this.closest('.metadata-section')
-                .querySelector('.counter-display');
-            let count = parseInt(counterDisplay.textContent);
-            
-            count = isIncrease ? count + 1 : count - 1;
-            if (count >= 0 && count <= 20) {
-                updateMetadataFields(targetContainer, count);
-                counterDisplay.textContent = count;
-            }
-        });
-    });
-}
-
 function addMetadataField(container) {
     const field = document.createElement('div');
     field.className = 'input-group mb-2';
     field.innerHTML = `
-        <input type="text" class="form-control" placeholder="Key">
+        <input type="text" class="form-control metadata-key" placeholder="Key">
         <input type="text" class="form-control" placeholder="Value">
         <button type="button" class="btn btn-outline-danger remove-field">×</button>
     `;
+    
+    // Add real-time key validation
+    const keyInput = field.querySelector('.metadata-key');
+    keyInput.addEventListener('input', () => {
+        validateMetadataKey(keyInput);
+    });
     
     field.querySelector('.remove-field').addEventListener('click', () => {
         field.remove();
@@ -340,9 +303,45 @@ function addMetadataField(container) {
         const counterDisplay = metadataSection.querySelector('.counter-display');
         const currentCount = parseInt(counterDisplay.textContent);
         counterDisplay.textContent = currentCount - 1;
+        // Revalidate all keys after removal
+        validateAllMetadataKeys(container);
     });
     
     container.appendChild(field);
+}
+
+function validateMetadataKey(input) {
+    const container = input.closest('.metadata-container');
+    const currentKey = input.value.trim();
+    let isDuplicate = false;
+    
+    container.querySelectorAll('.metadata-key').forEach(keyInput => {
+        if (keyInput !== input && keyInput.value.trim() === currentKey && currentKey !== '') {
+            isDuplicate = true;
+        }
+    });
+    
+    if (isDuplicate) {
+        input.classList.add('is-invalid');
+        if (!input.nextElementSibling?.classList.contains('invalid-feedback')) {
+            const feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            feedback.textContent = 'Duplicate key';
+            input.parentNode.insertBefore(feedback, input.nextElementSibling);
+        }
+    } else {
+        input.classList.remove('is-invalid');
+        const feedback = input.nextElementSibling;
+        if (feedback?.classList.contains('invalid-feedback')) {
+            feedback.remove();
+        }
+    }
+}
+
+function validateAllMetadataKeys(container) {
+    container.querySelectorAll('.metadata-key').forEach(keyInput => {
+        validateMetadataKey(keyInput);
+    });
 }
 
 function updateMetadataFields(container, count) {
@@ -363,41 +362,23 @@ function updateMetadataFields(container, count) {
     }
 }
 
-function getMetadataValues(container, validateDuplicates = false) {
-    if (typeof container === 'string') {
-        container = document.getElementById(container);
-    }
-    
-    if (!container) {
-        return validateDuplicates ? { isValid: true, data: {} } : {};
-    }
-    
-    const metadata = {};
-    const keyErrors = [];
-    
-    container.querySelectorAll('.input-group').forEach((group, index) => {
-        const inputs = group.querySelectorAll('input');
-        const key = inputs[0].value.trim();
-        const value = inputs[1].value.trim();
-        
-        if (key && value) {
-            if (validateDuplicates && metadata.hasOwnProperty(key)) {
-                keyErrors.push(key);
-                inputs[0].classList.add('is-invalid');
-                if (!inputs[0].nextElementSibling?.classList.contains('invalid-feedback')) {
-                    const feedback = document.createElement('div');
-                    feedback.className = 'invalid-feedback';
-                    feedback.textContent = 'Duplicate key';
-                    inputs[0].parentNode.appendChild(feedback);
-                }
+function setupMetadataCounters(container) {
+    container.querySelectorAll('.counter-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const isIncrease = this.classList.contains('increase-count');
+            const targetContainer = this.closest('.metadata-section')
+                .querySelector('.metadata-container');
+            const counterDisplay = this.closest('.metadata-section')
+                .querySelector('.counter-display');
+            let count = parseInt(counterDisplay.textContent);
+            
+            count = isIncrease ? count + 1 : count - 1;
+            if (count >= 0 && count <= 20) {
+                updateMetadataFields(targetContainer, count);
+                counterDisplay.textContent = count;
             }
-            metadata[key] = value;
-        }
+        });
     });
-    
-    return validateDuplicates 
-        ? { isValid: keyErrors.length === 0, data: metadata }
-        : metadata;
 }
 
 function updateQuestionList() {
@@ -425,10 +406,11 @@ function updateQuestionList() {
                 const invalidFields = card.querySelectorAll('.is-invalid');
                 const tempRemoved = [];
                 
+                // Temporarily remove validation classes
                 invalidFields.forEach(field => {
                     tempRemoved.push({
                         element: field,
-                        classes: [...field.classList]
+                        classes: ['is-invalid', 'validation-shake']
                     });
                     field.classList.remove('is-invalid', 'validation-shake');
                 });
@@ -439,7 +421,7 @@ function updateQuestionList() {
                     tempRemoved.forEach(item => {
                         item.element.classList.add(...item.classes);
                     });
-                }, 100);
+                }, 500);
             }
         });
         
