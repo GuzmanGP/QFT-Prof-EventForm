@@ -21,7 +21,47 @@ function updateMetadataFields(container, count) {
     }
 }
 
-// ... [previous utility functions remain unchanged until line 236]
+function addMetadataField(container) {
+    const field = document.createElement('div');
+    field.className = 'input-group mb-2';
+    field.innerHTML = `
+        <input type="text" class="form-control metadata-key" placeholder="Key">
+        <input type="text" class="form-control metadata-value" placeholder="Value">
+        <button type="button" class="btn btn-outline-danger remove-field">×</button>
+    `;
+    
+    const keyInput = field.querySelector('.metadata-key');
+    const valueInput = field.querySelector('.metadata-value');
+    
+    keyInput.addEventListener('input', () => validateMetadataKey(keyInput));
+    valueInput.addEventListener('input', () => {
+        if (valueInput.classList.contains('is-invalid')) {
+            valueInput.classList.remove('is-invalid');
+        }
+    });
+    
+    field.querySelector('.remove-field').addEventListener('click', () => {
+        field.remove();
+    });
+    
+    container.appendChild(field);
+}
+
+function showAlert(type, message) {
+    const alertContainer = document.querySelector('.alert-container');
+    const existingAlerts = alertContainer.querySelectorAll('.alert');
+    existingAlerts.forEach(alert => alert.remove());
+    
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    alertContainer.appendChild(alert);
+    setTimeout(() => alert.remove(), 5000);
+}
 
 // Initialize form handling when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -196,4 +236,151 @@ function getMetadataValues(container) {
     });
     
     return metadata;
+}
+
+function validateForm(form) {
+    let isValid = true;
+    const errors = [];
+    
+    // Clear previous errors
+    clearAllErrors();
+    
+    // Validate title
+    const title = form.querySelector('#title');
+    if (!title.value.trim()) {
+        showFieldError(title, 'Title is required');
+        errors.push('Title is required');
+        isValid = false;
+    }
+    
+    // Validate category
+    const category = form.querySelector('#category');
+    if (!category.value.trim()) {
+        showFieldError(category, 'Category is required');
+        errors.push('Category is required');
+        isValid = false;
+    }
+    
+    // Validate questions
+    const questions = form.querySelectorAll('.question-card');
+    if (!questions.length) {
+        errors.push('At least one question is required');
+        isValid = false;
+    }
+    
+    // Check for duplicate questions
+    const references = new Set();
+    const contents = new Set();
+    
+    questions.forEach((card, index) => {
+        const reference = card.querySelector('.question-title').value.trim();
+        const content = card.querySelector('.question-content').value.trim();
+        
+        // Validate required fields
+        if (!reference) {
+            showFieldError(card.querySelector('.question-title'), 'Question reference is required');
+            errors.push(`Question ${index + 1}: Reference is required`);
+            isValid = false;
+        } else if (references.has(reference)) {
+            showFieldError(card.querySelector('.question-title'), 'Duplicate reference found');
+            errors.push(`Question ${index + 1}: Duplicate reference "${reference}"`);
+            isValid = false;
+        }
+        references.add(reference);
+        
+        if (!content) {
+            showFieldError(card.querySelector('.question-content'), 'Question content is required');
+            errors.push(`Question ${index + 1}: Content is required`);
+            isValid = false;
+        } else if (contents.has(content)) {
+            showFieldError(card.querySelector('.question-content'), 'Duplicate content found');
+            errors.push(`Question ${index + 1}: Duplicate content`);
+            isValid = false;
+        }
+        contents.add(content);
+        
+        // Validate list options if selected
+        const answerType = card.querySelector('.answer-type').value;
+        if (answerType === 'list') {
+            const options = card.querySelector('.list-options input').value.trim();
+            if (!options) {
+                showFieldError(card.querySelector('.list-options input'), 'List options are required');
+                errors.push(`Question ${index + 1}: List options are required`);
+                isValid = false;
+            }
+        }
+        
+        // Validate metadata keys
+        validateMetadataContainer(card.querySelector('.question-metadata'), errors, isValid);
+    });
+    
+    // Validate category and subcategory metadata
+    validateMetadataContainer(document.getElementById('categoryMetadata'), errors, isValid);
+    validateMetadataContainer(document.getElementById('subcategoryMetadata'), errors, isValid);
+    
+    if (!isValid) {
+        showErrorSummary(errors);
+    }
+    
+    return isValid;
+}
+
+function validateMetadataContainer(container, errors, isValid) {
+    const keys = new Set();
+    container.querySelectorAll('.input-group').forEach(group => {
+        const keyInput = group.querySelector('.metadata-key');
+        const valueInput = group.querySelector('input:not(.metadata-key)');
+        const key = keyInput.value.trim();
+        const value = valueInput.value.trim();
+        
+        if (key && !value) {
+            showFieldError(valueInput, 'Value is required when key is provided');
+            errors.push('Metadata value is required when key is provided');
+            isValid = false;
+        }
+        
+        if (key && keys.has(key)) {
+            showFieldError(keyInput, 'Duplicate key found');
+            errors.push(`Duplicate metadata key "${key}"`);
+            isValid = false;
+        }
+        keys.add(key);
+    });
+}
+
+function clearAllErrors() {
+    document.querySelectorAll('.is-invalid').forEach(field => {
+        field.classList.remove('is-invalid');
+        const feedback = field.nextElementSibling;
+        if (feedback?.classList.contains('invalid-feedback')) {
+            feedback.remove();
+        }
+    });
+    
+    const errorSummary = document.querySelector('.error-summary');
+    if (errorSummary) {
+        errorSummary.remove();
+    }
+}
+
+function showFieldError(field, message) {
+    field.classList.add('is-invalid');
+    const feedback = document.createElement('div');
+    feedback.className = 'invalid-feedback';
+    feedback.textContent = message;
+    field.parentNode.insertBefore(feedback, field.nextSibling);
+    field.classList.add('validation-shake');
+    setTimeout(() => field.classList.remove('validation-shake'), 500);
+}
+
+function showErrorSummary(errors) {
+    const summary = document.createElement('div');
+    summary.className = 'error-summary';
+    summary.innerHTML = `
+        <h5>Please correct the following errors:</h5>
+        <ul>
+            ${errors.map(error => `<li>${error}</li>`).join('')}
+        </ul>
+    `;
+    document.querySelector('.alert-container').appendChild(summary);
 }
