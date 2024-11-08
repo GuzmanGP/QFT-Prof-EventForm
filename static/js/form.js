@@ -102,6 +102,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.setAttribute('aria-required', 'true');
             }
         });
+
+        // Add AI checkbox handler
+        card.querySelector('.question-ai').addEventListener('change', function() {
+            const aiInstructions = this.closest('.card-body').querySelector('.ai-instructions');
+            aiInstructions.style.display = this.checked ? 'block' : 'none';
+        });
         
         // Add title change handler for real-time updates
         card.querySelector('.question-title').addEventListener('input', function() {
@@ -250,21 +256,35 @@ function validateForm() {
         showAlert('danger', 'At least one question is required');
     }
     
+    // Check for duplicate titles and content
+    const titles = new Set();
+    const contents = new Set();
+    
     questions.forEach((card, index) => {
-        const title = card.querySelector('.question-title');
-        const content = card.querySelector('.question-content');
+        const title = card.querySelector('.question-title').value.trim();
+        const content = card.querySelector('.question-content').value.trim();
         
-        if (!title.value.trim()) {
-            showFieldError(title, 'Question title is required');
-            errors.push(`Question ${index + 1}: Title is required`);
+        if (!title) {
+            showFieldError(card.querySelector('.question-title'), 'Question reference is required');
+            errors.push(`Question ${index + 1}: Reference is required`);
+            isValid = false;
+        } else if (titles.has(title)) {
+            showFieldError(card.querySelector('.question-title'), 'Duplicate question reference found');
+            errors.push(`Question ${index + 1}: Duplicate reference`);
             isValid = false;
         }
+        titles.add(title);
         
-        if (!content.value.trim()) {
-            showFieldError(content, 'Question content is required');
+        if (!content) {
+            showFieldError(card.querySelector('.question-content'), 'Question content is required');
             errors.push(`Question ${index + 1}: Content is required`);
             isValid = false;
+        } else if (contents.has(content)) {
+            showFieldError(card.querySelector('.question-content'), 'Duplicate question content found');
+            errors.push(`Question ${index + 1}: Duplicate content`);
+            isValid = false;
         }
+        contents.add(content);
         
         const answerType = card.querySelector('.answer-type');
         if (answerType.value === 'list') {
@@ -423,33 +443,13 @@ function addMetadataField(container) {
     field.querySelector('.remove-field').addEventListener('click', () => {
         field.remove();
         const metadataSection = container.closest('.metadata-section');
-        const counterDisplay = metadataSection.querySelector('.counter-display');
-        const currentCount = parseInt(counterDisplay.textContent);
-        counterDisplay.textContent = currentCount - 1;
+        if (metadataSection) {
+            const display = metadataSection.querySelector('.counter-display');
+            if (display) {
+                display.textContent = container.querySelectorAll('.input-group').length;
+            }
+        }
     });
     
     container.appendChild(field);
-}
-
-function updateMetadataFields(container, count) {
-    if (typeof container === 'string') {
-        container = document.getElementById(container);
-    }
-    
-    if (count > 20) {
-        showAlert('warning', 'Maximum 20 metadata fields allowed');
-        return;
-    }
-    
-    const currentFields = container.querySelectorAll('.input-group');
-    
-    if (count > currentFields.length) {
-        for (let i = currentFields.length; i < count; i++) {
-            addMetadataField(container);
-        }
-    } else {
-        while (container.children.length > count) {
-            container.removeChild(container.lastChild);
-        }
-    }
 }
