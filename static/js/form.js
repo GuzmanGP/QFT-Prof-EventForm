@@ -3,6 +3,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('formConfiguration');
     let questionCounter = 0;
     
+    // Initialize metadata counter buttons for all sections
+    document.querySelectorAll('.metadata-section').forEach(section => {
+        const buttons = section.querySelectorAll('.counter-button');
+        const container = section.querySelector('.metadata-container');
+        const display = section.querySelector('.counter-display');
+        
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                const isIncrease = this.classList.contains('increase-count');
+                let count = parseInt(display.textContent);
+                count = isIncrease ? count + 1 : Math.max(0, count - 1);
+                
+                if (count >= 0 && count <= 20) {
+                    updateMetadataFields(container, count);
+                    display.textContent = count;
+                }
+            });
+        });
+    });
+    
     // Add Question button handler
     document.getElementById('addQuestion').addEventListener('click', function() {
         const template = document.getElementById('questionTemplate');
@@ -55,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
             questionsHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
         
-        // Add metadata counter handlers
+        // Initialize metadata counters for the new question
         setupMetadataCounters(card);
         
         // Add to questions container
@@ -354,6 +374,7 @@ function updateMetadataFields(container, count) {
     }
     
     const currentFields = container.querySelectorAll('.input-group');
+    
     if (count > currentFields.length) {
         for (let i = currentFields.length; i < count; i++) {
             addMetadataField(container);
@@ -363,25 +384,6 @@ function updateMetadataFields(container, count) {
             container.removeChild(container.lastChild);
         }
     }
-}
-
-function setupMetadataCounters(container) {
-    container.querySelectorAll('.counter-button').forEach(button => {
-        button.addEventListener('click', function() {
-            const isIncrease = this.classList.contains('increase-count');
-            const targetContainer = this.closest('.metadata-section')
-                .querySelector('.metadata-container');
-            const counterDisplay = this.closest('.metadata-section')
-                .querySelector('.counter-display');
-            let count = parseInt(counterDisplay.textContent);
-            
-            count = isIncrease ? count + 1 : count - 1;
-            if (count >= 0 && count <= 20) {
-                updateMetadataFields(targetContainer, count);
-                counterDisplay.textContent = count;
-            }
-        });
-    });
 }
 
 function updateQuestionList() {
