@@ -91,10 +91,15 @@ def create_form():
             db.session.commit()
             
             # Sync to Google Sheets
-            sync_form_to_sheet(form)
+            sync_success = sync_form_to_sheet(form)
+            return sync_success
         
-        retry_database_operation(save_form)
-        return jsonify({'success': True, 'id': form.id})
+        sync_success = retry_database_operation(save_form)
+        return jsonify({
+            'success': True, 
+            'id': form.id,
+            'sheets_sync': sync_success
+        })
     
     except Exception as e:
         db.session.rollback()

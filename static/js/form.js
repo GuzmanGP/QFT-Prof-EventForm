@@ -352,7 +352,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             if (data.success) {
-                showAlert('success', 'Form saved successfully');
+                let message = 'Form saved successfully';
+                if (!data.sheets_sync) {
+                    message += ' (Google Sheets sync failed - please check API permissions)';
+                }
+                showAlert('success', message);
                 form.reset();
                 document.getElementById('questions').innerHTML = '';
                 document.querySelectorAll('.counter-display').forEach(display => {

@@ -24,37 +24,43 @@ def sync_form_to_sheet(form_config):
     try:
         client = init_sheets_client()
         
-        # Use form title as sheet name
         try:
-            sheet = client.open(form_config.title).sheet1
+            workbook = client.open(form_config.title)
         except gspread.SpreadsheetNotFound:
-            sheet = client.create(form_config.title).sheet1
+            workbook = client.create(form_config.title)
+            # Share with service account email
+            workbook.share('form-config-sync@replit-439821.iam.gserviceaccount.com', 'writer')
         
-        # Get existing data
-        existing_data = sheet.get_all_records()
+        sheet = workbook.sheet1
         
-        # Prepare new data
-        new_data = {
-            'id': form_config.id,
-            'category': form_config.category,
-            'subcategory': form_config.subcategory,
-            'category_metadata': json.dumps(form_config.category_metadata),
-            'subcategory_metadata': json.dumps(form_config.subcategory_metadata),
-            'updated_at': datetime.utcnow().isoformat()
-        }
+        # Set headers if new sheet
+        headers = ['id', 'category', 'subcategory', 'category_metadata', 
+                  'subcategory_metadata', 'updated_at']
+        if not sheet.row_values(1):
+            sheet.insert_row(headers, 1)
         
-        # Update or append
-        found = False
-        for i, row in enumerate(existing_data):
-            if row.get('id') == form_config.id:
-                sheet.update_cell(i+2, 1, new_data)  # +2 for header row
-                found = True
-                break
+        # Prepare row data
+        row_data = [
+            str(form_config.id),
+            form_config.category,
+            form_config.subcategory or '',
+            json.dumps(form_config.category_metadata),
+            json.dumps(form_config.subcategory_metadata),
+            datetime.utcnow().isoformat()
+        ]
         
-        if not found:
-            sheet.append_row([new_data[k] for k in new_data.keys()])
+        # Find existing row or append
+        try:
+            cell = sheet.find(str(form_config.id))
+            sheet.delete_row(cell.row)
+            sheet.insert_row(row_data, cell.row)
+        except gspread.CellNotFound:
+            sheet.append_row(row_data)
+            
+        return True
             
     except Exception as e:
         print(f"Error syncing to Google Sheets: {str(e)}")
-        # Don't raise the error - we don't want to fail form submission if sheets sync fails
-        # But we should log it properly in a production environment
+        if "API has not been used" in str(e):
+            print("Please enable Google Drive and Sheets APIs")
+        return False
