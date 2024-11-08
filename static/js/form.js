@@ -76,12 +76,10 @@ function showAlert(type, message) {
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('formConfiguration');
     
-    // Add initial question immediately if none exist
-    if (!document.querySelectorAll('.question-card').length) {
-        const addQuestionBtn = document.getElementById('addQuestion');
-        if (addQuestionBtn) {
-            addQuestionBtn.click();
-        }
+    // Force add initial question
+    const addQuestionBtn = document.getElementById('addQuestion');
+    if (addQuestionBtn) {
+        addQuestionBtn.click();
     }
     
     // Initialize metadata counters
@@ -104,15 +102,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Add Question button handler
-    const addQuestionBtn = document.getElementById('addQuestion');
     if (addQuestionBtn) {
         addQuestionBtn.addEventListener('click', function() {
             const template = document.getElementById('questionTemplate');
             const clone = template.content.cloneNode(true);
             const card = clone.querySelector('.card');
             
+            // Set default values
             const questionNumber = document.querySelectorAll('.question-card').length + 1;
             card.querySelector('.question-number').textContent = `Question ${questionNumber}`;
+            card.querySelector('.question-title').value = '';  // Ensure empty initial value
+            card.querySelector('.question-content').value = '';  // Ensure empty initial value
+            card.querySelector('.answer-type').value = 'text';  // Set default answer type
             
             // Initialize metadata counter for new question
             const metadataSection = card.querySelector('.metadata-section');
@@ -216,8 +217,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     form.reset();
                     document.getElementById('questions').innerHTML = '';
                     
-                    // Ensure there's at least one question after reset
-                    document.getElementById('addQuestion').click();
+                    // Force add new question after reset
+                    const addQuestionBtn = document.getElementById('addQuestion');
+                    if (addQuestionBtn) {
+                        addQuestionBtn.click();
+                    }
                     
                     document.querySelectorAll('.counter-display').forEach(display => {
                         display.textContent = '0';
