@@ -5,8 +5,12 @@ from google.oauth2 import service_account
 import gspread
 
 def init_sheets_client():
-    scope = ['https://spreadsheets.google.com/feeds',
-             'https://www.googleapis.com/auth/drive']
+    scope = [
+        'https://spreadsheets.google.com/feeds',
+        'https://www.googleapis.com/auth/drive',
+        'https://www.googleapis.com/auth/drive.file',
+        'https://www.googleapis.com/auth/spreadsheets'
+    ]
     
     # Get credentials from environment variable
     creds_json = os.environ.get('GOOGLE_SHEETS_CREDENTIALS')
@@ -27,13 +31,20 @@ def sync_form_to_sheet(form_config):
         try:
             workbook = client.open(form_config.title)
         except gspread.SpreadsheetNotFound:
-            workbook = client.create(form_config.title)
-            # Share with service account email with proper parameters
-            workbook.share(
-                email='form-config-sync@replit-439821.iam.gserviceaccount.com',
-                role='writer',
-                notify=False
-            )
+            try:
+                workbook = client.create(form_config.title)
+                workbook.share(
+                    'form-config-sync@replit-439821.iam.gserviceaccount.com',
+                    perm_type='user',
+                    role='writer'
+                )
+            except Exception as e:
+                print(f"Error creating/sharing spreadsheet: {str(e)}")
+                if "The caller does not have permission" in str(e):
+                    print("Please enable Google Drive and Google Sheets APIs in Google Cloud Console")
+                elif "API has not been used" in str(e):
+                    print("API is not enabled. Please enable Google Drive and Sheets APIs")
+                raise
         
         sheet = workbook.sheet1
         
@@ -65,6 +76,8 @@ def sync_form_to_sheet(form_config):
             
     except Exception as e:
         print(f"Error syncing to Google Sheets: {str(e)}")
-        if "API has not been used" in str(e):
+        if "The caller does not have permission" in str(e):
+            print("Please enable Google Drive and Google Sheets APIs in Google Cloud Console")
+        elif "API has not been used" in str(e):
             print("Please enable Google Drive and Sheets APIs")
         return False
