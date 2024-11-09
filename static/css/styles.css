@@ -171,14 +171,18 @@ textarea.form-control {
 
 .question-actions {
     display: flex;
-    gap: 1rem;
+    gap: 2rem;
     justify-content: flex-start;
     align-items: center;
     margin-top: 1rem;
 }
 
-.question-actions button {
-    flex: 0 0 auto;
+.question-actions .btn {
+    padding: 0.375rem 0.75rem;
+}
+
+.question-actions .btn-sm {
+    font-size: 0.875rem;
 }
 
 .form-control.is-invalid {
