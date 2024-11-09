@@ -80,7 +80,7 @@ function showAlert(type, message) {
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('formConfiguration');
     
-    // Add initial question immediately if none exist
+    // Add initial question immediately
     const addQuestionBtn = document.getElementById('addQuestion');
     if (addQuestionBtn) {
         addQuestionBtn.click();
@@ -114,14 +114,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const questionNumber = document.querySelectorAll('.question-card').length + 1;
             card.querySelector('.question-number').textContent = `Question ${questionNumber}`;
-            
-            // Set default values for first question
-            if (document.querySelectorAll('.question-card').length === 0) {
-                card.querySelector('.question-title').value = 'Q1';
-                card.querySelector('.question-content').value = 'Enter your question here';
-                card.querySelector('.answer-type').value = 'text';
-                card.querySelector('.question-required').checked = true;
-            }
             
             // Initialize metadata counter for new question
             const metadataSection = card.querySelector('.metadata-section');
@@ -198,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     content: card.querySelector('.question-content').value.trim(),
                     answer_type: card.querySelector('.answer-type').value,
                     options: card.querySelector('.answer-type').value === 'list' 
-                        ? card.querySelector('.list-options input').value.split(',').map(opt => opt.trim()).filter(opt => opt)
+                        ? card.querySelector('.list-options input').value.split(',').map(opt => opt.trim()).filter(Boolean)
                         : [],
                     required: card.querySelector('.question-required').checked,
                     ai_processing: card.querySelector('.question-ai').checked,
@@ -269,14 +261,6 @@ function validateForm(form) {
     
     // Clear previous errors
     clearAllErrors();
-    
-    // Validate questions count first
-    const questionCount = updateQuestionCount();
-    if (questionCount === 0) {
-        errors.push('At least one question is required');
-        isValid = false;
-        document.getElementById('addQuestion').click();
-    }
     
     // Validate title
     const title = form.querySelector('#title');
@@ -376,7 +360,7 @@ function clearAllErrors() {
     document.querySelectorAll('.is-invalid').forEach(field => {
         field.classList.remove('is-invalid');
         const feedback = field.nextElementSibling;
-        if (feedback?.classList.contains('invalid-feedback')) {
+        if (feedback && feedback.classList.contains('invalid-feedback')) {
             feedback.remove();
         }
     });
@@ -402,9 +386,18 @@ function showErrorSummary(errors) {
     summary.className = 'error-summary';
     summary.innerHTML = `
         <h5>Please correct the following errors:</h5>
-        <ul>
-            ${errors.map(error => `<li>${error}</li>`).join('')}
-        </ul>
+        <ul>${errors.map(error => `<li>${error}</li>`).join('')}</ul>
     `;
-    document.querySelector('.alert-container').appendChild(summary);
+    const form = document.getElementById('formConfiguration');
+    form.insertAdjacentElement('beforebegin', summary);
+}
+
+function validateMetadataKey(input) {
+    if (input.classList.contains('is-invalid')) {
+        input.classList.remove('is-invalid');
+        const feedback = input.nextElementSibling;
+        if (feedback && feedback.classList.contains('invalid-feedback')) {
+            feedback.remove();
+        }
+    }
 }
