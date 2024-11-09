@@ -1,0 +1,31 @@
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.31.196.86:5000
+Press CTRL+C to quit
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 179-066-440
+172.31.196.86 - - [09/Nov/2024 22:42:50] "GET / HTTP/1.1" 200 -
+172.31.196.86 - - [09/Nov/2024 22:42:50] "GET / HTTP/1.1" 200 -
+172.31.196.86 - - [09/Nov/2024 22:42:50] "GET /static/css/styles.css HTTP/1.1" 200 -
+172.31.196.86 - - [09/Nov/2024 22:42:50] "GET /static/js/form.js HTTP/1.1" 200 -
+172.31.196.86 - - [09/Nov/2024 22:42:50] "GET /static/js/validation.js HTTP/1.1" 200 -
+172.31.196.86 - - [09/Nov/2024 22:42:50] "GET /static/js/init.js HTTP/1.1" 200 -
+172.31.196.86 - - [09/Nov/2024 22:42:50] "GET /static/js/question.js HTTP/1.1" 200 -
+172.31.196.86 - - [09/Nov/2024 22:42:50] "GET /static/js/utils.js HTTP/1.1" 200 -
+172.31.196.86 - - [09/Nov/2024 22:42:50] "GET /static/js/metadataFields.js HTTP/1.1" 200 -
+172.31.196.86 - - [09/Nov/2024 22:42:50] "GET /static/css/styles.css HTTP/1.1" 304 -
+172.31.196.86 - - [09/Nov/2024 22:42:50] "GET /static/js/form.js HTTP/1.1" 304 -
+172.31.196.86 - - [09/Nov/2024 22:42:51] "GET /static/js/init.js HTTP/1.1" 304 -
+172.31.196.86 - - [09/Nov/2024 22:42:51] "GET /static/js/validation.js HTTP/1.1" 200 -
+172.31.196.86 - - [09/Nov/2024 22:42:51] "GET /static/js/question.js HTTP/1.1" 304 -
+172.31.196.86 - - [09/Nov/2024 22:42:51] "GET /static/js/metadataFields.js HTTP/1.1" 304 -
+172.31.196.86 - - [09/Nov/2024 22:42:51] "GET /static/js/utils.js HTTP/1.1" 304 -
+172.31.196.86 - - [09/Nov/2024 22:47:46] "GET / HTTP/1.1" 200 -
+172.31.196.86 - - [09/Nov/2024 22:47:47] "GET /static/js/form.js HTTP/1.1" 304 -
+172.31.196.86 - - [09/Nov/2024 22:47:47] "GET /static/css/styles.css HTTP/1.1" 304 -
+172.31.196.86 - - [09/Nov/2024 22:47:48] "GET /static/js/validation.js HTTP/1.1" 304 -
+172.31.196.86 - - [09/Nov/2024 22:47:48] "GET /static/js/question.js HTTP/1.1" 200 -
+172.31.196.86 - - [09/Nov/2024 22:47:48] "GET /static/js/init.js HTTP/1.1" 304 -
+172.31.196.86 - - [09/Nov/2024 22:47:48] "GET /static/js/metadataFields.js HTTP/1.1" 304 -
+172.31.196.86 - - [09/Nov/2024 22:47:48] "GET /static/js/utils.js HTTP/1.1" 304 -

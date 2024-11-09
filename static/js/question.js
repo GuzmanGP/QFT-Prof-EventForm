@@ -9,8 +9,9 @@ function updateQuestionsList() {
     const questions = document.querySelectorAll('.question-card');
     
     navList.innerHTML = '';
-    questions.forEach((card, index) => {
-        const reference = card.querySelector('.question-title').value || `Question ${index + 1}`;
+    for (let i = 0; i < questions.length; i++) {
+        const card = questions[i];
+        const reference = `Question ${i + 1}: ${card.querySelector('.question-title').value}` || `Question ${i + 1}`;
         const listItem = document.createElement('a');
         listItem.href = '#';
         listItem.className = 'list-group-item list-group-item-action';
@@ -20,7 +21,7 @@ function updateQuestionsList() {
             card.scrollIntoView({ behavior: 'smooth' });
         });
         navList.appendChild(listItem);
-    });
+    }
 }
 
 // Function to add a new question to the form

@@ -58,8 +58,8 @@ export function showFieldError(field, message) {
 
 export function validateAllMetadata(errors) {
     const containers = ['categoryMetadata', 'subcategoryMetadata'];
-    for (const container of containers) {
-        const containerElement = document.getElementById(container);
+    for (let i = 0; i < containers.length; i++) {
+        const containerElement = document.getElementById(containers[i]);
         if (containerElement) {
             validateMetadataContainer(containerElement, errors);
         }
@@ -68,7 +68,8 @@ export function validateAllMetadata(errors) {
 
 export function clearAllErrors() {
     const invalidFields = document.querySelectorAll('.is-invalid');
-    for (const field of invalidFields) {
+    for (let i = 0; i < invalidFields.length; i++) {
+        const field = invalidFields[i];
         field.classList.remove('is-invalid');
         const feedback = field.nextElementSibling;
         if (feedback && feedback.classList.contains('invalid-feedback')) {
