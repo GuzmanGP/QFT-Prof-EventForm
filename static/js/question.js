@@ -3,6 +3,26 @@
 import { updateMetadataFields, setupCounterButtons } from './metadataFields.js';
 import { showAlert, updateQuestionCount, clearFieldError } from './utils.js';
 
+// Function to update the questions menu
+function updateQuestionsList() {
+    const navList = document.getElementById('questionNavList');
+    const questions = document.querySelectorAll('.question-card');
+    
+    navList.innerHTML = '';
+    questions.forEach((card, index) => {
+        const reference = card.querySelector('.question-title').value || `Question ${index + 1}`;
+        const listItem = document.createElement('a');
+        listItem.href = '#';
+        listItem.className = 'list-group-item list-group-item-action';
+        listItem.textContent = reference;
+        listItem.addEventListener('click', (e) => {
+            e.preventDefault();
+            card.scrollIntoView({ behavior: 'smooth' });
+        });
+        navList.appendChild(listItem);
+    });
+}
+
 // Function to add a new question to the form
 export function addQuestion() {
     const template = document.getElementById('questionTemplate');
@@ -26,6 +46,7 @@ export function addQuestion() {
         }
         card.remove();
         updateQuestionNumbers();
+        updateQuestionsList();
     });
 
     // Add back to menu event
@@ -34,6 +55,7 @@ export function addQuestion() {
     });
 
     document.getElementById('questions').appendChild(card);
+    updateQuestionsList();
 }
 
 // Function to remove a question
@@ -44,6 +66,7 @@ export function removeQuestion(card) {
     }
     card.remove();
     updateQuestionNumbers();
+    updateQuestionsList();
 }
 
 function updateQuestionNumbers() {
@@ -96,6 +119,9 @@ function setupQuestionValidation(card) {
             });
         }
     }
+
+    // Add input event listener to update questions list when reference changes
+    fields.reference.addEventListener('input', updateQuestionsList);
 }
 
 export function validateQuestions() {

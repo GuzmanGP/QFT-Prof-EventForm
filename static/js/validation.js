@@ -2,6 +2,7 @@
 
 import { showAlert } from './utils.js';
 import { validateMetadataContainer } from './metadataFields.js';
+import { validateQuestions } from './question.js';
 
 export function validateForm(form) {
     let isValid = true;
@@ -47,57 +48,6 @@ export function validateForm(form) {
     return isValid;
 }
 
-export function validateQuestions() {
-    const questions = document.querySelectorAll('.question-card');
-    const errors = [];
-    let isValid = true;
-
-    for (let i = 0; i < questions.length; i++) {
-        const card = questions[i];
-        const reference = card.querySelector('.question-title');
-        const content = card.querySelector('.question-content');
-        const answerType = card.querySelector('.answer-type');
-        const listOptions = card.querySelector('.list-options input');
-
-        if (!reference.value.trim()) {
-            showFieldError(reference, 'Question reference is required');
-            errors.push(`Question ${i + 1}: Reference is required`);
-            isValid = false;
-        } else if (reference.value.length > 50) {
-            showFieldError(reference, 'Reference must be less than 50 characters');
-            errors.push(`Question ${i + 1}: Reference is too long`);
-            isValid = false;
-        }
-
-        if (!content.value.trim()) {
-            showFieldError(content, 'Question content is required');
-            errors.push(`Question ${i + 1}: Content is required`);
-            isValid = false;
-        }
-
-        if (answerType.value === 'list') {
-            const options = listOptions.value.trim();
-            if (!options || options.split(',').filter(opt => opt.trim()).length < 2) {
-                showFieldError(listOptions, 'At least two comma-separated options are required');
-                errors.push(`Question ${i + 1}: List options must contain at least two items`);
-                isValid = false;
-            }
-        }
-    }
-
-    return { isValid, errors };
-}
-
-export function validateAllMetadata(errors) {
-    const containers = ['categoryMetadata', 'subcategoryMetadata'];
-    for (let i = 0; i < containers.length; i++) {
-        const container = document.getElementById(containers[i]);
-        if (container) {
-            validateMetadataContainer(container, errors);
-        }
-    }
-}
-
 export function showFieldError(field, message) {
     field.classList.add('is-invalid');
     const feedback = document.createElement('div');
@@ -106,10 +56,19 @@ export function showFieldError(field, message) {
     field.parentNode.insertBefore(feedback, field.nextSibling);
 }
 
+export function validateAllMetadata(errors) {
+    const containers = ['categoryMetadata', 'subcategoryMetadata'];
+    for (const container of containers) {
+        const containerElement = document.getElementById(container);
+        if (containerElement) {
+            validateMetadataContainer(containerElement, errors);
+        }
+    }
+}
+
 export function clearAllErrors() {
     const invalidFields = document.querySelectorAll('.is-invalid');
-    for (let i = 0; i < invalidFields.length; i++) {
-        const field = invalidFields[i];
+    for (const field of invalidFields) {
         field.classList.remove('is-invalid');
         const feedback = field.nextElementSibling;
         if (feedback && feedback.classList.contains('invalid-feedback')) {
@@ -125,7 +84,7 @@ export function clearAllErrors() {
 
 export function showErrorSummary(errors) {
     const summary = document.createElement('div');
-    summary.className = 'error-summary';
+    summary.className = 'error-summary alert alert-danger';
     summary.innerHTML = `
         <h5>Please correct the following errors:</h5>
         <ul>${errors.map(error => `<li>${error}</li>`).join('')}</ul>
