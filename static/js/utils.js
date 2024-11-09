@@ -29,7 +29,17 @@ export function showAlert(type, message) {
     setTimeout(() => alert.remove(), 5000);
 }
 
-// Función para actualizar el conteo de preguntas basado en el número de tarjetas de preguntas
+// Función para actualizar el conteo de preguntas basado en el número de tarjet
+// utils.js
+export function updateQuestionsHeader() {
+    const count = document.querySelectorAll('.question-card').length; // Cuenta las preguntas renderizadas
+    const header = document.getElementById('questionsHeader');
+    if (header) {
+        header.textContent = `Questions (${count})`; // Establece el número dinámicamente
+    }
+}
+
+as de preguntas
 export function updateQuestionCount() {
     const count = document.querySelectorAll('.question-card').length;
     const countDisplay = document.getElementById('questionCount');

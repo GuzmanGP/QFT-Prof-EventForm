@@ -3,7 +3,7 @@
 import { addQuestion, validateQuestions } from './question.js';
 import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
-import { showAlert } from './utils.js';
+import { showAlert, updateQuestionsHeader } from './utils.js';
 
 export function initializeForm() {
     const form = document.getElementById('formConfiguration');
@@ -14,6 +14,9 @@ export function initializeForm() {
     if (!questionsContainer.querySelector('.question-card')) {
         addQuestion();
     }
+
+    // Update questions header to reflect initial count
+    updateQuestionsHeader();
 
     // Setup metadata counters
     const metadataSections = document.querySelectorAll('.metadata-section');
@@ -32,42 +35,45 @@ export function initializeForm() {
 
     // Form submission handler
     if (form) {
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
+        form.addEventListener('submit', handleFormSubmit);
+    }
+}
 
-            // Validate the entire form
-            if (!validateForm(form)) return;
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
 
-            // Get form data
-            const formData = {
-                title: document.getElementById('title').value,
-                category: document.getElementById('category').value,
-                subcategory: document.getElementById('subcategory')?.value || '',
-                category_metadata: getMetadataValues('categoryMetadata'),
-                subcategory_metadata: getMetadataValues('subcategoryMetadata'),
-                questions: getQuestionsData()
-            };
+    // Validate the entire form
+    if (!validateForm(form)) return;
 
-            try {
-                const response = await fetch('/api/forms', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
+    // Get form data
+    const formData = {
+        title: document.getElementById('title').value,
+        category: document.getElementById('category').value,
+        subcategory: document.getElementById('subcategory')?.value || '',
+        category_metadata: getMetadataValues('categoryMetadata'),
+        subcategory_metadata: getMetadataValues('subcategoryMetadata'),
+        questions: getQuestionsData()
+    };
 
-                const data = await response.json();
-                if (data.success) {
-                    showAlert('success', 'Form saved successfully');
-                    form.reset();
-                    questionsContainer.innerHTML = '';
-                    addQuestion();
-                } else {
-                    throw new Error(data.error || 'Failed to save form');
-                }
-            } catch (error) {
-                showAlert('danger', error.message);
-            }
+    try {
+        const response = await fetch('/api/forms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
         });
+
+        const data = await response.json();
+        if (data.success) {
+            showAlert('success', 'Form saved successfully');
+            form.reset();
+            document.getElementById('questions').innerHTML = '';
+            addQuestion();
+        } else {
+            throw new Error(data.error || 'Failed to save form');
+        }
+    } catch (error) {
+        showAlert('danger', error.message);
     }
 }
 
