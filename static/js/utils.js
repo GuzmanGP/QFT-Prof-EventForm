@@ -1,45 +1,45 @@
 // utils.js
 
-// Función para mostrar alertas en la interfaz
+// Function to show alerts in the interface
 export function showAlert(type, message) {
-    // Obtiene el contenedor de alertas donde se insertará la alerta
+    // Get the alert container where the alert will be inserted
     const alertContainer = document.querySelector('.alert-container');
 
-    // Crea un nuevo elemento div para la alerta
+    // Create a new div element for the alert
     const alert = document.createElement('div');
     
-    // Verifica si ya existe una alerta del mismo tipo y con el mismo mensaje para evitar duplicados
+    // Check if an alert with same type and message exists to avoid duplicates
     const existingAlert = Array.from(alertContainer.children).find(alert => 
         alert.classList.contains(`alert-${type}`) && alert.textContent.includes(message)
     );
 
-    // Si una alerta similar ya existe, sale de la función para no crear duplicados
+    // If a similar alert exists, exit the function to avoid duplicates
     if (existingAlert) return;
 
-    // Asigna la clase de tipo de alerta (success, warning, danger, etc.)
+    // Assign alert type class (success, warning, danger, etc.)
     alert.className = `alert alert-${type} alert-dismissible fade show`;
     alert.innerHTML = `
-        ${message} <!-- Muestra el mensaje de alerta -->
+        ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
 
-    // Añade la alerta al contenedor de alertas en la interfaz
+    // Add the alert to the container interface
     alertContainer.appendChild(alert);
-    // Configura un temporizador para eliminar automáticamente la alerta después de 5 segundos
+    
+    // Set a timer to automatically remove the alert after 5 seconds
     setTimeout(() => alert.remove(), 5000);
 }
 
-// Función para actualizar el conteo de preguntas basado en el número de tarjet
-// utils.js
+// Function to update the questions header based on the number of rendered questions
 export function updateQuestionsHeader() {
-    const count = document.querySelectorAll('.question-card').length; // Cuenta las preguntas renderizadas
+    const count = document.querySelectorAll('.question-card').length;
     const header = document.getElementById('questionsHeader');
     if (header) {
-        header.textContent = `Questions (${count})`; // Establece el número dinámicamente
+        header.textContent = `Questions (${count})`;
     }
 }
 
-as de preguntas
+// Function to update question count
 export function updateQuestionCount() {
     const count = document.querySelectorAll('.question-card').length;
     const countDisplay = document.getElementById('questionCount');
@@ -49,7 +49,7 @@ export function updateQuestionCount() {
     return count;
 }
 
-// Función para limpiar errores de campos de formulario
+// Function to clear form field errors
 export function clearFieldError(field) {
     if (field.classList.contains('is-invalid')) {
         field.classList.remove('is-invalid');
