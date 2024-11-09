@@ -1,5 +1,4 @@
 // init.js
-
 import { addQuestion, validateQuestions } from './question.js';
 import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
@@ -8,9 +7,9 @@ import { showAlert, updateQuestionsHeader } from './utils.js';
 export function initializeForm() {
     const form = document.getElementById('formConfiguration');
     const addQuestionBtn = document.getElementById('addQuestion');
+    const questionsContainer = document.getElementById('questions');
 
     // Add initial question if none exists
-    const questionsContainer = document.getElementById('questions');
     if (!questionsContainer.querySelector('.question-card')) {
         addQuestion();
     }
@@ -42,6 +41,7 @@ export function initializeForm() {
 async function handleFormSubmit(e) {
     e.preventDefault();
     const form = e.target;
+    const questionsContainer = document.getElementById('questions');
 
     // Validate the entire form
     if (!validateForm(form)) return;
@@ -65,9 +65,13 @@ async function handleFormSubmit(e) {
 
         const data = await response.json();
         if (data.success) {
-            showAlert('success', 'Form saved successfully');
+            let message = 'Form saved successfully';
+            if (!data.sheets_sync) {
+                message += ' (Google Sheets sync failed - please check API permissions)';
+            }
+            showAlert('success', message);
             form.reset();
-            document.getElementById('questions').innerHTML = '';
+            questionsContainer.innerHTML = '';
             addQuestion();
         } else {
             throw new Error(data.error || 'Failed to save form');
