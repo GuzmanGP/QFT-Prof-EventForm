@@ -16,12 +16,14 @@ export function initializeForm() {
     }
 
     // Setup metadata counters
-    document.querySelectorAll('.metadata-section').forEach(section => {
+    const metadataSections = document.querySelectorAll('.metadata-section');
+    for (let i = 0; i < metadataSections.length; i++) {
+        const section = metadataSections[i];
         const container = section.querySelector('.metadata-container');
         const buttons = section.querySelectorAll('.counter-button');
         const display = section.querySelector('.counter-display');
         setupCounterButtons(buttons, container, display);
-    });
+    }
 
     // Add question button handler
     if (addQuestionBtn) {
@@ -40,7 +42,7 @@ export function initializeForm() {
             const formData = {
                 title: document.getElementById('title').value,
                 category: document.getElementById('category').value,
-                subcategory: document.getElementById('subcategory').value,
+                subcategory: document.getElementById('subcategory')?.value || '',
                 category_metadata: getMetadataValues('categoryMetadata'),
                 subcategory_metadata: getMetadataValues('subcategoryMetadata'),
                 questions: getQuestionsData()
@@ -72,18 +74,26 @@ export function initializeForm() {
 function getMetadataValues(containerId) {
     const metadata = {};
     const container = document.getElementById(containerId);
-    container.querySelectorAll('.input-group').forEach(group => {
-        const key = group.querySelector('.metadata-key').value.trim();
-        const value = group.querySelector('.metadata-value').value.trim();
+    if (!container) return metadata;
+
+    const groups = container.querySelectorAll('.input-group');
+    for (let i = 0; i < groups.length; i++) {
+        const group = groups[i];
+        const key = group.querySelector('.metadata-key')?.value?.trim();
+        const value = group.querySelector('.metadata-value')?.value?.trim();
         if (key && value) {
             metadata[key] = value;
         }
-    });
+    }
     return metadata;
 }
 
 function getQuestionsData() {
-    return Array.from(document.querySelectorAll('.question-card')).map(card => {
+    const questions = document.querySelectorAll('.question-card');
+    const questionsData = [];
+    
+    for (let i = 0; i < questions.length; i++) {
+        const card = questions[i];
         const data = {
             reference: card.querySelector('.question-title').value,
             content: card.querySelector('.question-content').value,
@@ -93,26 +103,32 @@ function getQuestionsData() {
         };
 
         // Get question metadata
-        card.querySelectorAll('.question-metadata .input-group').forEach(group => {
-            const key = group.querySelector('.metadata-key').value.trim();
-            const value = group.querySelector('.metadata-value').value.trim();
+        const metadataGroups = card.querySelectorAll('.question-metadata .input-group');
+        for (let j = 0; j < metadataGroups.length; j++) {
+            const group = metadataGroups[j];
+            const key = group.querySelector('.metadata-key')?.value?.trim();
+            const value = group.querySelector('.metadata-value')?.value?.trim();
             if (key && value) {
                 data.question_metadata[key] = value;
             }
-        });
+        }
 
         // Get list options if applicable
         if (data.answer_type === 'list') {
             const options = card.querySelector('.list-options input').value;
-            data.options = options.split(',').map(opt => opt.trim()).filter(Boolean);
+            if (options) {
+                data.options = options.split(',').map(opt => opt.trim()).filter(Boolean);
+            }
         }
 
         // Get AI instructions if enabled
-        const aiEnabled = card.querySelector('.question-ai').checked;
+        const aiEnabled = card.querySelector('.question-ai')?.checked;
         if (aiEnabled) {
-            data.ai_instructions = card.querySelector('.question-ai-instructions').value;
+            data.ai_instructions = card.querySelector('.question-ai-instructions')?.value;
         }
 
-        return data;
-    });
+        questionsData.push(data);
+    }
+    
+    return questionsData;
 }

@@ -47,9 +47,10 @@ export function removeQuestion(card) {
 }
 
 function updateQuestionNumbers() {
-    document.querySelectorAll('.question-card').forEach((card, index) => {
-        card.querySelector('.question-number').textContent = `Question ${index + 1}`;
-    });
+    const questions = document.querySelectorAll('.question-card');
+    for (let i = 0; i < questions.length; i++) {
+        questions[i].querySelector('.question-number').textContent = `Question ${i + 1}`;
+    }
     updateQuestionCount();
 }
 
@@ -85,7 +86,8 @@ function setupQuestionValidation(card) {
         answerType: card.querySelector('.answer-type')
     };
 
-    Object.values(fields).forEach(field => {
+    for (const key in fields) {
+        const field = fields[key];
         if (field) {
             field.addEventListener('input', () => {
                 if (field.classList.contains('is-invalid')) {
@@ -93,7 +95,7 @@ function setupQuestionValidation(card) {
                 }
             });
         }
-    });
+    }
 }
 
 export function validateQuestions() {
@@ -101,7 +103,8 @@ export function validateQuestions() {
     const errors = [];
     let isValid = true;
 
-    questions.forEach((card, index) => {
+    for (let i = 0; i < questions.length; i++) {
+        const card = questions[i];
         const reference = card.querySelector('.question-title');
         const content = card.querySelector('.question-content');
         const answerType = card.querySelector('.answer-type');
@@ -109,22 +112,29 @@ export function validateQuestions() {
 
         if (!reference.value.trim()) {
             showFieldError(reference, 'Question reference is required');
-            errors.push(`Question ${index + 1}: Reference is required`);
+            errors.push(`Question ${i + 1}: Reference is required`);
+            isValid = false;
+        } else if (reference.value.length > 50) {
+            showFieldError(reference, 'Reference must be less than 50 characters');
+            errors.push(`Question ${i + 1}: Reference is too long`);
             isValid = false;
         }
 
         if (!content.value.trim()) {
             showFieldError(content, 'Question content is required');
-            errors.push(`Question ${index + 1}: Content is required`);
+            errors.push(`Question ${i + 1}: Content is required`);
             isValid = false;
         }
 
-        if (answerType.value === 'list' && (!listOptions.value.trim() || listOptions.value.split(',').length < 2)) {
-            showFieldError(listOptions, 'At least two comma-separated options are required');
-            errors.push(`Question ${index + 1}: List options must contain at least two items`);
-            isValid = false;
+        if (answerType.value === 'list') {
+            const options = listOptions.value.trim();
+            if (!options || options.split(',').filter(opt => opt.trim()).length < 2) {
+                showFieldError(listOptions, 'At least two comma-separated options are required');
+                errors.push(`Question ${i + 1}: List options must contain at least two items`);
+                isValid = false;
+            }
         }
-    });
+    }
 
     return { isValid, errors };
 }
