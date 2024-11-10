@@ -48,11 +48,21 @@ function configureAIProcessing(card) {
 function initializeMetadataCounter(card) {
     const metadataSection = card.querySelector('.metadata-section');
     const container = metadataSection.querySelector('.metadata-container');
-    const buttons = metadataSection.querySelectorAll('.counter-button');
+    let buttons = metadataSection.querySelectorAll('.counter-button');
     const display = metadataSection.querySelector('.counter-display');
+    
+    // Remove existing event listeners by cloning
+    buttons.forEach(button => {
+        const clone = button.cloneNode(true);
+        button.parentNode.replaceChild(clone, button);
+    });
+    
+    // Update buttons reference after cloning
+    buttons = Array.from(container.querySelectorAll('.counter-button'));
     
     buttons.forEach(button => {
         button.addEventListener('click', () => {
+            console.log('Counter button clicked:', button.classList.contains('increase-count') ? 'increase' : 'decrease');
             const currentCount = parseInt(display.textContent);
             const isIncrease = button.classList.contains('increase-count');
             const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
