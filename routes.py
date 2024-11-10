@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, flash
+from flask import render_template, request, jsonify, flash, redirect, url_for
 from app import app, db
 from models import FormConfiguration, Question
 from sheets_sync import sync_form_to_sheet
@@ -52,7 +52,38 @@ def validate_form_data(data):
 
 @app.route('/')
 def index():
+    forms = FormConfiguration.query.order_by(FormConfiguration.updated_at.desc()).all()
+    return render_template('forms_list.html', forms=forms)
+
+@app.route('/form/new')
+def new_form():
     return render_template('form.html')
+
+@app.route('/form/<int:form_id>')
+def view_form(form_id):
+    form = FormConfiguration.query.get_or_404(form_id)
+    return render_template('form.html', form=form)
+
+@app.route('/api/forms/<int:form_id>', methods=['GET'])
+def get_form(form_id):
+    form = FormConfiguration.query.get_or_404(form_id)
+    return jsonify({
+        'id': form.id,
+        'title': form.title,
+        'category': form.category,
+        'subcategory': form.subcategory,
+        'category_metadata': form.category_metadata,
+        'subcategory_metadata': form.subcategory_metadata,
+        'questions': [{
+            'reference': q.reference,
+            'content': q.content,
+            'answer_type': q.answer_type,
+            'options': q.options,
+            'required': q.required,
+            'question_metadata': q.question_metadata,
+            'ai_instructions': q.ai_instructions
+        } for q in form.questions]
+    })
 
 @app.route('/api/forms', methods=['POST'])
 def create_form():
@@ -97,6 +128,60 @@ def create_form():
         sync_success = retry_database_operation(save_form)
         return jsonify({
             'success': True, 
+            'id': form.id,
+            'sheets_sync': sync_success
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/forms/<int:form_id>', methods=['PUT'])
+def update_form(form_id):
+    try:
+        form = FormConfiguration.query.get_or_404(form_id)
+        data = request.get_json()
+        
+        # Validate form data
+        try:
+            validate_form_data(data)
+        except ValueError as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+        
+        # Update form fields
+        form.title = data['title']
+        form.category = data['category']
+        form.subcategory = data.get('subcategory')
+        form.category_metadata = data.get('category_metadata', {})
+        form.subcategory_metadata = data.get('subcategory_metadata', {})
+        
+        # Remove existing questions
+        for question in form.questions:
+            db.session.delete(question)
+        
+        # Add new questions
+        for q_data in data.get('questions', []):
+            question = Question(
+                reference=q_data['reference'],
+                content=q_data['content'],
+                answer_type=q_data.get('answer_type', 'text'),
+                options=q_data.get('options', []),
+                question_metadata=q_data.get('question_metadata', {}),
+                required=q_data.get('required', False),
+                order=q_data.get('order'),
+                ai_instructions=q_data.get('ai_instructions')
+            )
+            form.questions.append(question)
+        
+        def save_form():
+            db.session.commit()
+            # Sync to Google Sheets
+            sync_success = sync_form_to_sheet(form)
+            return sync_success
+        
+        sync_success = retry_database_operation(save_form)
+        return jsonify({
+            'success': True,
             'id': form.id,
             'sheets_sync': sync_success
         })

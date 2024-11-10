@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>Form Configurations</h2>
+    </div>
+    <div class="col text-end">
+        <a href="{{ url_for('new_form') }}" class="btn btn-primary">Create New Form</a>
+    </div>
+</div>
+
+{% if forms %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for form in forms %}
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ form.title }}</h5>
+                <p class="card-text">
+                    <strong>Category:</strong> {{ form.category }}<br>
+                    {% if form.subcategory %}
+                    <strong>Subcategory:</strong> {{ form.subcategory }}<br>
+                    {% endif %}
+                    <strong>Questions:</strong> {{ form.questions|length }}<br>
+                    <strong>Last Updated:</strong> {{ form.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                </p>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('view_form', form_id=form.id) }}" class="btn btn-primary btn-sm">Edit Form</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    No forms have been created yet. <a href="{{ url_for('new_form') }}" class="alert-link">Create your first form</a>
+</div>
+{% endif %}
+{% endblock %}

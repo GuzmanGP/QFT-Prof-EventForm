@@ -30,17 +30,6 @@ export function showAlert(type, message) {
     setTimeout(() => alert.remove(), 5000);
 }
 
-// Function to clear field error
-export function clearFieldError(field) {
-    if (field.classList.contains('is-invalid')) {
-        field.classList.remove('is-invalid', 'error-highlight');
-        const feedback = field.nextElementSibling;
-        if (feedback?.classList.contains('invalid-feedback')) {
-            feedback.remove();
-        }
-    }
-}
-
 // Function to update the questions header based on the number of rendered questions
 export function updateQuestionsHeader() {
     const count = document.querySelectorAll('.question-card').length;

@@ -3,7 +3,7 @@
 {% block content %}
 <div class="card">
     <div class="card-body">
-        <form id="formConfiguration">
+        <form id="formConfiguration" {% if form %}data-form-id="{{ form.id }}"{% endif %}>
             <div class="mb-3">
                 <label class="form-label">Form Title<span class="text-danger">*</span></label>
                 <input type="text" class="form-control" id="title" required>
@@ -63,7 +63,7 @@
             <hr>
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-primary">Save</button>
-                <button type="reset" class="btn btn-secondary">Reset</button>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
