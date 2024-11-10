@@ -66,8 +66,12 @@ export function addQuestion() {
     // Add toggle icon rotation
     header.addEventListener('click', () => {
         const icon = header.querySelector('.toggle-icon');
-        icon.style.transform = contentDiv.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+        icon.style.transform = contentDiv.classList.contains('show') ? 'rotate(0deg)' : 'rotate(180deg)';
     });
+
+    // Set initial rotation state
+    const icon = header.querySelector('.toggle-icon');
+    icon.style.transform = 'rotate(180deg)';
 
     document.getElementById('questions').appendChild(card);
     updateQuestionsList();
