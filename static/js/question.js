@@ -1,7 +1,7 @@
 // question.js
 
 import { updateMetadataFields, setupCounterButtons } from './metadataFields.js';
-import { showAlert, updateQuestionCount, clearFieldError } from './utils.js';
+import { showAlert, clearFieldError } from './utils.js';
 
 // Function to update the questions menu
 function updateQuestionsList() {
@@ -22,6 +22,16 @@ function updateQuestionsList() {
         });
         navList.appendChild(listItem);
     }
+}
+
+// Function to update question count
+export function updateQuestionCount() {
+    const count = document.querySelectorAll('.question-card').length;
+    const countDisplay = document.getElementById('questionCount');
+    if (countDisplay) {
+        countDisplay.textContent = count.toString();
+    }
+    return count;
 }
 
 // Function to add a new question to the form
@@ -56,6 +66,7 @@ export function addQuestion() {
         card.remove();
         updateQuestionNumbers();
         updateQuestionsList();
+        updateQuestionCount();
     });
 
     // Add back to menu event
@@ -75,6 +86,7 @@ export function addQuestion() {
 
     document.getElementById('questions').appendChild(card);
     updateQuestionsList();
+    updateQuestionCount();
 }
 
 // Function to remove a question
@@ -86,6 +98,7 @@ export function removeQuestion(card) {
     card.remove();
     updateQuestionNumbers();
     updateQuestionsList();
+    updateQuestionCount();
 }
 
 function updateQuestionNumbers() {
@@ -93,7 +106,6 @@ function updateQuestionNumbers() {
     for (let i = 0; i < questions.length; i++) {
         questions[i].querySelector('.question-number').textContent = `Question ${i + 1}`;
     }
-    updateQuestionCount();
 }
 
 function initializeMetadataCounter(card) {
@@ -140,7 +152,9 @@ function setupQuestionValidation(card) {
     }
 
     // Add input event listener to update questions list when reference changes
-    fields.reference.addEventListener('input', updateQuestionsList);
+    fields.reference.addEventListener('input', () => {
+        updateQuestionsList();
+    });
 }
 
 export function validateQuestions() {

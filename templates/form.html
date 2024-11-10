@@ -45,15 +45,10 @@
 
             <hr>
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="questions-header" role="button" data-bs-toggle="collapse" data-bs-target="#questionsList">
-                    <h4 class="mb-0 d-flex align-items-center">
-                        Questions (<span id="questionCount">0</span>)
-                        <span class="ms-2 toggle-icon">▼</span>
-                    </h4>
-                </div>
+                <h4 class="mb-0">Questions (<span id="questionCount">0</span>)</h4>
             </div>
 
-            <div id="questionsList" class="collapse question-list mb-3">
+            <div id="questionsList" class="question-list mb-3">
                 <div class="list-group" id="questionNavList"></div>
             </div>
             
@@ -87,12 +82,12 @@
             <div class="card-body">
                 <div class="mb-3">
                     <label class="form-label">Question reference<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control question-title" required placeholder="Introduce question reference">
+                    <input type="text" class="form-control question-title" required placeholder="Enter question reference">
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Question Content<span class="text-danger">*</span></label>
-                    <textarea class="form-control expandable-textarea question-content" required placeholder="Introduce full question text"></textarea>
+                    <textarea class="form-control expandable-textarea question-content" required placeholder="Enter full question text"></textarea>
                 </div>
 
                 <div class="mb-3">
