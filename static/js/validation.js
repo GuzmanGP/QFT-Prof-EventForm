@@ -1,8 +1,9 @@
 // validation.js
 
-import { showAlert, showFieldError, clearFieldError } from './utils.js';
+import { showAlert } from './utils.js';
 import { validateMetadataContainer } from './metadataFields.js';
 import { validateQuestions } from './question.js';
+import { showFieldError, clearFieldError, showErrorSummary, clearAllErrors } from './validationUtils.js';
 
 export function validateForm(form) {
     let isValid = true;
@@ -64,43 +65,4 @@ export function validateAllMetadata(errors) {
             validateMetadataContainer(containerElement, errors);
         }
     });
-}
-
-export function clearAllErrors() {
-    // Clear field errors
-    document.querySelectorAll('.is-invalid').forEach(field => {
-        field.classList.remove('is-invalid', 'error-highlight');
-        const feedback = field.nextElementSibling;
-        if (feedback?.classList.contains('invalid-feedback')) {
-            feedback.remove();
-        }
-    });
-
-    // Clear error summary
-    const errorSummary = document.querySelector('.error-summary');
-    if (errorSummary) {
-        errorSummary.remove();
-    }
-}
-
-export function showErrorSummary(errors) {
-    const summary = document.createElement('div');
-    summary.className = 'error-summary alert alert-danger';
-    summary.innerHTML = `
-        <h5><span class="error-icon">⚠️</span> Please correct the following errors:</h5>
-        <ul>
-            ${errors.map(error => `<li>${error}</li>`).join('')}
-        </ul>
-    `;
-    
-    // Add close button
-    const closeButton = document.createElement('button');
-    closeButton.type = 'button';
-    closeButton.className = 'btn-close';
-    closeButton.setAttribute('data-bs-dismiss', 'alert');
-    closeButton.setAttribute('aria-label', 'Close');
-    summary.appendChild(closeButton);
-
-    const form = document.getElementById('formConfiguration');
-    form.insertAdjacentElement('beforebegin', summary);
 }

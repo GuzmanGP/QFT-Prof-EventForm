@@ -1,34 +1,26 @@
 // init.js
 
-import { addQuestion, validateQuestions } from './question.js';
+import { addQuestion } from './question.js';
 import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
-import { updateQuestionsHeader } from './utils.js';
-import { showAlert } from './utils.js';
+import { updateQuestionsHeader, showAlert } from './utils.js';
 
 export function initializeForm() {
     const form = document.getElementById('formConfiguration');
     const addQuestionBtn = document.getElementById('addQuestion');
+    const questionsList = document.getElementById('questions');
 
     // Add initial question if none exists
-    const questionsContainer = document.getElementById('questions');
-
-    // Si no hay preguntas, agrega una por defecto
-    if (!questionsContainer.querySelector('.question-card')) {
+    if (!questionsList.querySelector('.question-card')) {
         addQuestion();
     }
 
-    // Actualiza el encabezado de preguntas para reflejar el conteo inicial
+    // Update questions header to reflect initial count
     updateQuestionsHeader();
-    const questionsContainer = document.getElementById('questions');
-    if (!questionsContainer.querySelector('.question-card')) {
-        addQuestion();
-    }
 
     // Setup metadata counters
     const metadataSections = document.querySelectorAll('.metadata-section');
-    for (let i = 0; i < metadataSections.length; i++) {
-        const section = metadataSections[i];
+    for (const section of metadataSections) {
         const container = section.querySelector('.metadata-container');
         const buttons = section.querySelectorAll('.counter-button');
         const display = section.querySelector('.counter-display');
@@ -42,42 +34,46 @@ export function initializeForm() {
 
     // Form submission handler
     if (form) {
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
+        form.addEventListener('submit', handleFormSubmit);
+    }
+}
 
-            // Validate the entire form
-            if (!validateForm(form)) return;
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const questionsList = document.getElementById('questions');
 
-            // Get form data
-            const formData = {
-                title: document.getElementById('title').value,
-                category: document.getElementById('category').value,
-                subcategory: document.getElementById('subcategory')?.value || '',
-                category_metadata: getMetadataValues('categoryMetadata'),
-                subcategory_metadata: getMetadataValues('subcategoryMetadata'),
-                questions: getQuestionsData()
-            };
+    // Validate the entire form
+    if (!validateForm(form)) return;
 
-            try {
-                const response = await fetch('/api/forms', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
+    // Get form data
+    const formData = {
+        title: document.getElementById('title').value,
+        category: document.getElementById('category').value,
+        subcategory: document.getElementById('subcategory')?.value || '',
+        category_metadata: getMetadataValues('categoryMetadata'),
+        subcategory_metadata: getMetadataValues('subcategoryMetadata'),
+        questions: getQuestionsData()
+    };
 
-                const data = await response.json();
-                if (data.success) {
-                    showAlert('success', 'Form saved successfully');
-                    form.reset();
-                    questionsContainer.innerHTML = '';
-                    addQuestion();
-                } else {
-                    throw new Error(data.error || 'Failed to save form');
-                }
-            } catch (error) {
-                showAlert('danger', error.message);
-            }
+    try {
+        const response = await fetch('/api/forms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
         });
+
+        const data = await response.json();
+        if (data.success) {
+            showAlert('success', 'Form saved successfully');
+            form.reset();
+            questionsList.innerHTML = '';
+            addQuestion();
+        } else {
+            throw new Error(data.error || 'Failed to save form');
+        }
+    } catch (error) {
+        showAlert('danger', error.message);
     }
 }
 
@@ -87,8 +83,7 @@ function getMetadataValues(containerId) {
     if (!container) return metadata;
 
     const groups = container.querySelectorAll('.input-group');
-    for (let i = 0; i < groups.length; i++) {
-        const group = groups[i];
+    for (const group of groups) {
         const key = group.querySelector('.metadata-key')?.value?.trim();
         const value = group.querySelector('.metadata-value')?.value?.trim();
         if (key && value) {
@@ -100,45 +95,44 @@ function getMetadataValues(containerId) {
 
 function getQuestionsData() {
     const questions = document.querySelectorAll('.question-card');
-    const questionsData = [];
+    return Array.from(questions).map(card => ({
+        reference: card.querySelector('.question-title').value,
+        content: card.querySelector('.question-content').value,
+        answer_type: card.querySelector('.answer-type').value,
+        required: card.querySelector('.question-required').checked,
+        question_metadata: getQuestionMetadata(card),
+        ...getQuestionOptions(card)
+    }));
+}
+
+function getQuestionMetadata(card) {
+    const metadata = {};
+    const metadataGroups = card.querySelectorAll('.question-metadata .input-group');
     
-    for (let i = 0; i < questions.length; i++) {
-        const card = questions[i];
-        const data = {
-            reference: card.querySelector('.question-title').value,
-            content: card.querySelector('.question-content').value,
-            answer_type: card.querySelector('.answer-type').value,
-            required: card.querySelector('.question-required').checked,
-            question_metadata: {}
-        };
-
-        // Get question metadata
-        const metadataGroups = card.querySelectorAll('.question-metadata .input-group');
-        for (let j = 0; j < metadataGroups.length; j++) {
-            const group = metadataGroups[j];
-            const key = group.querySelector('.metadata-key')?.value?.trim();
-            const value = group.querySelector('.metadata-value')?.value?.trim();
-            if (key && value) {
-                data.question_metadata[key] = value;
-            }
+    for (const group of metadataGroups) {
+        const key = group.querySelector('.metadata-key')?.value?.trim();
+        const value = group.querySelector('.metadata-value')?.value?.trim();
+        if (key && value) {
+            metadata[key] = value;
         }
-
-        // Get list options if applicable
-        if (data.answer_type === 'list') {
-            const options = card.querySelector('.list-options input').value;
-            if (options) {
-                data.options = options.split(',').map(opt => opt.trim()).filter(Boolean);
-            }
-        }
-
-        // Get AI instructions if enabled
-        const aiEnabled = card.querySelector('.question-ai')?.checked;
-        if (aiEnabled) {
-            data.ai_instructions = card.querySelector('.question-ai-instructions')?.value;
-        }
-
-        questionsData.push(data);
     }
+    return metadata;
+}
+
+function getQuestionOptions(card) {
+    const options = {};
     
-    return questionsData;
+    if (card.querySelector('.answer-type').value === 'list') {
+        const optionsInput = card.querySelector('.list-options input').value;
+        if (optionsInput) {
+            options.options = optionsInput.split(',').map(opt => opt.trim()).filter(Boolean);
+        }
+    }
+
+    const aiEnabled = card.querySelector('.question-ai')?.checked;
+    if (aiEnabled) {
+        options.ai_instructions = card.querySelector('.question-ai-instructions')?.value;
+    }
+
+    return options;
 }
