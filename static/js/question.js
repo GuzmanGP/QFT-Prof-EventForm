@@ -29,6 +29,14 @@ export function addQuestion() {
     const template = document.getElementById('questionTemplate');
     const clone = template.content.cloneNode(true);
     const card = clone.querySelector('.card');
+    
+    // Generate unique ID for collapse
+    const uniqueId = 'question_' + Date.now();
+    const contentDiv = card.querySelector('[id^="questionContent"]');
+    const header = card.querySelector('.card-header');
+    
+    contentDiv.id = uniqueId;
+    header.setAttribute('data-bs-target', '#' + uniqueId);
 
     // Update question number
     const questionNumber = updateQuestionCount() + 1;
@@ -53,6 +61,12 @@ export function addQuestion() {
     // Add back to menu event
     card.querySelector('.back-to-menu').addEventListener('click', () => {
         document.getElementById('questionsList').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Add toggle icon rotation
+    header.addEventListener('click', () => {
+        const icon = header.querySelector('.toggle-icon');
+        icon.style.transform = contentDiv.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
     });
 
     document.getElementById('questions').appendChild(card);

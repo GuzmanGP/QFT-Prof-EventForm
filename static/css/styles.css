@@ -158,10 +158,24 @@ textarea.form-control {
     border-bottom: 2px solid var(--input-border);
 }
 
-.question-card .card-header {
+.card-header {
+    cursor: pointer;
+    user-select: none;
     background-color: rgba(0, 0, 0, 0.2);
     border-bottom: 1px solid var(--input-border);
     padding: 1rem;
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.card-header[aria-expanded="true"] .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.collapse {
+    transition: all 0.3s ease-out;
 }
 
 .question-number {

@@ -77,69 +77,74 @@
 <!-- Question Template -->
 <template id="questionTemplate">
     <div class="card question-card">
-        <div class="card-header">
-            <h5 class="question-number mb-0">Question 1</h5>
+        <div class="card-header" role="button" data-bs-toggle="collapse" data-bs-target="#questionContent_TEMPLATE">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="question-number mb-0">Question 1</h5>
+                <span class="toggle-icon">▼</span>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="mb-3">
-                <label class="form-label">Question reference<span class="text-danger">*</span></label>
-                <input type="text" class="form-control question-title" required placeholder="Introduce question reference">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Question Content<span class="text-danger">*</span></label>
-                <textarea class="form-control expandable-textarea question-content" required placeholder="Introduce full question text"></textarea>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Answer Type<span class="text-danger">*</span></label>
-                <select class="form-control answer-type" required>
-                    <option value="text">Text</option>
-                    <option value="number">Number</option>
-                    <option value="date">Date</option>
-                    <option value="time">Time</option>
-                    <option value="list">List</option>
-                </select>
-            </div>
-
-            <div class="mb-3 list-options d-none">
-                <label class="form-label">List Options</label>
-                <input type="text" class="form-control" placeholder="Enter options separated by commas">
-            </div>
-
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input question-required" id="required_TEMPLATE">
-                <label class="form-check-label" for="required_TEMPLATE">Required</label>
-            </div>
-
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input question-ai" id="ai_TEMPLATE">
-                <label class="form-check-label" for="ai_TEMPLATE">AI Post-processing</label>
-            </div>
-
-            <div class="ai-instructions" style="display: none;">
-                <label class="form-label">AI Post-processing Instructions</label>
-                <textarea class="form-control expandable-textarea question-ai-instructions" 
-                          placeholder="Enter instructions for processing user responses"></textarea>
-            </div>
-
-            <div class="metadata-section mt-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h6>Question Metadata</h6>
-                    <div class="counter-group">
-                        <button type="button" class="counter-button decrease-count" data-target="question-metadata">-</button>
-                        <span class="counter-display question-meta-count">0</span>
-                        <button type="button" class="counter-button increase-count" data-target="question-metadata">+</button>
-                    </div>
+        <div id="questionContent_TEMPLATE" class="collapse show">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Question reference<span class="text-danger">*</span></label>
+                    <input type="text" class="form-control question-title" required placeholder="Introduce question reference">
                 </div>
-                <div class="question-metadata metadata-container"></div>
-            </div>
 
-            <div class="question-actions">
-                <button type="button" class="btn btn-secondary btn-sm back-to-menu">
-                    <i class="bi bi-arrow-up"></i> Back to Menu
-                </button>
-                <button type="button" class="btn btn-danger btn-sm remove-question">Remove</button>
+                <div class="mb-3">
+                    <label class="form-label">Question Content<span class="text-danger">*</span></label>
+                    <textarea class="form-control expandable-textarea question-content" required placeholder="Introduce full question text"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Answer Type<span class="text-danger">*</span></label>
+                    <select class="form-control answer-type" required>
+                        <option value="text">Text</option>
+                        <option value="number">Number</option>
+                        <option value="date">Date</option>
+                        <option value="time">Time</option>
+                        <option value="list">List</option>
+                    </select>
+                </div>
+
+                <div class="mb-3 list-options d-none">
+                    <label class="form-label">List Options</label>
+                    <input type="text" class="form-control" placeholder="Enter options separated by commas">
+                </div>
+
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input question-required" id="required_TEMPLATE">
+                    <label class="form-check-label" for="required_TEMPLATE">Required</label>
+                </div>
+
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input question-ai" id="ai_TEMPLATE">
+                    <label class="form-check-label" for="ai_TEMPLATE">AI Post-processing</label>
+                </div>
+
+                <div class="ai-instructions" style="display: none;">
+                    <label class="form-label">AI Post-processing Instructions</label>
+                    <textarea class="form-control expandable-textarea question-ai-instructions" 
+                              placeholder="Enter instructions for processing user responses"></textarea>
+                </div>
+
+                <div class="metadata-section mt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6>Question Metadata</h6>
+                        <div class="counter-group">
+                            <button type="button" class="counter-button decrease-count" data-target="question-metadata">-</button>
+                            <span class="counter-display question-meta-count">0</span>
+                            <button type="button" class="counter-button increase-count" data-target="question-metadata">+</button>
+                        </div>
+                    </div>
+                    <div class="question-metadata metadata-container"></div>
+                </div>
+
+                <div class="question-actions">
+                    <button type="button" class="btn btn-secondary btn-sm back-to-menu">
+                        <i class="bi bi-arrow-up"></i> Back to Menu
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm remove-question">Remove</button>
+                </div>
             </div>
         </div>
     </div>
