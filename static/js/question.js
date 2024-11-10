@@ -1,7 +1,7 @@
 // question.js
 
 import { updateMetadataFields, setupCounterButtons } from './metadataFields.js';
-import { showAlert, clearFieldError } from './utils.js';
+import { showAlert, clearFieldError, showFieldError } from './utils.js';
 
 // Function to update the questions menu
 function updateQuestionsList() {

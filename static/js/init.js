@@ -15,8 +15,13 @@ export function initializeForm() {
         addQuestion();
     }
 
-    // Update questions header to reflect initial count
-    updateQuestionsHeader();
+    // Add question button handler - Make sure this runs
+    if (addQuestionBtn) {
+        addQuestionBtn.addEventListener('click', () => {
+            addQuestion();
+            updateQuestionsHeader();
+        });
+    }
 
     // Setup metadata counters
     const metadataSections = document.querySelectorAll('.metadata-section');
@@ -25,11 +30,6 @@ export function initializeForm() {
         const buttons = section.querySelectorAll('.counter-button');
         const display = section.querySelector('.counter-display');
         setupCounterButtons(buttons, container, display);
-    }
-
-    // Add question button handler
-    if (addQuestionBtn) {
-        addQuestionBtn.addEventListener('click', addQuestion);
     }
 
     // Form submission handler
