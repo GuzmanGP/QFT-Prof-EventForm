@@ -1,6 +1,6 @@
 // question.js
 
-import { updateMetadataFields, setupCounterButtons } from './metadataFields.js';
+import { updateMetadataFields } from './metadataFields.js';
 import { showAlert, clearFieldError, updateQuestionCount } from './utils.js';
 import { showFieldError } from './validationUtils.js';
 
@@ -51,7 +51,18 @@ function initializeMetadataCounter(card) {
     const buttons = metadataSection.querySelectorAll('.counter-button');
     const display = metadataSection.querySelector('.counter-display');
     
-    setupCounterButtons(buttons, container, display);
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            const currentCount = parseInt(display.textContent);
+            const isIncrease = button.classList.contains('increase-count');
+            const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
+            
+            if (newCount <= 20) {
+                updateMetadataFields(container, newCount);
+                display.textContent = newCount;
+            }
+        });
+    });
 }
 
 function configureAnswerTypeChange(card) {
