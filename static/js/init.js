@@ -9,17 +9,11 @@ export function initializeForm() {
     const form = document.getElementById('formConfiguration');
     const addQuestionBtn = document.getElementById('addQuestion');
     const questionsList = document.getElementById('questions');
-    const formId = form.dataset.formId;
 
-    // Load existing form data if form ID is present
-    if (formId) {
-        loadFormData(formId);
-    } else {
-        // Add initial question if none exists
-        if (!questionsList.querySelector('.question-card')) {
-            addQuestion();
-            updateQuestionCount();
-        }
+    // Add initial question if none exists
+    if (!questionsList.querySelector('.question-card')) {
+        addQuestion();
+        updateQuestionCount();
     }
 
     // Add question button handler
@@ -45,104 +39,9 @@ export function initializeForm() {
     }
 }
 
-async function loadFormData(formId) {
-    try {
-        const response = await fetch(`/api/forms/${formId}`);
-        if (!response.ok) throw new Error('Failed to load form data');
-        
-        const data = await response.json();
-        
-        // Populate form fields
-        document.getElementById('title').value = data.title;
-        document.getElementById('category').value = data.category;
-        if (data.subcategory) {
-            document.getElementById('subcategory').value = data.subcategory;
-        }
-        
-        // Load metadata
-        loadMetadata('categoryMetadata', data.category_metadata);
-        loadMetadata('subcategoryMetadata', data.subcategory_metadata);
-        
-        // Load questions
-        const questionsList = document.getElementById('questions');
-        questionsList.innerHTML = ''; // Clear existing questions
-        
-        for (const questionData of data.questions) {
-            const questionCard = addQuestion();
-            populateQuestionData(questionCard, questionData);
-        }
-        
-        updateQuestionCount();
-    } catch (error) {
-        showAlert('danger', 'Error loading form data: ' + error.message);
-    }
-}
-
-function loadMetadata(containerId, metadata) {
-    const container = document.getElementById(containerId);
-    const count = Object.keys(metadata).length;
-    const counterDisplay = container.parentElement.querySelector('.counter-display');
-    counterDisplay.textContent = count.toString();
-    
-    // Update metadata fields
-    container.innerHTML = '';
-    for (const [key, value] of Object.entries(metadata)) {
-        const field = document.createElement('div');
-        field.className = 'input-group mb-2';
-        field.innerHTML = `
-            <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
-            <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
-            <button type="button" class="btn btn-outline-danger remove-field">×</button>
-        `;
-        container.appendChild(field);
-    }
-}
-
-function populateQuestionData(card, data) {
-    card.querySelector('.question-title').value = data.reference;
-    card.querySelector('.question-content').value = data.content;
-    
-    const answerTypeSelect = card.querySelector('.answer-type');
-    answerTypeSelect.value = data.answer_type;
-    
-    if (data.answer_type === 'list') {
-        const listOptions = card.querySelector('.list-options');
-        listOptions.classList.remove('d-none');
-        listOptions.querySelector('input').value = data.options.join(', ');
-    }
-    
-    card.querySelector('.question-required').checked = data.required;
-    
-    // Handle AI instructions
-    const aiCheckbox = card.querySelector('.question-ai');
-    const aiInstructions = card.querySelector('.ai-instructions');
-    if (data.ai_instructions) {
-        aiCheckbox.checked = true;
-        aiInstructions.style.display = 'block';
-        aiInstructions.querySelector('textarea').value = data.ai_instructions;
-    }
-    
-    // Load question metadata
-    const metadataContainer = card.querySelector('.question-metadata');
-    const metadataCount = Object.keys(data.question_metadata).length;
-    card.querySelector('.question-meta-count').textContent = metadataCount.toString();
-    
-    for (const [key, value] of Object.entries(data.question_metadata)) {
-        const field = document.createElement('div');
-        field.className = 'input-group mb-2';
-        field.innerHTML = `
-            <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
-            <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
-            <button type="button" class="btn btn-outline-danger remove-field">×</button>
-        `;
-        metadataContainer.appendChild(field);
-    }
-}
-
 async function handleFormSubmit(e) {
     e.preventDefault();
     const form = e.target;
-    const formId = form.dataset.formId;
     const questionsList = document.getElementById('questions');
 
     // Validate the entire form
@@ -159,22 +58,20 @@ async function handleFormSubmit(e) {
     };
 
     try {
-        const url = formId ? `/api/forms/${formId}` : '/api/forms';
-        const method = formId ? 'PUT' : 'POST';
-        
-        const response = await fetch(url, {
-            method: method,
+        const response = await fetch('/api/forms', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
 
         const data = await response.json();
         if (data.success) {
-            showAlert('success', `Form ${formId ? 'updated' : 'saved'} successfully`);
-            // Redirect to forms list after successful save
-            window.location.href = '/';
+            showAlert('success', 'Form saved successfully');
+            form.reset();
+            questionsList.innerHTML = '';
+            addQuestion();
         } else {
-            throw new Error(data.error || `Failed to ${formId ? 'update' : 'save'} form`);
+            throw new Error(data.error || 'Failed to save form');
         }
     } catch (error) {
         showAlert('danger', error.message);
