@@ -35,6 +35,16 @@ export function updateQuestionCount() {
     return count;
 }
 
+// Function to configure AI Processing
+function configureAIProcessing(card) {
+    const aiCheckbox = card.querySelector('.question-ai');
+    const aiInstructions = card.querySelector('.ai-instructions');
+    
+    aiCheckbox.addEventListener('change', function() {
+        aiInstructions.style.display = this.checked ? 'block' : 'none';
+    });
+}
+
 // Function to add a new question to the form
 export function addQuestion() {
     const template = document.getElementById('questionTemplate');
@@ -56,6 +66,7 @@ export function addQuestion() {
     // Initialize metadata counter
     initializeMetadataCounter(card);
     configureAnswerTypeChange(card);
+    configureAIProcessing(card);
     setupQuestionValidation(card);
 
     // Add remove event
