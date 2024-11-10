@@ -15,6 +15,10 @@ export function validateForm(form) {
         showFieldError(title, 'Title is required');
         errors.push('Title is required');
         isValid = false;
+    } else if (title.value.length > 200) {
+        showFieldError(title, 'Title must be less than 200 characters');
+        errors.push('Title is too long');
+        isValid = false;
     }
 
     // Validate category
@@ -22,6 +26,10 @@ export function validateForm(form) {
     if (!category.value.trim()) {
         showFieldError(category, 'Category is required');
         errors.push('Category is required');
+        isValid = false;
+    } else if (category.value.length > 100) {
+        showFieldError(category, 'Category must be less than 100 characters');
+        errors.push('Category is too long');
         isValid = false;
     }
 
@@ -50,33 +58,51 @@ export function validateForm(form) {
 
 export function showFieldError(field, message) {
     field.classList.add('is-invalid');
+    
+    // Remove existing error messages
+    const existingFeedback = field.parentNode.querySelector('.invalid-feedback');
+    if (existingFeedback) {
+        existingFeedback.remove();
+    }
+
     const feedback = document.createElement('div');
     feedback.className = 'invalid-feedback';
     feedback.textContent = message;
+    
+    // Add error icon
+    const errorIcon = document.createElement('span');
+    errorIcon.className = 'error-icon';
+    errorIcon.innerHTML = '⚠️';
+    feedback.insertBefore(errorIcon, feedback.firstChild);
+
     field.parentNode.insertBefore(feedback, field.nextSibling);
+    
+    // Add error highlight animation
+    field.classList.add('error-highlight');
+    setTimeout(() => field.classList.remove('error-highlight'), 1000);
 }
 
 export function validateAllMetadata(errors) {
     const containers = ['categoryMetadata', 'subcategoryMetadata'];
-    for (let i = 0; i < containers.length; i++) {
-        const containerElement = document.getElementById(containers[i]);
+    containers.forEach(containerId => {
+        const containerElement = document.getElementById(containerId);
         if (containerElement) {
             validateMetadataContainer(containerElement, errors);
         }
-    }
+    });
 }
 
 export function clearAllErrors() {
-    const invalidFields = document.querySelectorAll('.is-invalid');
-    for (let i = 0; i < invalidFields.length; i++) {
-        const field = invalidFields[i];
-        field.classList.remove('is-invalid');
+    // Clear field errors
+    document.querySelectorAll('.is-invalid').forEach(field => {
+        field.classList.remove('is-invalid', 'error-highlight');
         const feedback = field.nextElementSibling;
-        if (feedback && feedback.classList.contains('invalid-feedback')) {
+        if (feedback?.classList.contains('invalid-feedback')) {
             feedback.remove();
         }
-    }
+    });
 
+    // Clear error summary
     const errorSummary = document.querySelector('.error-summary');
     if (errorSummary) {
         errorSummary.remove();
@@ -87,9 +113,20 @@ export function showErrorSummary(errors) {
     const summary = document.createElement('div');
     summary.className = 'error-summary alert alert-danger';
     summary.innerHTML = `
-        <h5>Please correct the following errors:</h5>
-        <ul>${errors.map(error => `<li>${error}</li>`).join('')}</ul>
+        <h5><span class="error-icon">⚠️</span> Please correct the following errors:</h5>
+        <ul>
+            ${errors.map(error => `<li>${error}</li>`).join('')}
+        </ul>
     `;
+    
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'btn-close';
+    closeButton.setAttribute('data-bs-dismiss', 'alert');
+    closeButton.setAttribute('aria-label', 'Close');
+    summary.appendChild(closeButton);
+
     const form = document.getElementById('formConfiguration');
     form.insertAdjacentElement('beforebegin', summary);
 }

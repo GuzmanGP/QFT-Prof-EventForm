@@ -185,8 +185,7 @@ textarea.form-control {
 
 .question-actions {
     display: flex;
-    gap: 2rem;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
     margin-top: 1rem;
 }
@@ -220,11 +219,28 @@ textarea.form-control {
     font-size: 0.875rem;
     color: var(--error-color);
     animation: fadeIn 0.3s ease-in;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.error-icon {
+    display: inline-block;
+    margin-right: 0.5rem;
 }
 
 .form-control.is-invalid + .invalid-feedback,
 .form-control.is-invalid ~ .invalid-feedback {
-    display: block;
+    display: flex;
+}
+
+.error-highlight {
+    animation: errorPulse 1s cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes errorPulse {
+    0%, 100% { border-color: var(--error-color); }
+    50% { border-color: #ff8c94; }
 }
 
 .validation-shake {
@@ -241,11 +257,6 @@ textarea.form-control {
     40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 .error-summary {
     background-color: var(--error-bg);
     border: 1px solid var(--error-color);
@@ -253,6 +264,13 @@ textarea.form-control {
     padding: 1rem;
     margin-bottom: 1rem;
     animation: slideIn 0.3s ease-out;
+    position: relative;
+}
+
+.error-summary .btn-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
 }
 
 @keyframes slideIn {
@@ -264,11 +282,13 @@ textarea.form-control {
     color: var(--error-color);
     margin-bottom: 1rem;
     font-weight: 500;
+    display: flex;
+    align-items: center;
 }
 
 .error-summary ul {
     margin-bottom: 0;
-    padding-left: 1.25rem;
+    padding-left: 2.5rem;
     list-style-type: none;
 }
 
@@ -276,14 +296,19 @@ textarea.form-control {
     color: var(--error-color);
     margin-bottom: 0.5rem;
     position: relative;
-    padding-left: 0.5rem;
 }
 
 .error-summary li:before {
     content: "•";
     color: var(--error-color);
     position: absolute;
-    left: -1rem;
+    left: -1.5rem;
+    font-size: 1.2em;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .back-to-menu {

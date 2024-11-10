@@ -54,14 +54,14 @@
             
             <div id="questions"></div>
             
-            <div class="question-actions">
+            <div class="d-flex justify-content-start">
                 <button type="button" class="btn btn-primary" id="addQuestion">
                     Add Question
                 </button>
             </div>
 
             <hr>
-            <div class="d-flex gap-2">
+            <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-primary">Save</button>
                 <button type="reset" class="btn btn-secondary">Reset</button>
             </div>
@@ -135,10 +135,14 @@
                 </div>
 
                 <div class="question-actions">
-                    <button type="button" class="btn btn-secondary btn-sm back-to-menu">
-                        <i class="bi bi-arrow-up"></i> Back to Menu
-                    </button>
-                    <button type="button" class="btn btn-danger btn-sm remove-question">Remove</button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-secondary btn-sm back-to-menu">
+                            Back to Menu
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2 ms-auto">
+                        <button type="button" class="btn btn-danger btn-sm remove-question">Remove</button>
+                    </div>
                 </div>
             </div>
         </div>
