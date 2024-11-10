@@ -48,18 +48,18 @@ export function addMetadataField(container) {
 }
 
 export function setupCounterButtons(buttons, container, display) {
-    for (let i = 0; i < buttons.length; i++) {
-        const button = buttons[i];
-        button.addEventListener('click', function() {
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
             const currentCount = parseInt(display.textContent);
-            const newCount = this.classList.contains('increase-count') 
-                ? currentCount + 1 
-                : Math.max(0, currentCount - 1);
+            const isIncrease = button.classList.contains('increase-count');
+            const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
 
-            updateMetadataFields(container, newCount);
-            display.textContent = newCount;
+            if (newCount <= 20) {
+                updateMetadataFields(container, newCount);
+                display.textContent = newCount;
+            }
         });
-    }
+    });
 }
 
 export function validateMetadataContainer(container, errors) {

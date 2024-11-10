@@ -90,31 +90,25 @@ export function addQuestion() {
     updateQuestionCount();
 }
 
-// Function to remove a question
-export function removeQuestion(card) {
-    if (document.querySelectorAll('.question-card').length <= 1) {
-        showAlert('warning', 'At least one question is required');
-        return;
-    }
-    card.remove();
-    updateQuestionNumbers();
-    updateQuestionsList();
-    updateQuestionCount();
-}
-
-function updateQuestionNumbers() {
-    const questions = document.querySelectorAll('.question-card');
-    for (let i = 0; i < questions.length; i++) {
-        questions[i].querySelector('.question-number').textContent = `Question ${i + 1}`;
-    }
-}
-
-function initializeMetadataCounter(card) {
+// Function to initialize metadata counter
+export function initializeMetadataCounter(card) {
     const metadataSection = card.querySelector('.metadata-section');
     const container = metadataSection.querySelector('.metadata-container');
     const buttons = metadataSection.querySelectorAll('.counter-button');
     const display = metadataSection.querySelector('.counter-display');
-    setupCounterButtons(buttons, container, display);
+    
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            const currentCount = parseInt(display.textContent);
+            const isIncrease = button.classList.contains('increase-count');
+            const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
+            
+            if (newCount <= 20) {
+                updateMetadataFields(container, newCount);
+                display.textContent = newCount;
+            }
+        });
+    });
 }
 
 function configureAnswerTypeChange(card) {
