@@ -1,7 +1,7 @@
 // question.js
 
-import { updateMetadataFields, setupCounterButtons } from './metadataFields.js';
-import { showAlert, clearFieldError } from './utils.js';
+import { updateMetadataFields } from './metadataFields.js';
+import { showAlert, clearFieldError, showFieldError } from './utils.js';
 
 // Function to update the questions menu
 function updateQuestionsList() {
@@ -23,6 +23,14 @@ function updateQuestionsList() {
         });
         navList.appendChild(listItem);
     }
+}
+
+// Function to update question numbers
+function updateQuestionNumbers() {
+    const questions = document.querySelectorAll('.question-card');
+    questions.forEach((card, index) => {
+        card.querySelector('.question-number').textContent = `Question ${index + 1}`;
+    });
 }
 
 // Function to update question count
@@ -93,9 +101,9 @@ export function addQuestion() {
 // Function to initialize metadata counter
 export function initializeMetadataCounter(card) {
     const metadataSection = card.querySelector('.metadata-section');
-    const container = metadataSection.querySelector('.metadata-container');
+    const container = metadataSection.querySelector('.question-metadata');
     const buttons = metadataSection.querySelectorAll('.counter-button');
-    const display = metadataSection.querySelector('.counter-display');
+    const display = metadataSection.querySelector('.question-meta-count');
     
     buttons.forEach(button => {
         button.addEventListener('click', () => {
@@ -104,8 +112,12 @@ export function initializeMetadataCounter(card) {
             const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
             
             if (newCount <= 20) {
-                updateMetadataFields(container, newCount);
-                display.textContent = newCount;
+                if (container) {
+                    updateMetadataFields(container, newCount);
+                    display.textContent = newCount;
+                }
+            } else {
+                showAlert('warning', 'Maximum 20 metadata fields allowed');
             }
         });
     });
