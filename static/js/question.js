@@ -1,7 +1,7 @@
 // question.js
 
 import { updateMetadataFields, setupCounterButtons } from './metadataFields.js';
-import { showAlert, clearFieldError } from './utils.js';
+import { showAlert, clearFieldError, updateQuestionCount } from './utils.js';
 import { showFieldError } from './validationUtils.js';
 
 // Function to update the questions menu
@@ -24,16 +24,6 @@ function updateQuestionsList() {
         });
         navList.appendChild(listItem);
     }
-}
-
-// Function to update question count
-function updateQuestionCount() {
-    const count = document.querySelectorAll('.question-card').length;
-    const countDisplay = document.getElementById('questionCount');
-    if (countDisplay) {
-        countDisplay.textContent = count.toString();
-    }
-    return count;
 }
 
 // Function to update question numbers after removal
@@ -61,18 +51,7 @@ function initializeMetadataCounter(card) {
     const buttons = metadataSection.querySelectorAll('.counter-button');
     const display = metadataSection.querySelector('.counter-display');
     
-    buttons.forEach(button => {
-        button.addEventListener('click', () => {
-            const currentCount = parseInt(display.textContent);
-            const isIncrease = button.classList.contains('increase-count');
-            const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
-            
-            if (newCount <= 20) {
-                updateMetadataFields(container, newCount);
-                display.textContent = newCount;
-            }
-        });
-    });
+    setupCounterButtons(buttons, container, display);
 }
 
 function configureAnswerTypeChange(card) {
