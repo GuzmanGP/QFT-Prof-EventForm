@@ -1,6 +1,6 @@
 // validation.js
 
-import { showAlert } from './utils.js';
+import { showAlert, showFieldError, clearFieldError } from './utils.js';
 import { validateMetadataContainer } from './metadataFields.js';
 import { validateQuestions } from './question.js';
 
@@ -54,32 +54,6 @@ export function validateForm(form) {
     }
 
     return isValid;
-}
-
-export function showFieldError(field, message) {
-    field.classList.add('is-invalid');
-    
-    // Remove existing error messages
-    const existingFeedback = field.parentNode.querySelector('.invalid-feedback');
-    if (existingFeedback) {
-        existingFeedback.remove();
-    }
-
-    const feedback = document.createElement('div');
-    feedback.className = 'invalid-feedback';
-    feedback.textContent = message;
-    
-    // Add error icon
-    const errorIcon = document.createElement('span');
-    errorIcon.className = 'error-icon';
-    errorIcon.innerHTML = '⚠️';
-    feedback.insertBefore(errorIcon, feedback.firstChild);
-
-    field.parentNode.insertBefore(feedback, field.nextSibling);
-    
-    // Add error highlight animation
-    field.classList.add('error-highlight');
-    setTimeout(() => field.classList.remove('error-highlight'), 1000);
 }
 
 export function validateAllMetadata(errors) {

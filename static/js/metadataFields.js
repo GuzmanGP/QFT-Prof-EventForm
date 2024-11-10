@@ -1,15 +1,6 @@
 // metadataFields.js
 
-import { showAlert } from './utils.js';
-
-// Function to show field-specific error
-function showFieldError(inputElement, errorMessage) {
-    inputElement.classList.add('is-invalid');
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'invalid-feedback';
-    errorDiv.textContent = errorMessage;
-    inputElement.parentNode.appendChild(errorDiv);
-}
+import { showAlert, showFieldError } from './utils.js';
 
 export function updateMetadataFields(container, count) {
     if (typeof container === 'string') {
