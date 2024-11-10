@@ -1,7 +1,8 @@
 // question.js
 
 import { updateMetadataFields, setupCounterButtons } from './metadataFields.js';
-import { showAlert, clearFieldError, showFieldError } from './utils.js';
+import { showAlert, clearFieldError } from './utils.js';
+import { showFieldError } from './validationUtils.js';
 
 // Function to update the questions menu
 function updateQuestionsList() {
@@ -26,13 +27,21 @@ function updateQuestionsList() {
 }
 
 // Function to update question count
-export function updateQuestionCount() {
+function updateQuestionCount() {
     const count = document.querySelectorAll('.question-card').length;
     const countDisplay = document.getElementById('questionCount');
     if (countDisplay) {
         countDisplay.textContent = count.toString();
     }
     return count;
+}
+
+// Function to update question numbers after removal
+function updateQuestionNumbers() {
+    const questions = document.querySelectorAll('.question-card');
+    questions.forEach((card, index) => {
+        card.querySelector('.question-number').textContent = `Question ${index + 1}`;
+    });
 }
 
 // Function to configure AI Processing
@@ -45,64 +54,8 @@ function configureAIProcessing(card) {
     });
 }
 
-// Function to add a new question to the form
-export function addQuestion() {
-    const template = document.getElementById('questionTemplate');
-    const clone = template.content.cloneNode(true);
-    const card = clone.querySelector('.card');
-    
-    // Generate unique ID for collapse
-    const uniqueId = 'question_' + Date.now();
-    const contentDiv = card.querySelector('[id^="questionContent"]');
-    const header = card.querySelector('.card-header');
-    
-    contentDiv.id = uniqueId;
-    header.setAttribute('data-bs-target', '#' + uniqueId);
-
-    // Update question number
-    const questionNumber = updateQuestionCount() + 1;
-    card.querySelector('.question-number').textContent = `Question ${questionNumber}`;
-
-    // Initialize metadata counter
-    initializeMetadataCounter(card);
-    configureAnswerTypeChange(card);
-    configureAIProcessing(card);
-    setupQuestionValidation(card);
-
-    // Add remove event
-    card.querySelector('.remove-question').addEventListener('click', function() {
-        if (document.querySelectorAll('.question-card').length <= 1) {
-            showAlert('warning', 'At least one question is required');
-            return;
-        }
-        card.remove();
-        updateQuestionNumbers();
-        updateQuestionsList();
-        updateQuestionCount();
-    });
-
-    // Add back to menu event
-    card.querySelector('.back-to-menu').addEventListener('click', () => {
-        document.getElementById('questionsList').scrollIntoView({ behavior: 'smooth' });
-    });
-
-    // Add toggle icon rotation
-    header.addEventListener('click', () => {
-        const icon = header.querySelector('.toggle-icon');
-        icon.style.transform = contentDiv.classList.contains('show') ? 'rotate(0deg)' : 'rotate(180deg)';
-    });
-
-    // Set initial rotation state
-    const icon = header.querySelector('.toggle-icon');
-    icon.style.transform = 'rotate(180deg)';
-
-    document.getElementById('questions').appendChild(card);
-    updateQuestionsList();
-    updateQuestionCount();
-}
-
 // Function to initialize metadata counter
-export function initializeMetadataCounter(card) {
+function initializeMetadataCounter(card) {
     const metadataSection = card.querySelector('.metadata-section');
     const container = metadataSection.querySelector('.metadata-container');
     const buttons = metadataSection.querySelectorAll('.counter-button');
@@ -161,6 +114,62 @@ function setupQuestionValidation(card) {
     fields.reference.addEventListener('input', () => {
         updateQuestionsList();
     });
+}
+
+// Function to add a new question to the form
+export function addQuestion() {
+    const template = document.getElementById('questionTemplate');
+    const clone = template.content.cloneNode(true);
+    const card = clone.querySelector('.card');
+    
+    // Generate unique ID for collapse
+    const uniqueId = 'question_' + Date.now();
+    const contentDiv = card.querySelector('[id^="questionContent"]');
+    const header = card.querySelector('.card-header');
+    
+    contentDiv.id = uniqueId;
+    header.setAttribute('data-bs-target', '#' + uniqueId);
+
+    // Update question number
+    const questionNumber = updateQuestionCount() + 1;
+    card.querySelector('.question-number').textContent = `Question ${questionNumber}`;
+
+    // Initialize metadata counter
+    initializeMetadataCounter(card);
+    configureAnswerTypeChange(card);
+    configureAIProcessing(card);
+    setupQuestionValidation(card);
+
+    // Add remove event
+    card.querySelector('.remove-question').addEventListener('click', function() {
+        if (document.querySelectorAll('.question-card').length <= 1) {
+            showAlert('warning', 'At least one question is required');
+            return;
+        }
+        card.remove();
+        updateQuestionNumbers();
+        updateQuestionsList();
+        updateQuestionCount();
+    });
+
+    // Add back to menu event
+    card.querySelector('.back-to-menu').addEventListener('click', () => {
+        document.getElementById('questionsList').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Add toggle icon rotation
+    header.addEventListener('click', () => {
+        const icon = header.querySelector('.toggle-icon');
+        icon.style.transform = contentDiv.classList.contains('show') ? 'rotate(0deg)' : 'rotate(180deg)';
+    });
+
+    // Set initial rotation state
+    const icon = header.querySelector('.toggle-icon');
+    icon.style.transform = 'rotate(180deg)';
+
+    document.getElementById('questions').appendChild(card);
+    updateQuestionsList();
+    updateQuestionCount();
 }
 
 export function validateQuestions() {

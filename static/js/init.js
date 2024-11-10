@@ -3,7 +3,7 @@
 import { addQuestion } from './question.js';
 import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
-import { updateQuestionsHeader, showAlert } from './utils.js';
+import { updateQuestionsHeader, updateQuestionCount, showAlert } from './utils.js';
 
 export function initializeForm() {
     const form = document.getElementById('formConfiguration');
@@ -13,13 +13,14 @@ export function initializeForm() {
     // Add initial question if none exists
     if (!questionsList.querySelector('.question-card')) {
         addQuestion();
+        updateQuestionCount();
     }
 
-    // Add question button handler - Make sure this runs
+    // Add question button handler
     if (addQuestionBtn) {
         addQuestionBtn.addEventListener('click', () => {
             addQuestion();
-            updateQuestionsHeader();
+            updateQuestionCount();
         });
     }
 

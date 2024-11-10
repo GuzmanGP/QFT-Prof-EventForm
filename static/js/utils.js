@@ -55,7 +55,7 @@ export function updateQuestionCount() {
     const count = document.querySelectorAll('.question-card').length;
     const countDisplay = document.getElementById('questionCount');
     if (countDisplay) {
-        countDisplay.textContent = count;
+        countDisplay.textContent = count.toString();
     }
     return count;
 }
