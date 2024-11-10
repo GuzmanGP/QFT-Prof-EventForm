@@ -1,21 +1,29 @@
 // init.js
+
 import { addQuestion, validateQuestions } from './question.js';
 import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
-import { showAlert, updateQuestionsHeader } from './utils.js';
+import { updateQuestionsHeader } from './utils.js';
+import { showAlert } from './utils.js';
 
 export function initializeForm() {
     const form = document.getElementById('formConfiguration');
     const addQuestionBtn = document.getElementById('addQuestion');
-    const questionsContainer = document.getElementById('questions');
 
     // Add initial question if none exists
+    const questionsContainer = document.getElementById('questions');
+
+    // Si no hay preguntas, agrega una por defecto
     if (!questionsContainer.querySelector('.question-card')) {
         addQuestion();
     }
 
-    // Update questions header to reflect initial count
+    // Actualiza el encabezado de preguntas para reflejar el conteo inicial
     updateQuestionsHeader();
+    const questionsContainer = document.getElementById('questions');
+    if (!questionsContainer.querySelector('.question-card')) {
+        addQuestion();
+    }
 
     // Setup metadata counters
     const metadataSections = document.querySelectorAll('.metadata-section');
@@ -34,50 +42,42 @@ export function initializeForm() {
 
     // Form submission handler
     if (form) {
-        form.addEventListener('submit', handleFormSubmit);
-    }
-}
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-async function handleFormSubmit(e) {
-    e.preventDefault();
-    const form = e.target;
-    const questionsContainer = document.getElementById('questions');
+            // Validate the entire form
+            if (!validateForm(form)) return;
 
-    // Validate the entire form
-    if (!validateForm(form)) return;
+            // Get form data
+            const formData = {
+                title: document.getElementById('title').value,
+                category: document.getElementById('category').value,
+                subcategory: document.getElementById('subcategory')?.value || '',
+                category_metadata: getMetadataValues('categoryMetadata'),
+                subcategory_metadata: getMetadataValues('subcategoryMetadata'),
+                questions: getQuestionsData()
+            };
 
-    // Get form data
-    const formData = {
-        title: document.getElementById('title').value,
-        category: document.getElementById('category').value,
-        subcategory: document.getElementById('subcategory')?.value || '',
-        category_metadata: getMetadataValues('categoryMetadata'),
-        subcategory_metadata: getMetadataValues('subcategoryMetadata'),
-        questions: getQuestionsData()
-    };
+            try {
+                const response = await fetch('/api/forms', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
 
-    try {
-        const response = await fetch('/api/forms', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-
-        const data = await response.json();
-        if (data.success) {
-            let message = 'Form saved successfully';
-            if (!data.sheets_sync) {
-                message += ' (Google Sheets sync failed - please check API permissions)';
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('success', 'Form saved successfully');
+                    form.reset();
+                    questionsContainer.innerHTML = '';
+                    addQuestion();
+                } else {
+                    throw new Error(data.error || 'Failed to save form');
+                }
+            } catch (error) {
+                showAlert('danger', error.message);
             }
-            showAlert('success', message);
-            form.reset();
-            questionsContainer.innerHTML = '';
-            addQuestion();
-        } else {
-            throw new Error(data.error || 'Failed to save form');
-        }
-    } catch (error) {
-        showAlert('danger', error.message);
+        });
     }
 }
 
