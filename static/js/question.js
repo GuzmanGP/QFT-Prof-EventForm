@@ -125,7 +125,7 @@ function setupQuestionValidation(card) {
 }
 
 // Function to add a new question to the form
-export function addQuestion() {
+export function addQuestion(questionData = null) {
     const template = document.getElementById('questionTemplate');
     const clone = template.content.cloneNode(true);
     const card = clone.querySelector('.card');
@@ -147,6 +147,47 @@ export function addQuestion() {
     configureAnswerTypeChange(card);
     configureAIProcessing(card);
     setupQuestionValidation(card);
+
+    // If question data is provided, populate the fields
+    if (questionData) {
+        card.querySelector('.question-title').value = questionData.reference;
+        card.querySelector('.question-content').value = questionData.content;
+        card.querySelector('.answer-type').value = questionData.answer_type;
+        card.querySelector('.question-required').checked = questionData.required;
+        
+        if (questionData.answer_type === 'list' && questionData.options) {
+            const listOptions = card.querySelector('.list-options');
+            listOptions.classList.remove('d-none');
+            listOptions.querySelector('input').value = questionData.options.join(', ');
+        }
+        
+        if (questionData.ai_instructions) {
+            const aiCheckbox = card.querySelector('.question-ai');
+            const aiInstructions = card.querySelector('.ai-instructions');
+            aiCheckbox.checked = true;
+            aiInstructions.style.display = 'block';
+            aiInstructions.querySelector('textarea').value = questionData.ai_instructions;
+        }
+        
+        // Set metadata
+        if (questionData.question_metadata) {
+            const container = card.querySelector('.question-metadata');
+            const display = card.querySelector('.question-meta-count');
+            const count = Object.keys(questionData.question_metadata).length;
+            display.textContent = count.toString();
+            
+            Object.entries(questionData.question_metadata).forEach(([key, value]) => {
+                const field = document.createElement('div');
+                field.className = 'input-group mb-2';
+                field.innerHTML = `
+                    <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
+                    <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
+                    <button type="button" class="btn btn-outline-danger remove-field">×</button>
+                `;
+                container.appendChild(field);
+            });
+        }
+    }
 
     // Add remove event
     card.querySelector('.remove-question').addEventListener('click', function() {
