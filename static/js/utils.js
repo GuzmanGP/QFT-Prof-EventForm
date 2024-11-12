@@ -1,5 +1,4 @@
 // utils.js
-import { showFieldError, clearFieldError } from './validationUtils.js';
 
 // Function to show alerts in the interface
 export function showAlert(type, message) {
@@ -50,5 +49,68 @@ export function updateQuestionCount() {
     return count;
 }
 
-// Re-export validation utilities for backward compatibility
-export { showFieldError, clearFieldError };
+// Function to load form data
+export async function loadForm(formId) {
+    try {
+        const response = await fetch(`/api/forms/${formId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            // Clear existing form
+            const form = document.getElementById('formConfiguration');
+            form.reset();
+            
+            // Set basic form fields
+            document.getElementById('title').value = data.form.title;
+            document.getElementById('category').value = data.form.category;
+            if (data.form.subcategory) {
+                document.getElementById('subcategory').value = data.form.subcategory;
+            }
+            
+            // Set metadata
+            setMetadataFields('categoryMetadata', data.form.category_metadata);
+            setMetadataFields('subcategoryMetadata', data.form.subcategory_metadata);
+            
+            // Clear existing questions
+            const questionsContainer = document.getElementById('questions');
+            questionsContainer.innerHTML = '';
+            
+            // Add questions
+            data.form.questions.forEach(q => addQuestionWithData(q));
+            
+            return true;
+        } else {
+            throw new Error(data.error || 'Failed to load form');
+        }
+    } catch (error) {
+        showAlert('danger', `Error loading form: ${error.message}`);
+        return false;
+    }
+}
+
+// Helper function to set metadata fields
+function setMetadataFields(containerId, metadata) {
+    const container = document.getElementById(containerId);
+    const display = document.querySelector(`#${containerId}Count`);
+    const count = Object.keys(metadata).length;
+    
+    // Update counter
+    if (display) {
+        display.textContent = count.toString();
+    }
+    
+    // Clear existing fields
+    container.innerHTML = '';
+    
+    // Add fields for each metadata entry
+    Object.entries(metadata).forEach(([key, value]) => {
+        const field = document.createElement('div');
+        field.className = 'input-group mb-2';
+        field.innerHTML = `
+            <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
+            <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
+            <button type="button" class="btn btn-outline-danger remove-field">×</button>
+        `;
+        container.appendChild(field);
+    });
+}

@@ -1,6 +1,35 @@
 {% extends "base.html" %}
 
 {% block content %}
+<!-- Form List Modal -->
+<div class="modal fade" id="formListModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Saved Forms</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group">
+                    {% for form in forms %}
+                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center load-form" data-form-id="{{ form.id }}">
+                        <div>
+                            <h6 class="mb-1">{{ form.title }}</h6>
+                            <small>{{ form.category }}{% if form.subcategory %} > {{ form.subcategory }}{% endif %}</small>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ form.questions|length }} Questions</span>
+                    </a>
+                    {% else %}
+                    <div class="text-center p-3">
+                        <p class="mb-0">No saved forms found</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-body">
         <form id="formConfiguration">
@@ -63,6 +92,9 @@
         <div class="d-flex justify-content-around align-items-center">
             <button type="button" class="btn btn-success" id="addQuestion">
                 <i class="fas fa-plus me-2"></i>Add Question
+            </button>
+            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#formListModal">
+                <i class="fas fa-folder-open me-2"></i>Load Form
             </button>
             <button type="button" class="btn btn-pink back-to-menu">
                 <i class="fas fa-arrow-up me-2"></i>Back to Menu

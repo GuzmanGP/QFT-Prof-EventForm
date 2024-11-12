@@ -52,10 +52,30 @@ def validate_form_data(data):
 
 @app.route('/')
 def index():
-    return render_template('form.html')
+    # Get the list of forms for display
+    forms = FormConfiguration.query.order_by(FormConfiguration.created_at.desc()).all()
+    return render_template('form.html', forms=forms)
 
-@app.route('/api/forms', methods=['POST'])
-def create_form():
+@app.route('/api/forms', methods=['GET', 'POST'])
+def handle_forms():
+    if request.method == 'GET':
+        try:
+            forms = FormConfiguration.query.order_by(FormConfiguration.created_at.desc()).all()
+            return jsonify({
+                'success': True,
+                'forms': [{
+                    'id': form.id,
+                    'title': form.title,
+                    'category': form.category,
+                    'subcategory': form.subcategory,
+                    'created_at': form.created_at.isoformat(),
+                    'question_count': len(form.questions)
+                } for form in forms]
+            })
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    # POST method handling
     try:
         data = request.get_json()
         
@@ -104,6 +124,34 @@ def create_form():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/forms/<int:form_id>', methods=['GET'])
+def get_form(form_id):
+    try:
+        form = FormConfiguration.query.get_or_404(form_id)
+        return jsonify({
+            'success': True,
+            'form': {
+                'id': form.id,
+                'title': form.title,
+                'category': form.category,
+                'subcategory': form.subcategory,
+                'category_metadata': form.category_metadata,
+                'subcategory_metadata': form.subcategory_metadata,
+                'questions': [{
+                    'reference': q.reference,
+                    'content': q.content,
+                    'answer_type': q.answer_type,
+                    'options': q.options,
+                    'question_metadata': q.question_metadata,
+                    'required': q.required,
+                    'order': q.order,
+                    'ai_instructions': q.ai_instructions
+                } for q in form.questions]
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 404
 
 @app.errorhandler(404)
 def not_found_error(error):

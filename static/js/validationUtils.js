@@ -74,3 +74,42 @@ export function clearAllErrors() {
         errorSummary.remove();
     }
 }
+
+// Function to validate a single question
+export function validateQuestion(card) {
+    const errors = [];
+    let isValid = true;
+    const questionIndex = Array.from(card.parentElement.children).indexOf(card) + 1;
+
+    const reference = card.querySelector('.question-title');
+    const content = card.querySelector('.question-content');
+    const answerType = card.querySelector('.answer-type');
+    const listOptions = card.querySelector('.list-options input');
+
+    if (!reference.value.trim()) {
+        showFieldError(reference, 'Question reference is required');
+        errors.push(`Question ${questionIndex}: Reference is required`);
+        isValid = false;
+    } else if (reference.value.length > 50) {
+        showFieldError(reference, 'Reference must be less than 50 characters');
+        errors.push(`Question ${questionIndex}: Reference is too long`);
+        isValid = false;
+    }
+
+    if (!content.value.trim()) {
+        showFieldError(content, 'Question content is required');
+        errors.push(`Question ${questionIndex}: Content is required`);
+        isValid = false;
+    }
+
+    if (answerType.value === 'list') {
+        const options = listOptions.value.trim();
+        if (!options || options.split(',').filter(opt => opt.trim()).length < 2) {
+            showFieldError(listOptions, 'At least two comma-separated options are required');
+            errors.push(`Question ${questionIndex}: List options must contain at least two items`);
+            isValid = false;
+        }
+    }
+
+    return { isValid, errors };
+}

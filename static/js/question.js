@@ -1,9 +1,8 @@
 // question.js
 
 import { updateMetadataFields } from './metadataFields.js';
-import { updateQuestionCount } from './utils.js';
-import { showAlert } from './utils.js';
-import { showFieldError, clearFieldError } from './validationUtils.js';
+import { updateQuestionCount, showAlert } from './utils.js';
+import { showFieldError, clearFieldError, validateQuestion } from './validationUtils.js';
 
 // Function to update the questions menu
 function updateQuestionsList() {
@@ -11,20 +10,29 @@ function updateQuestionsList() {
     const questions = document.querySelectorAll('.question-card');
     
     navList.innerHTML = '';
-    for (let i = 0; i < questions.length; i++) {
-        const card = questions[i];
-        const reference = `${card.querySelector('.question-title').value}` || `Undefined reference`;
-        const full_reference = `Question ${i + 1}: ${reference}`;
-        const listItem = document.createElement('a');
-        listItem.href = '#';
-        listItem.className = 'list-group-item list-group-item-action';
-        listItem.textContent = full_reference;
-        listItem.addEventListener('click', (e) => {
+    questions.forEach((card, index) => {
+        const reference = card.querySelector('.question-title').value || 'Undefined reference';
+        const full_reference = `Question ${index + 1}: ${reference}`;
+        
+        const listItem = document.createElement('div');
+        listItem.className = 'question-menu-item';
+        
+        const link = document.createElement('a');
+        link.href = '#';
+        link.className = 'question-menu-link';
+        link.innerHTML = `
+            <i class="fas fa-chevron-right me-2"></i>
+            <span>${full_reference}</span>
+        `;
+        
+        link.addEventListener('click', (e) => {
             e.preventDefault();
             card.scrollIntoView({ behavior: 'smooth' });
         });
+        
+        listItem.appendChild(link);
         navList.appendChild(listItem);
-    }
+    });
 }
 
 // Function to update question numbers after removal
@@ -165,6 +173,15 @@ export function addQuestion() {
     document.getElementById('questions').appendChild(card);
     updateQuestionsList();
     updateQuestionCount();
+
+    // Scroll to the new question header
+    const newQuestionHeader = card.querySelector('.card-header');
+    if (newQuestionHeader) {
+        newQuestionHeader.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
 }
 
 export function validateQuestions() {
@@ -174,34 +191,10 @@ export function validateQuestions() {
 
     for (let i = 0; i < questions.length; i++) {
         const card = questions[i];
-        const reference = card.querySelector('.question-title');
-        const content = card.querySelector('.question-content');
-        const answerType = card.querySelector('.answer-type');
-        const listOptions = card.querySelector('.list-options input');
-
-        if (!reference.value.trim()) {
-            showFieldError(reference, 'Question reference is required');
-            errors.push(`Question ${i + 1}: Reference is required`);
+        const validationResult = validateQuestion(card);
+        if (!validationResult.isValid) {
+            errors.push(...validationResult.errors);
             isValid = false;
-        } else if (reference.value.length > 50) {
-            showFieldError(reference, 'Reference must be less than 50 characters');
-            errors.push(`Question ${i + 1}: Reference is too long`);
-            isValid = false;
-        }
-
-        if (!content.value.trim()) {
-            showFieldError(content, 'Question content is required');
-            errors.push(`Question ${i + 1}: Content is required`);
-            isValid = false;
-        }
-
-        if (answerType.value === 'list') {
-            const options = listOptions.value.trim();
-            if (!options || options.split(',').filter(opt => opt.trim()).length < 2) {
-                showFieldError(listOptions, 'At least two comma-separated options are required');
-                errors.push(`Question ${i + 1}: List options must contain at least two items`);
-                isValid = false;
-            }
         }
     }
 

@@ -3,7 +3,7 @@
 import { addQuestion } from './question.js';
 import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
-import { updateQuestionsHeader, updateQuestionCount, showAlert } from './utils.js';
+import { updateQuestionsHeader, updateQuestionCount, showAlert, loadForm } from './utils.js';
 
 export function initializeForm() {
     const form = document.getElementById('formConfiguration');
@@ -38,6 +38,20 @@ export function initializeForm() {
         setupCounterButtons(buttons, container, display);
     }
 
+    // Setup form loading
+    document.querySelectorAll('.load-form').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const formId = button.getAttribute('data-form-id');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('formListModal'));
+            
+            if (await loadForm(formId)) {
+                modal.hide();
+                showAlert('success', 'Form loaded successfully');
+            }
+        });
+    });
+
     // Form submission handler
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
@@ -71,23 +85,19 @@ async function handleFormSubmit(e) {
 
         const data = await response.json();
         if (data.success) {
-            const summary = `Form "${formData.title}" saved successfully!
-` +
-                           `Category: ${formData.category}
-` +
-                           (formData.subcategory ? `Subcategory: ${formData.subcategory}
-` : '') +
-                           `Questions: ${formData.questions.length}
-` +
+            const summary = `Form "${formData.title}" saved successfully!\n` +
+                           `Category: ${formData.category}\n` +
+                           (formData.subcategory ? `Subcategory: ${formData.subcategory}\n` : '') +
+                           `Questions: ${formData.questions.length}\n` +
                            `Metadata fields: ${Object.keys(formData.category_metadata).length + 
-                                              Object.keys(formData.subcategory_metadata).length}
-` +
+                                               Object.keys(formData.subcategory_metadata).length}\n` +
                            (data.sheets_sync ? '✓ Synced to Google Sheets' : '⚠ Google Sheets sync failed');
                            
             showAlert('success', summary);
             form.reset();
             questionsList.innerHTML = '';
             addQuestion();
+            updateQuestionCount();
         } else {
             throw new Error(data.error || 'Failed to save form');
         }
