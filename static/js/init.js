@@ -66,7 +66,20 @@ async function handleFormSubmit(e) {
 
         const data = await response.json();
         if (data.success) {
-            showAlert('success', 'Form saved successfully');
+            const summary = `Form "${formData.title}" saved successfully!
+` +
+                           `Category: ${formData.category}
+` +
+                           (formData.subcategory ? `Subcategory: ${formData.subcategory}
+` : '') +
+                           `Questions: ${formData.questions.length}
+` +
+                           `Metadata fields: ${Object.keys(formData.category_metadata).length + 
+                                             Object.keys(formData.subcategory_metadata).length}
+` +
+                           (data.sheets_sync ? '✓ Synced to Google Sheets' : '⚠ Google Sheets sync failed');
+                           
+            showAlert('success', summary);
             form.reset();
             questionsList.innerHTML = '';
             addQuestion();
