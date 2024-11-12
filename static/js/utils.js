@@ -48,6 +48,3 @@ export function updateQuestionCount() {
     }
     return count;
 }
-
-// Export showFieldError and clearFieldError from validationUtils
-export { showFieldError, clearFieldError } from './validationUtils.js';

@@ -391,3 +391,25 @@ main.container {
         transform: translateY(0);
     }
 }
+
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.btn-success:hover {
+    background-color: #157347;
+    border-color: #146c43;
+}
+
+.btn-info {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: #000;
+}
+
+.btn-info:hover {
+    background-color: #31d2f2;
+    border-color: #25cff2;
+    color: #000;
+}
