@@ -78,7 +78,10 @@
         <div class="card-header" role="button" data-bs-toggle="collapse" data-bs-target="#questionContent_TEMPLATE">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="question-number mb-0">Question 1</h5>
-                <span class="toggle-icon">▼</span>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-danger btn-sm remove-question">Remove</button>
+                    <span class="toggle-icon">▼</span>
+                </div>
             </div>
         </div>
         <div id="questionContent_TEMPLATE" class="collapse">
@@ -142,9 +145,6 @@
                         <button type="button" class="btn btn-secondary btn-sm back-to-menu">
                             Back to Menu
                         </button>
-                    </div>
-                    <div class="d-flex gap-2 ms-auto">
-                        <button type="button" class="btn btn-danger btn-sm remove-question">Remove</button>
                     </div>
                 </div>
             </div>

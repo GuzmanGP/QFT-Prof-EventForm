@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 from google.oauth2 import service_account
 import gspread
+from gspread.exceptions import SpreadsheetNotFound
 
 def init_sheets_client():
     scope = [
@@ -30,7 +31,7 @@ def sync_form_to_sheet(form_config):
         
         try:
             workbook = client.open(form_config.title)
-        except gspread.SpreadsheetNotFound:
+        except SpreadsheetNotFound:
             try:
                 workbook = client.create(form_config.title)
                 workbook.share(
@@ -69,7 +70,7 @@ def sync_form_to_sheet(form_config):
             cell = sheet.find(str(form_config.id))
             sheet.delete_row(cell.row)
             sheet.insert_row(row_data, cell.row)
-        except gspread.CellNotFound:
+        except gspread.exceptions.CellNotFound:
             sheet.append_row(row_data)
             
         return True

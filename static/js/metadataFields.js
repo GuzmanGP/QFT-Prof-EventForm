@@ -1,7 +1,7 @@
 // metadataFields.js
 
 import { showAlert } from './utils.js';
-import { showFieldError } from './validationUtils.js';
+import { showFieldError, clearFieldError } from './validationUtils.js';
 
 export function updateMetadataFields(container, count) {
     if (typeof container === 'string') {
