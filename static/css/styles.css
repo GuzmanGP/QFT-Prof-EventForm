@@ -322,3 +322,48 @@ textarea.form-control {
 .btn-close {
     filter: brightness(0) invert(1);
 }
+
+.success-message {
+    background: linear-gradient(45deg, #198754, #146c43);
+    color: white;
+    padding: 1.25rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+    animation: slideInFade 0.3s ease-out;
+}
+
+.success-message pre {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 4px;
+    color: #fff;
+    margin-top: 0.5rem;
+    white-space: pre-wrap;
+}
+
+.btn-loading {
+    cursor: not-allowed;
+}
+
+.btn-loading .button-text {
+    opacity: 0.7;
+}
+
+.btn-loading .spinner-border {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+@keyframes slideInFade {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

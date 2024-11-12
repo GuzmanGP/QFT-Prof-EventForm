@@ -30,6 +30,33 @@ export function showAlert(type, message) {
     setTimeout(() => alert.remove(), 5000);
 }
 
+// Function to show field error
+export function showFieldError(field, message) {
+    field.classList.add('is-invalid');
+    
+    // Remove existing error messages
+    const existingFeedback = field.parentNode.querySelector('.invalid-feedback');
+    if (existingFeedback) {
+        existingFeedback.remove();
+    }
+
+    const feedback = document.createElement('div');
+    feedback.className = 'invalid-feedback';
+    feedback.textContent = message;
+    
+    // Add error icon
+    const errorIcon = document.createElement('span');
+    errorIcon.className = 'error-icon';
+    errorIcon.innerHTML = '⚠️';
+    feedback.insertBefore(errorIcon, feedback.firstChild);
+
+    field.parentNode.insertBefore(feedback, field.nextSibling);
+    
+    // Add error highlight animation
+    field.classList.add('error-highlight');
+    setTimeout(() => field.classList.remove('error-highlight'), 1000);
+}
+
 // Function to clear field error
 export function clearFieldError(field) {
     if (field.classList.contains('is-invalid')) {
