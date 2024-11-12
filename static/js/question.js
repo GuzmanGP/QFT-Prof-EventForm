@@ -1,8 +1,9 @@
 // question.js
 
 import { updateMetadataFields } from './metadataFields.js';
-import { showAlert, clearFieldError, updateQuestionCount } from './utils.js';
-import { showFieldError } from './validationUtils.js';
+import { updateQuestionCount } from './utils.js';
+import { showAlert } from './utils.js';
+import { showFieldError, clearFieldError } from './validationUtils.js';
 
 // Function to update the questions menu
 function updateQuestionsList() {
@@ -62,7 +63,6 @@ function initializeMetadataCounter(card) {
     
     buttons.forEach(button => {
         button.addEventListener('click', () => {
-            console.log('Counter button clicked:', button.classList.contains('increase-count') ? 'increase' : 'decrease');
             const currentCount = parseInt(display.textContent);
             const isIncrease = button.classList.contains('increase-count');
             const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
@@ -150,11 +150,6 @@ export function addQuestion() {
         updateQuestionNumbers();
         updateQuestionsList();
         updateQuestionCount();
-    });
-
-    // Add back to menu event
-    card.querySelector('.back-to-menu').addEventListener('click', () => {
-        document.getElementById('questionsList').scrollIntoView({ behavior: 'smooth' });
     });
 
     // Add toggle icon rotation

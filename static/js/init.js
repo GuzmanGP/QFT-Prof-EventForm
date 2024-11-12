@@ -24,6 +24,11 @@ export function initializeForm() {
         });
     }
 
+    // Setup back to menu button
+    document.querySelector('.back-to-menu').addEventListener('click', () => {
+        document.getElementById('questionsList').scrollIntoView({ behavior: 'smooth' });
+    });
+
     // Setup metadata counters
     const metadataSections = document.querySelectorAll('.metadata-section');
     for (const section of metadataSections) {
@@ -75,7 +80,7 @@ async function handleFormSubmit(e) {
                            `Questions: ${formData.questions.length}
 ` +
                            `Metadata fields: ${Object.keys(formData.category_metadata).length + 
-                                             Object.keys(formData.subcategory_metadata).length}
+                                              Object.keys(formData.subcategory_metadata).length}
 ` +
                            (data.sheets_sync ? '✓ Synced to Google Sheets' : '⚠ Google Sheets sync failed');
                            
