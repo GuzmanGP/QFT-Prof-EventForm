@@ -13,7 +13,7 @@ function updateQuestionsList() {
     for (let i = 0; i < questions.length; i++) {
         const card = questions[i];
         const reference = `${card.querySelector('.question-title').value}` || `Undefined reference`;
-        const full_reference = `Question ${i + 1}: ${reference}`;
+        const full_reference = `Question ${i + 1}: ${card.querySelector('.question-title').value}` || `Question ${i + 1}`;
         const listItem = document.createElement('a');
         listItem.href = '#';
         listItem.className = 'list-group-item list-group-item-action';
