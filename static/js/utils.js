@@ -1,4 +1,5 @@
 // utils.js
+import { showFieldError, clearFieldError } from './validationUtils.js';
 
 // Function to show alerts in the interface
 export function showAlert(type, message) {
@@ -48,3 +49,6 @@ export function updateQuestionCount() {
     }
     return count;
 }
+
+// Re-export validation utilities for backward compatibility
+export { showFieldError, clearFieldError };
