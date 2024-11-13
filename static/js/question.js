@@ -83,12 +83,12 @@ function setupCounterButtons(buttons, container, display) {
             const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
             
             if (newCount <= 20) {
-                updateMetadataFields(container, newCount);
+                if (isIncrease) {
+                    addMetadataField(container);
+                } else if (container.children.length > 0) {
+                    container.removeChild(container.lastChild);
+                }
                 display.textContent = newCount;
-                
-                // Add animation to counter
-                display.classList.add('animate__animated', 'animate__pulse');
-                setTimeout(() => display.classList.remove('animate__animated', 'animate__pulse'), 1000);
             }
         });
     });

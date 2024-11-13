@@ -63,7 +63,7 @@ export function setupCounterButtons(buttons, container, display) {
             const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
             
             if (newCount <= 20) {
-                // Only update the fields, don't call updateMetadataFields again
+                display.textContent = newCount;
                 if (isIncrease) {
                     addMetadataField(container);
                 } else if (container.children.length > 0) {
@@ -71,9 +71,6 @@ export function setupCounterButtons(buttons, container, display) {
                     lastField.classList.add('animate__fadeOutRight');
                     setTimeout(() => container.removeChild(lastField), 500);
                 }
-                display.textContent = newCount;
-                display.classList.add('animate__animated', 'animate__pulse');
-                setTimeout(() => display.classList.remove('animate__animated', 'animate__pulse'), 1000);
             }
         });
     });

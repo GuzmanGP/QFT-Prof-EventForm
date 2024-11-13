@@ -1,5 +1,5 @@
 // utils.js
-import { showFieldError, clearFieldError } from './validationUtils.js';
+import { clearFieldError } from './validationUtils.js';
 
 // Function to show alerts in the interface
 export function showAlert(type, message) {
@@ -75,12 +75,6 @@ export async function loadForm(formId) {
                     }, index * 100);
                 }
             });
-            
-            // Set metadata with animation
-            setTimeout(() => {
-                setMetadataFields('categoryMetadata', data.form.category_metadata);
-                setMetadataFields('subcategoryMetadata', data.form.subcategory_metadata);
-            }, fields.length * 100);
             
             // Clear existing questions
             const questionsContainer = document.getElementById('questions');
