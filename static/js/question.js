@@ -15,7 +15,7 @@ function updateQuestionsList() {
         const full_reference = `Question ${index + 1}: ${reference}`;
         
         const listItem = document.createElement('div');
-        listItem.className = 'question-menu-item';
+        listItem.className = 'question-menu-item animate__animated animate__fadeInLeft';
         
         const link = document.createElement('a');
         link.href = '#';
@@ -39,7 +39,10 @@ function updateQuestionsList() {
 function updateQuestionNumbers() {
     const questions = document.querySelectorAll('.question-card');
     questions.forEach((card, index) => {
-        card.querySelector('.question-number').textContent = `Question ${index + 1}`;
+        const numberElement = card.querySelector('.question-number');
+        numberElement.classList.add('animate__animated', 'animate__pulse');
+        numberElement.textContent = `Question ${index + 1}`;
+        setTimeout(() => numberElement.classList.remove('animate__animated', 'animate__pulse'), 1000);
     });
 }
 
@@ -49,25 +52,25 @@ function configureAIProcessing(card) {
     const aiInstructions = card.querySelector('.ai-instructions');
     
     aiCheckbox.addEventListener('change', function() {
-        aiInstructions.style.display = this.checked ? 'block' : 'none';
+        if (this.checked) {
+            aiInstructions.style.display = 'block';
+            aiInstructions.classList.add('animate__animated', 'animate__fadeIn');
+        } else {
+            aiInstructions.classList.add('animate__animated', 'animate__fadeOut');
+            setTimeout(() => {
+                aiInstructions.style.display = 'none';
+                aiInstructions.classList.remove('animate__animated', 'animate__fadeOut');
+            }, 500);
+        }
     });
 }
 
 // Function to initialize metadata counter
 function initializeMetadataCounter(card) {
     const metadataSection = card.querySelector('.metadata-section');
-    const container = metadataSection.querySelector('.metadata-container');
-    let buttons = metadataSection.querySelectorAll('.counter-button');
+    const container = metadataSection.querySelector('.question-metadata');
+    const buttons = metadataSection.querySelectorAll('.counter-button');
     const display = metadataSection.querySelector('.counter-display');
-    
-    // Remove existing event listeners by cloning
-    buttons.forEach(button => {
-        const clone = button.cloneNode(true);
-        button.parentNode.replaceChild(clone, button);
-    });
-    
-    // Update buttons reference after cloning
-    buttons = Array.from(container.querySelectorAll('.counter-button'));
     
     buttons.forEach(button => {
         button.addEventListener('click', () => {
@@ -78,6 +81,10 @@ function initializeMetadataCounter(card) {
             if (newCount <= 20) {
                 updateMetadataFields(container, newCount);
                 display.textContent = newCount;
+                
+                // Add animation to counter
+                display.classList.add('animate__animated', 'animate__pulse');
+                setTimeout(() => display.classList.remove('animate__animated', 'animate__pulse'), 1000);
             }
         });
     });
@@ -89,7 +96,17 @@ function configureAnswerTypeChange(card) {
     
     typeSelect.addEventListener('change', function() {
         const isListType = this.value === 'list';
-        listOptions.classList.toggle('d-none', !isListType);
+        
+        if (isListType) {
+            listOptions.classList.remove('d-none');
+            listOptions.classList.add('animate__animated', 'animate__fadeIn');
+        } else {
+            listOptions.classList.add('animate__animated', 'animate__fadeOut');
+            setTimeout(() => {
+                listOptions.classList.remove('animate__animated', 'animate__fadeOut');
+                listOptions.classList.add('d-none');
+            }, 500);
+        }
         
         const input = listOptions.querySelector('input');
         input.required = isListType;
@@ -130,6 +147,9 @@ export function addQuestion(questionData = null) {
     const clone = template.content.cloneNode(true);
     const card = clone.querySelector('.card');
     
+    // Add animation class to new question card
+    card.classList.add('animate__animated', 'animate__fadeInUp');
+    
     // Generate unique ID for collapse
     const uniqueId = 'question_' + Date.now();
     const contentDiv = card.querySelector('[id^="questionContent"]');
@@ -148,57 +168,65 @@ export function addQuestion(questionData = null) {
     configureAIProcessing(card);
     setupQuestionValidation(card);
 
-    // If question data is provided, populate the fields
+    // If question data is provided, populate the fields with animation
     if (questionData) {
-        card.querySelector('.question-title').value = questionData.reference;
-        card.querySelector('.question-content').value = questionData.content;
-        card.querySelector('.answer-type').value = questionData.answer_type;
-        card.querySelector('.question-required').checked = questionData.required;
-        
-        if (questionData.answer_type === 'list' && questionData.options) {
-            const listOptions = card.querySelector('.list-options');
-            listOptions.classList.remove('d-none');
-            listOptions.querySelector('input').value = questionData.options.join(', ');
-        }
-        
-        if (questionData.ai_instructions) {
-            const aiCheckbox = card.querySelector('.question-ai');
-            const aiInstructions = card.querySelector('.ai-instructions');
-            aiCheckbox.checked = true;
-            aiInstructions.style.display = 'block';
-            aiInstructions.querySelector('textarea').value = questionData.ai_instructions;
-        }
-        
-        // Set metadata
-        if (questionData.question_metadata) {
-            const container = card.querySelector('.question-metadata');
-            const display = card.querySelector('.question-meta-count');
-            const count = Object.keys(questionData.question_metadata).length;
-            display.textContent = count.toString();
+        setTimeout(() => {
+            card.querySelector('.question-title').value = questionData.reference;
+            card.querySelector('.question-content').value = questionData.content;
+            card.querySelector('.answer-type').value = questionData.answer_type;
+            card.querySelector('.question-required').checked = questionData.required;
             
-            Object.entries(questionData.question_metadata).forEach(([key, value]) => {
-                const field = document.createElement('div');
-                field.className = 'input-group mb-2';
-                field.innerHTML = `
-                    <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
-                    <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
-                    <button type="button" class="btn btn-outline-danger remove-field">×</button>
-                `;
-                container.appendChild(field);
-            });
-        }
+            if (questionData.answer_type === 'list' && questionData.options) {
+                const listOptions = card.querySelector('.list-options');
+                listOptions.classList.remove('d-none');
+                listOptions.querySelector('input').value = questionData.options.join(', ');
+            }
+            
+            if (questionData.ai_instructions) {
+                const aiCheckbox = card.querySelector('.question-ai');
+                const aiInstructions = card.querySelector('.ai-instructions');
+                aiCheckbox.checked = true;
+                aiInstructions.style.display = 'block';
+                aiInstructions.querySelector('textarea').value = questionData.ai_instructions;
+            }
+            
+            // Set metadata with animation
+            if (questionData.question_metadata) {
+                const container = card.querySelector('.question-metadata');
+                const display = card.querySelector('.question-meta-count');
+                const count = Object.keys(questionData.question_metadata).length;
+                display.textContent = count.toString();
+                
+                Object.entries(questionData.question_metadata).forEach(([key, value], index) => {
+                    setTimeout(() => {
+                        const field = document.createElement('div');
+                        field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+                        field.innerHTML = `
+                            <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
+                            <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
+                            <button type="button" class="btn btn-outline-danger remove-field">×</button>
+                        `;
+                        container.appendChild(field);
+                    }, index * 100);
+                });
+            }
+        }, 300);
     }
 
-    // Add remove event
+    // Add remove event with animation
     card.querySelector('.remove-question').addEventListener('click', function() {
         if (document.querySelectorAll('.question-card').length <= 1) {
             showAlert('warning', 'At least one question is required');
             return;
         }
-        card.remove();
-        updateQuestionNumbers();
-        updateQuestionsList();
-        updateQuestionCount();
+        
+        card.classList.add('animate__animated', 'animate__fadeOutDown');
+        setTimeout(() => {
+            card.remove();
+            updateQuestionNumbers();
+            updateQuestionsList();
+            updateQuestionCount();
+        }, 500);
     });
 
     // Add toggle icon rotation
@@ -215,13 +243,15 @@ export function addQuestion(questionData = null) {
     updateQuestionsList();
     updateQuestionCount();
 
-    // Scroll to the new question header
+    // Scroll to the new question header with animation
     const newQuestionHeader = card.querySelector('.card-header');
     if (newQuestionHeader) {
-        newQuestionHeader.scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
-        });
+        setTimeout(() => {
+            newQuestionHeader.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
     }
 }
 
@@ -236,6 +266,10 @@ export function validateQuestions() {
         if (!validationResult.isValid) {
             errors.push(...validationResult.errors);
             isValid = false;
+            
+            // Add shake animation to invalid card
+            card.classList.add('animate__animated', 'animate__shakeX');
+            setTimeout(() => card.classList.remove('animate__animated', 'animate__shakeX'), 1000);
         }
     }
 

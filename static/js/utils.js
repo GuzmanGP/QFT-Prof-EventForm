@@ -1,5 +1,5 @@
 // utils.js
-import { showFieldError, clearFieldError } from './validationUtils.js';
+import { clearFieldError } from './validationUtils.js';
 
 // Function to show alerts in the interface
 export function showAlert(type, message) {
