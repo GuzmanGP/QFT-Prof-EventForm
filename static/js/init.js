@@ -90,8 +90,7 @@ async function handleFormSubmit(e) {
                            (formData.subcategory ? `Subcategory: ${formData.subcategory}\n` : '') +
                            `Questions: ${formData.questions.length}\n` +
                            `Metadata fields: ${Object.keys(formData.category_metadata).length + 
-                                               Object.keys(formData.subcategory_metadata).length}\n` +
-                           (data.sheets_sync ? '✓ Synced to Google Sheets' : '⚠ Google Sheets sync failed');
+                                             Object.keys(formData.subcategory_metadata).length}`;
                            
             showAlert('success', summary);
             form.reset();

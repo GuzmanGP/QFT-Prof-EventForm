@@ -1,17 +1,6 @@
 from flask import render_template, request, jsonify, flash
 from app import app, db
 from models import FormConfiguration, Question
-from sheets_sync import sync_form_to_sheet
-import time
-
-def retry_database_operation(operation, max_retries=3, delay=1):
-    for attempt in range(max_retries):
-        try:
-            return operation()
-        except Exception as e:
-            if attempt == max_retries - 1:
-                raise
-            time.sleep(delay * (2 ** attempt))
 
 def validate_form_data(data):
     errors = []
@@ -52,7 +41,6 @@ def validate_form_data(data):
 
 @app.route('/')
 def index():
-    # Get the list of forms for display
     forms = FormConfiguration.query.order_by(FormConfiguration.created_at.desc()).all()
     return render_template('form.html', forms=forms)
 
@@ -106,19 +94,12 @@ def handle_forms():
             )
             form.questions.append(question)
         
-        def save_form():
-            db.session.add(form)
-            db.session.commit()
-            
-            # Sync to Google Sheets
-            sync_success = sync_form_to_sheet(form)
-            return sync_success
+        db.session.add(form)
+        db.session.commit()
         
-        sync_success = retry_database_operation(save_form)
         return jsonify({
             'success': True, 
             'id': form.id,
-            'sheets_sync': sync_success
         })
     
     except Exception as e:
