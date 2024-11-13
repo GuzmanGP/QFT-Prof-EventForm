@@ -1,4 +1,5 @@
 // utils.js
+import { showFieldError, clearFieldError } from './validationUtils.js';
 
 // Function to show alerts in the interface
 export function showAlert(type, message) {
@@ -17,7 +18,7 @@ export function showAlert(type, message) {
     if (existingAlert) return;
 
     // Assign alert type class (success, warning, danger, etc.)
-    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.className = `alert alert-${type} alert-dismissible fade show animate__animated animate__fadeInDown`;
     alert.innerHTML = `
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -27,7 +28,10 @@ export function showAlert(type, message) {
     alertContainer.appendChild(alert);
     
     // Set a timer to automatically remove the alert after 5 seconds
-    setTimeout(() => alert.remove(), 5000);
+    setTimeout(() => {
+        alert.classList.add('animate__fadeOutUp');
+        setTimeout(() => alert.remove(), 500);
+    }, 5000);
 }
 
 // Function to update the questions header based on the number of rendered questions
@@ -60,23 +64,32 @@ export async function loadForm(formId) {
             const form = document.getElementById('formConfiguration');
             form.reset();
             
-            // Set basic form fields
-            document.getElementById('title').value = data.form.title;
-            document.getElementById('category').value = data.form.category;
-            if (data.form.subcategory) {
-                document.getElementById('subcategory').value = data.form.subcategory;
-            }
+            // Set basic form fields with animation
+            const fields = ['title', 'category', 'subcategory'];
+            fields.forEach((field, index) => {
+                const element = document.getElementById(field);
+                if (data.form[field]) {
+                    setTimeout(() => {
+                        element.value = data.form[field];
+                        element.classList.add('animate__animated', 'animate__fadeIn');
+                    }, index * 100);
+                }
+            });
             
-            // Set metadata
-            setMetadataFields('categoryMetadata', data.form.category_metadata);
-            setMetadataFields('subcategoryMetadata', data.form.subcategory_metadata);
+            // Set metadata with animation
+            setTimeout(() => {
+                setMetadataFields('categoryMetadata', data.form.category_metadata);
+                setMetadataFields('subcategoryMetadata', data.form.subcategory_metadata);
+            }, fields.length * 100);
             
             // Clear existing questions
             const questionsContainer = document.getElementById('questions');
             questionsContainer.innerHTML = '';
             
-            // Add questions
-            data.form.questions.forEach(q => addQuestionWithData(q));
+            // Add questions with staggered animation
+            data.form.questions.forEach((q, index) => {
+                setTimeout(() => addQuestionWithData(q), (fields.length + 1) * 100 + index * 200);
+            });
             
             return true;
         } else {
@@ -88,29 +101,33 @@ export async function loadForm(formId) {
     }
 }
 
-// Helper function to set metadata fields
+// Helper function to set metadata fields with animation
 function setMetadataFields(containerId, metadata) {
     const container = document.getElementById(containerId);
     const display = document.querySelector(`#${containerId}Count`);
     const count = Object.keys(metadata).length;
     
-    // Update counter
+    // Update counter with animation
     if (display) {
         display.textContent = count.toString();
+        display.classList.add('animate__animated', 'animate__pulse');
+        setTimeout(() => display.classList.remove('animate__animated', 'animate__pulse'), 1000);
     }
     
     // Clear existing fields
     container.innerHTML = '';
     
-    // Add fields for each metadata entry
-    Object.entries(metadata).forEach(([key, value]) => {
-        const field = document.createElement('div');
-        field.className = 'input-group mb-2';
-        field.innerHTML = `
-            <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
-            <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
-            <button type="button" class="btn btn-outline-danger remove-field">×</button>
-        `;
-        container.appendChild(field);
+    // Add fields for each metadata entry with staggered animation
+    Object.entries(metadata).forEach(([key, value], index) => {
+        setTimeout(() => {
+            const field = document.createElement('div');
+            field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+            field.innerHTML = `
+                <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
+                <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
+                <button type="button" class="btn btn-outline-danger remove-field">×</button>
+            `;
+            container.appendChild(field);
+        }, index * 100);
     });
 }

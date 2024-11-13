@@ -462,3 +462,181 @@ main.container {
     color: #fff !important;
     box-shadow: 0 0 0 0.25rem rgba(255, 105, 180, 0.5);
 }
+
+/* New animation classes */
+.animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+.animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+}
+
+.animate-fade {
+    animation: fade 0.3s ease-out;
+}
+
+/* Enhanced transitions */
+.form-control, .btn, .card, .navbar {
+    transition: all 0.3s ease-in-out !important;
+}
+
+.card {
+    transform-origin: top center;
+    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.question-card .card-header {
+    transition: background-color 0.3s ease, transform 0.2s ease !important;
+}
+
+.question-card .card-header:hover {
+    transform: translateY(-1px);
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+.metadata-container .input-group {
+    transition: all 0.3s ease;
+    transform-origin: top center;
+}
+
+.metadata-container .input-group:hover {
+    transform: translateX(5px);
+}
+
+.counter-button {
+    transition: all 0.2s ease !important;
+}
+
+.counter-button:hover {
+    transform: scale(1.1);
+}
+
+.question-menu-link {
+    transition: all 0.3s ease !important;
+}
+
+.question-menu-link:hover {
+    transform: translateX(10px);
+}
+
+.btn {
+    transition: all 0.3s ease !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+    transition: all 0.3s ease;
+}
+
+.btn:hover::after {
+    transform: scale(20, 20) translate(-50%);
+    opacity: 0.2;
+}
+
+.fixed-action-buttons {
+    transition: transform 0.3s ease, opacity 0.3s ease !important;
+}
+
+.fixed-action-buttons.hidden {
+    transform: translateY(100%);
+    opacity: 0;
+}
+
+/* Enhanced animations */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Collapse animation enhancement */
+.collapse {
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.collapsing {
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Form validation animation enhancement */
+.is-invalid {
+    animation: invalidShake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes invalidShake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* Button click animation */
+.btn:active {
+    transform: scale(0.95);
+}
+
+/* Question number animation */
+.question-number {
+    transition: all 0.3s ease;
+}
+
+/* Metadata counter animation */
+.counter-display {
+    transition: all 0.3s ease;
+}
+
+/* Enhanced error message animation */
+.invalid-feedback {
+    animation: fadeInShake 0.3s ease-in;
+}
+
+@keyframes fadeInShake {
+    0% { opacity: 0; transform: translateX(-10px); }
+    20% { transform: translateX(8px); }
+    40% { transform: translateX(-6px); }
+    60% { transform: translateX(4px); }
+    80% { transform: translateX(-2px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
