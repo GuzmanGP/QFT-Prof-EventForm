@@ -1,7 +1,7 @@
 // init.js
 
 import { addQuestion } from './question.js';
-import { validateForm, showFieldError } from './validationUtils.js'; // Corrected import
+import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
 import { updateQuestionsHeader, updateQuestionCount, showAlert } from './utils.js';
 
@@ -48,21 +48,25 @@ function handleFormSubmit(e) {
     e.preventDefault();
     const form = e.target;
 
-    // Validate the form
-    if (!validateForm(form)) return;
-
     // Get form data
     const formData = new FormData();
     formData.append('title', document.getElementById('title').value);
     formData.append('category', document.getElementById('category').value);
     formData.append('subcategory', document.getElementById('subcategory')?.value || '');
-    formData.append('category_metadata', JSON.stringify(getMetadataValues('categoryMetadata')));
-    formData.append('subcategory_metadata', JSON.stringify(getMetadataValues('subcategoryMetadata')));
-    formData.append('questions', JSON.stringify(getQuestionsData()));
+    
+    // Get metadata values
+    const categoryMetadata = getMetadataValues('categoryMetadata');
+    const subcategoryMetadata = getMetadataValues('subcategoryMetadata');
+    
+    // Update hidden inputs with metadata
+    document.getElementById('categoryMetadataInput').value = JSON.stringify(categoryMetadata);
+    document.getElementById('subcategoryMetadataInput').value = JSON.stringify(subcategoryMetadata);
+    
+    // Get questions data
+    const questionsData = getQuestionsData();
+    document.getElementById('questionsInput').value = JSON.stringify(questionsData);
 
     // Submit the form
-    form.method = 'POST';
-    form.action = '/save-form';
     form.submit();
 }
 
