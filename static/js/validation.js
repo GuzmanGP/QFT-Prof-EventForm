@@ -1,5 +1,4 @@
 // validation.js
-
 import { showAlert } from './utils.js';
 import { validateMetadataContainer } from './metadataFields.js';
 import { validateQuestions } from './question.js';
