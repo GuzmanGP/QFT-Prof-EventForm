@@ -27,7 +27,7 @@ export function updateMetadataFields(container, count) {
 
 export function addMetadataField(container) {
     const field = document.createElement('div');
-    field.className = 'input-group mb-2';
+    field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
 
     field.innerHTML = `
         <input type="text" class="form-control metadata-key" placeholder="Key">
@@ -41,11 +41,15 @@ export function addMetadataField(container) {
         const display = container.closest('.metadata-section').querySelector('.counter-display');
         const currentCount = parseInt(display.textContent);
         
-        // Remove the field
-        field.remove();
-        
-        // Update the counter
-        display.textContent = (currentCount - 1).toString();
+        // Remove the field with animation
+        field.classList.add('animate__fadeOutRight');
+        setTimeout(() => {
+            field.remove();
+            // Update the counter
+            display.textContent = (currentCount - 1).toString();
+            display.classList.add('animate__animated', 'animate__pulse');
+            setTimeout(() => display.classList.remove('animate__animated', 'animate__pulse'), 1000);
+        }, 500);
     });
 
     container.appendChild(field);
@@ -57,10 +61,19 @@ export function setupCounterButtons(buttons, container, display) {
             const currentCount = parseInt(display.textContent);
             const isIncrease = button.classList.contains('increase-count');
             const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
-
+            
             if (newCount <= 20) {
-                updateMetadataFields(container, newCount);
+                // Only update the fields, don't call updateMetadataFields again
+                if (isIncrease) {
+                    addMetadataField(container);
+                } else if (container.children.length > 0) {
+                    const lastField = container.lastChild;
+                    lastField.classList.add('animate__fadeOutRight');
+                    setTimeout(() => container.removeChild(lastField), 500);
+                }
                 display.textContent = newCount;
+                display.classList.add('animate__animated', 'animate__pulse');
+                setTimeout(() => display.classList.remove('animate__animated', 'animate__pulse'), 1000);
             }
         });
     });
