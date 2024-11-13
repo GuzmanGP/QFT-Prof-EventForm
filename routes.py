@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, flash
+from flask import render_template, request, jsonify, flash, redirect, url_for, json
 from app import app, db
 from models import FormConfiguration, Question
 
@@ -44,44 +44,37 @@ def index():
     forms = FormConfiguration.query.order_by(FormConfiguration.created_at.desc()).all()
     return render_template('form.html', forms=forms)
 
-@app.route('/api/forms', methods=['GET', 'POST'])
-def handle_forms():
-    if request.method == 'GET':
-        try:
-            forms = FormConfiguration.query.order_by(FormConfiguration.created_at.desc()).all()
-            return jsonify({
-                'success': True,
-                'forms': [{
-                    'id': form.id,
-                    'title': form.title,
-                    'category': form.category,
-                    'subcategory': form.subcategory,
-                    'created_at': form.created_at.isoformat(),
-                    'question_count': len(form.questions)
-                } for form in forms]
-            })
-        except Exception as e:
-            return jsonify({'success': False, 'error': str(e)}), 500
-    
-    # POST method handling
+@app.route('/save-form', methods=['POST'])
+def save_form():
     try:
-        data = request.get_json()
+        # Get form data
+        data = {
+            'title': request.form['title'],
+            'category': request.form['category'],
+            'subcategory': request.form.get('subcategory'),
+            'category_metadata': json.loads(request.form.get('category_metadata', '{}')),
+            'subcategory_metadata': json.loads(request.form.get('subcategory_metadata', '{}')),
+            'questions': json.loads(request.form.get('questions', '[]'))
+        }
         
         # Validate form data
         try:
             validate_form_data(data)
         except ValueError as e:
-            return jsonify({'success': False, 'error': str(e)}), 400
+            flash(str(e), 'danger')
+            return redirect(url_for('index'))
         
+        # Create form
         form = FormConfiguration(
             title=data['title'],
             category=data['category'],
-            subcategory=data.get('subcategory'),
-            category_metadata=data.get('category_metadata', {}),
-            subcategory_metadata=data.get('subcategory_metadata', {})
+            subcategory=data['subcategory'],
+            category_metadata=data['category_metadata'],
+            subcategory_metadata=data['subcategory_metadata']
         )
         
-        for q_data in data.get('questions', []):
+        # Add questions
+        for q_data in data['questions']:
             question = Question(
                 reference=q_data['reference'],
                 content=q_data['content'],
@@ -94,17 +87,17 @@ def handle_forms():
             )
             form.questions.append(question)
         
+        # Save to database
         db.session.add(form)
         db.session.commit()
         
-        return jsonify({
-            'success': True, 
-            'id': form.id,
-        })
-    
+        flash('Form saved successfully!', 'success')
+        return redirect(url_for('index'))
+        
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 400
+        flash(f'Error saving form: {str(e)}', 'danger')
+        return redirect(url_for('index'))
 
 @app.route('/api/forms/<int:form_id>', methods=['GET'])
 def get_form(form_id):

@@ -1,9 +1,9 @@
 // init.js
 
 import { addQuestion } from './question.js';
-import { validateForm } from './validation.js';
+import { validateForm, showFieldError } from './validationUtils.js'; // Corrected import
 import { setupCounterButtons } from './metadataFields.js';
-import { updateQuestionsHeader, updateQuestionCount, showAlert, loadForm } from './utils.js';
+import { updateQuestionsHeader, updateQuestionCount, showAlert } from './utils.js';
 
 export function initializeForm() {
     const form = document.getElementById('formConfiguration');
@@ -38,71 +38,32 @@ export function initializeForm() {
         setupCounterButtons(buttons, container, display);
     }
 
-    // Setup form loading
-    document.querySelectorAll('.load-form').forEach(button => {
-        button.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const formId = button.getAttribute('data-form-id');
-            const modal = bootstrap.Modal.getInstance(document.getElementById('formListModal'));
-            
-            if (await loadForm(formId)) {
-                modal.hide();
-                showAlert('success', 'Form loaded successfully');
-            }
-        });
-    });
-
     // Form submission handler
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
     }
 }
 
-async function handleFormSubmit(e) {
+function handleFormSubmit(e) {
     e.preventDefault();
     const form = e.target;
-    const questionsList = document.getElementById('questions');
 
-    // Validate the entire form
+    // Validate the form
     if (!validateForm(form)) return;
 
     // Get form data
-    const formData = {
-        title: document.getElementById('title').value,
-        category: document.getElementById('category').value,
-        subcategory: document.getElementById('subcategory')?.value || '',
-        category_metadata: getMetadataValues('categoryMetadata'),
-        subcategory_metadata: getMetadataValues('subcategoryMetadata'),
-        questions: getQuestionsData()
-    };
+    const formData = new FormData();
+    formData.append('title', document.getElementById('title').value);
+    formData.append('category', document.getElementById('category').value);
+    formData.append('subcategory', document.getElementById('subcategory')?.value || '');
+    formData.append('category_metadata', JSON.stringify(getMetadataValues('categoryMetadata')));
+    formData.append('subcategory_metadata', JSON.stringify(getMetadataValues('subcategoryMetadata')));
+    formData.append('questions', JSON.stringify(getQuestionsData()));
 
-    try {
-        const response = await fetch('/api/forms', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-
-        const data = await response.json();
-        if (data.success) {
-            const summary = `Form "${formData.title}" saved successfully!\n` +
-                           `Category: ${formData.category}\n` +
-                           (formData.subcategory ? `Subcategory: ${formData.subcategory}\n` : '') +
-                           `Questions: ${formData.questions.length}\n` +
-                           `Metadata fields: ${Object.keys(formData.category_metadata).length + 
-                                             Object.keys(formData.subcategory_metadata).length}`;
-                           
-            showAlert('success', summary);
-            form.reset();
-            questionsList.innerHTML = '';
-            addQuestion();
-            updateQuestionCount();
-        } else {
-            throw new Error(data.error || 'Failed to save form');
-        }
-    } catch (error) {
-        showAlert('danger', error.message);
-    }
+    // Submit the form
+    form.method = 'POST';
+    form.action = '/save-form';
+    form.submit();
 }
 
 function getMetadataValues(containerId) {

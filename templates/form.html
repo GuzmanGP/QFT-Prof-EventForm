@@ -32,15 +32,26 @@
 
 <div class="card">
     <div class="card-body">
-        <form id="formConfiguration">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form id="formConfiguration" method="POST" action="{{ url_for('save_form') }}">
             <div class="mb-3">
                 <label class="form-label">Form Title<span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="title" required>
+                <input type="text" class="form-control" id="title" name="title" required>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Category<span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="category" required>
+                <input type="text" class="form-control" id="category" name="category" required>
                 
                 <div class="metadata-section mt-2">
                     <div class="d-flex justify-content-between align-items-center">
@@ -57,7 +68,7 @@
 
             <div class="mb-3">
                 <label class="form-label">Subcategory</label>
-                <input type="text" class="form-control" id="subcategory">
+                <input type="text" class="form-control" id="subcategory" name="subcategory">
                 
                 <div class="metadata-section mt-2">
                     <div class="d-flex justify-content-between align-items-center">
@@ -82,6 +93,11 @@
             </div>
             
             <div id="questions"></div>
+
+            <!-- Hidden fields for metadata and questions -->
+            <input type="hidden" name="category_metadata" id="categoryMetadataInput">
+            <input type="hidden" name="subcategory_metadata" id="subcategoryMetadataInput">
+            <input type="hidden" name="questions" id="questionsInput">
         </form>
     </div>
 </div>
@@ -99,13 +115,12 @@
             <button type="button" class="btn btn-pink back-to-menu">
                 <i class="fas fa-arrow-up me-2"></i>Back to Menu
             </button>
-            <button type="submit" class="btn btn-primary position-relative" id="saveButton">
+            <button type="submit" class="btn btn-primary position-relative" id="saveButton" form="formConfiguration">
                 <span class="button-text">
                     <i class="fas fa-save me-2"></i>Save
                 </span>
-                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
             </button>
-            <button type="reset" class="btn btn-danger">
+            <button type="reset" class="btn btn-danger" form="formConfiguration">
                 <i class="fas fa-rotate-right me-2"></i>Reset
             </button>
         </div>
@@ -113,76 +128,5 @@
 </div>
 
 <!-- Question Template -->
-<template id="questionTemplate">
-    <div class="card question-card">
-        <div class="card-header" role="button" data-bs-toggle="collapse" data-bs-target="#questionContent_TEMPLATE">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="question-number mb-0">Question 1</h5>
-                <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-danger btn-sm remove-question">
-                        <i class="fas fa-times me-1"></i>Remove
-                    </button>
-                    <span class="toggle-icon">▼</span>
-                </div>
-            </div>
-        </div>
-        <div id="questionContent_TEMPLATE" class="collapse">
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label">Question reference<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control question-title" required placeholder="Enter question reference">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Question Content<span class="text-danger">*</span></label>
-                    <textarea class="form-control expandable-textarea question-content" required placeholder="Enter full question text"></textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Answer Type<span class="text-danger">*</span></label>
-                    <select class="form-control answer-type" required>
-                        <option value="text">Text</option>
-                        <option value="number">Number</option>
-                        <option value="date">Date</option>
-                        <option value="time">Time</option>
-                        <option value="list">List</option>
-                    </select>
-                </div>
-
-                <div class="mb-3 list-options d-none">
-                    <label class="form-label">List Options</label>
-                    <input type="text" class="form-control" placeholder="Enter options separated by commas">
-                </div>
-
-                <div class="form-check">
-                    <input type="checkbox" class="form-check-input question-required" id="required_TEMPLATE">
-                    <label class="form-check-label" for="required_TEMPLATE">Required</label>
-                </div>
-
-                <div class="form-check">
-                    <input type="checkbox" class="form-check-input question-ai" id="ai_TEMPLATE">
-                    <label class="form-check-label" for="ai_TEMPLATE">AI Post-processing</label>
-                </div>
-
-                <div class="ai-instructions" style="display: none;">
-                    <textarea class="form-control expandable-textarea question-ai-instructions" 
-                              rows="3"
-                              placeholder="Enter instructions for processing user responses"></textarea>
-                </div>
-
-                <div class="metadata-section mt-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6>Question Metadata</h6>
-                        <div class="counter-group">
-                            <button type="button" class="counter-button decrease-count" data-target="question-metadata">-</button>
-                            <span class="counter-display question-meta-count">0</span>
-                            <button type="button" class="counter-button increase-count" data-target="question-metadata">+</button>
-                        </div>
-                    </div>
-                    <div class="question-metadata metadata-container"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
+{% include 'question_template.html' %}
 {% endblock %}
