@@ -36,6 +36,19 @@ export function addMetadataField(container) {
         <button type="button" class="btn btn-outline-danger remove-field">×</button>
     `;
 
+    // Add click handler for remove button
+    const removeButton = field.querySelector('.remove-field');
+    removeButton.addEventListener('click', () => {
+        const display = container.closest('.metadata-section').querySelector('.counter-display');
+        const currentCount = parseInt(display.textContent);
+        
+        // Remove the field
+        field.remove();
+        
+        // Update the counter
+        display.textContent = (currentCount - 1).toString();
+    });
+
     container.appendChild(field);
 }
 
