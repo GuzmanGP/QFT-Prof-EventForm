@@ -1,6 +1,6 @@
 // question.js
 
-import { updateMetadataFields } from './metadataFields.js';
+import { updateMetadataFields, addMetadataField } from './metadataFields.js';
 import { updateQuestionCount, showAlert } from './utils.js';
 import { showFieldError, clearFieldError, validateQuestion } from './validationUtils.js';
 
@@ -83,12 +83,14 @@ function setupCounterButtons(buttons, container, display) {
             const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
             
             if (newCount <= 20) {
+                display.textContent = newCount;
                 if (isIncrease) {
                     addMetadataField(container);
                 } else if (container.children.length > 0) {
-                    container.removeChild(container.lastChild);
+                    const lastField = container.lastChild;
+                    lastField.classList.add('animate__fadeOutRight');
+                    setTimeout(() => container.removeChild(lastField), 500);
                 }
-                display.textContent = newCount;
             }
         });
     });
