@@ -1,0 +1,53 @@
+El problema de sobrescribir datos al guardar en las tablas form y questions puede deberse a cómo estás manejando la lógica en el backend o a cómo procesas los datos antes de guardarlos en la base de datos. A continuación, algunos puntos que podrían causar este problema:
+
+1. Manejo del Identificador del Registro
+Explicación: Si al guardar un registro (ya sea un formulario o una pregunta) el sistema no diferencia entre actualizar un registro existente y crear uno nuevo, puede sobrescribir datos. Esto sucede si, por ejemplo, no estás verificando correctamente el ID del registro.
+Solución: Asegúrate de que:
+Si existe un ID en los datos que envías, realizas una actualización (UPDATE).
+Si no existe un ID, creas un nuevo registro (INSERT).
+2. Logica de Guardado en el Backend
+En el archivo init.js, el código del evento de envío de formulario (handleFormSubmit) utiliza formData para recopilar y enviar los datos. Sin embargo, no se observa un control claro sobre si el registro ya existe o si es nuevo:
+javascript
+Copiar código
+form.submit();
+Esto podría causar que todos los registros sean tratados como nuevos o que los datos existentes sean sobrescritos sin validación.
+3. Formato de las Preguntas
+En getQuestionsData() de init.js:
+javascript
+Copiar código
+return Array.from(questions).map(card => ({
+    reference: card.querySelector('.question-title').value,
+    content: card.querySelector('.question-content').value,
+    answer_type: card.querySelector('.answer-type').value,
+    required: card.querySelector('.question-required').checked,
+    question_metadata: getQuestionMetadata(card),
+    ...getQuestionOptions(card)
+}));
+No se observa que incluyas un campo como id para identificar preguntas ya existentes. Esto podría hacer que cada vez que guardes un formulario, las preguntas asociadas se eliminen y se reemplacen por completo.
+4. Actualización en Cascada
+Es posible que en la lógica de backend, al guardar un formulario:
+Borres las preguntas asociadas con una operación como DELETE antes de insertar las nuevas.
+Esto causaría que cualquier edición parcial de preguntas se pierda.
+Propuesta de Solución
+Incluir Identificadores Únicos:
+
+Asegúrate de que cada formulario y cada pregunta tenga un campo id único. Incluye este id en los datos enviados al backend.
+Actualizar Preguntas Existentes:
+
+Cambia la lógica en el backend para que:
+Si se recibe un id, actualice la pregunta correspondiente.
+Si no se recibe un id, cree una nueva pregunta.
+Control del Ciclo de Vida en el Backend:
+
+Si estás utilizando un ORM como Sequelize o Mongoose:
+Utiliza funciones como upsert o divide manualmente la operación en find y update.
+Validar Datos Antes de Guardar:
+
+Implementa validaciones tanto en el frontend como en el backend para asegurarte de que los datos enviados son correctos y completos.
+Si necesitas ayuda con ejemplos específicos para ajustar tu backend, puedo proporcionártelos. ¿Qué stack o framework estás utilizando?
+
+
+
+
+
+

@@ -144,12 +144,13 @@ function getMetadataValues(containerId) {
 function getQuestionsData() {
     const questions = document.querySelectorAll('.question-card');
     return Array.from(questions).map((card, index) => ({
+        id: card.dataset.questionId, // Add question ID if it exists
         reference: card.querySelector('.question-title').value,
         content: card.querySelector('.question-content').value,
         answer_type: card.querySelector('.answer-type').value,
         required: card.querySelector('.question-required').checked,
         question_metadata: getQuestionMetadata(card),
-        order: index + 1, // Added order field
+        order: index + 1,
         ...getQuestionOptions(card)
     }));
 }

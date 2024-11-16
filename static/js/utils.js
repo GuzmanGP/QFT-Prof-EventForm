@@ -150,14 +150,16 @@ export async function loadForm(formId) {
                 const card = addQuestion();
                 if (!card) return;
 
+                // Set question ID
+                card.dataset.questionId = questionData.id;
+
                 // Set question fields
                 const fields = {
                     '.question-title': questionData.reference,
                     '.question-content': questionData.content,
                     '.answer-type': questionData.answer_type,
                     '.question-required': questionData.required,
-                    '.question-ai-instructions': questionData.ai_instructions,
-                    'order': startingOrder + index // Update order to continue from existing questions
+                    '.question-ai-instructions': questionData.ai_instructions
                 };
 
                 Object.entries(fields).forEach(([selector, value]) => {
@@ -165,14 +167,14 @@ export async function loadForm(formId) {
                     if (element) {
                         if (element.type === 'checkbox') {
                             element.checked = value;
-                        } else if (selector === 'order') {
-                            // Set order as a data attribute
-                            card.dataset.order = value;
                         } else {
                             element.value = value || '';
                         }
                     }
                 });
+
+                // Set order as data attribute
+                card.dataset.order = startingOrder + index;
 
                 // Handle options for list type questions
                 if (questionData.answer_type === 'list' && questionData.options?.length) {
