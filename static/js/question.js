@@ -72,16 +72,24 @@ function initializeMetadataCounter(card) {
     const buttons = metadataSection.querySelectorAll('.counter-button');
     const display = metadataSection.querySelector('.counter-display');
     
+    // Remove any existing event listeners
     buttons.forEach(button => {
+        button.replaceWith(button.cloneNode(true));
+    });
+    
+    // Get fresh references after replacing buttons
+    const newButtons = metadataSection.querySelectorAll('.counter-button');
+    
+    newButtons.forEach(button => {
         button.addEventListener('click', () => {
             const currentCount = parseInt(display.textContent);
             const isIncrease = button.classList.contains('increase-count');
             const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
             
             if (newCount <= 20) {
-                display.textContent = newCount;
                 if (isIncrease && container.children.length < newCount) {
                     addMetadataField(container);
+                    display.textContent = newCount;
                 } else if (!isIncrease && container.children.length > 0) {
                     const lastField = container.lastChild;
                     if (lastField && lastField.parentNode === container) {
@@ -89,6 +97,7 @@ function initializeMetadataCounter(card) {
                         setTimeout(() => {
                             if (lastField.parentNode === container) {
                                 container.removeChild(lastField);
+                                display.textContent = newCount;
                             }
                         }, 500);
                     }
