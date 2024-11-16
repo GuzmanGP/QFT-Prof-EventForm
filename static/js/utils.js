@@ -119,14 +119,6 @@ export async function loadForm(formId) {
             throw new Error(data.error || 'Failed to load form');
         }
 
-        // Clear existing form
-        const form = document.getElementById('formConfiguration');
-        form.reset();
-        
-        // Clear existing questions
-        const questionsContainer = document.getElementById('questions');
-        questionsContainer.innerHTML = '';
-        
         const { form: formData } = data;
         
         // Set basic form fields with animation
@@ -147,7 +139,12 @@ export async function loadForm(formId) {
             setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
         }, 300);
 
-        // Add questions with animation
+        // Store existing questions
+        const questionsContainer = document.getElementById('questions');
+        const existingQuestions = Array.from(questionsContainer.querySelectorAll('.question-card'));
+        const startingOrder = existingQuestions.length + 1;
+
+        // Add new questions with animation
         formData.questions.forEach((questionData, index) => {
             setTimeout(() => {
                 const card = addQuestion();
@@ -160,7 +157,7 @@ export async function loadForm(formId) {
                     '.answer-type': questionData.answer_type,
                     '.question-required': questionData.required,
                     '.question-ai-instructions': questionData.ai_instructions,
-                    'order': index + 1  // Added order field to match rendering sequence
+                    'order': startingOrder + index // Update order to continue from existing questions
                 };
 
                 Object.entries(fields).forEach(([selector, value]) => {
