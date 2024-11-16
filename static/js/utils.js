@@ -1,6 +1,4 @@
 // utils.js
-
-// Export showAlert function first
 export function showAlert(type, message) {
     const alertContainer = document.querySelector('.alert-container');
     if (!alertContainer) return;
@@ -31,12 +29,12 @@ export function toggleLoadingOverlay(show = true, message = 'Loading form data..
     }
     
     if (show) {
-        overlay.style.display = 'flex';  // Use flex instead of block
+        overlay.style.display = 'flex';
         overlay.classList.remove('d-none');
         loadingText.textContent = message;
-        requestAnimationFrame(() => {
-            overlay.style.opacity = '1';
-        });
+        // Force reflow
+        overlay.offsetHeight;
+        overlay.style.opacity = '1';
     } else {
         overlay.style.opacity = '0';
         setTimeout(() => {
