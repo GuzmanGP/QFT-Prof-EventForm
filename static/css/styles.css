@@ -286,6 +286,26 @@ textarea.form-control {
     resize: vertical;
 }
 
+/* Update textarea styles for expandable behavior */
+textarea.form-control {
+    min-height: 100px;
+    transition: min-height 0.3s ease;
+}
+
+textarea.form-control:focus {
+    min-height: 200px;
+}
+
+/* Specific style for question content */
+.question-content {
+    min-height: 100px;
+    transition: min-height 0.3s ease;
+}
+
+.question-content:focus {
+    min-height: 200px;
+}
+
 /* Counter adjustments for mobile */
 .counter-group {
     display: flex;
