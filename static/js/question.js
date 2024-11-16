@@ -80,12 +80,18 @@ function initializeMetadataCounter(card) {
             
             if (newCount <= 20) {
                 display.textContent = newCount;
-                if (isIncrease) {
+                if (isIncrease && container.children.length < newCount) {
                     addMetadataField(container);
-                } else if (container.children.length > 0) {
+                } else if (!isIncrease && container.children.length > 0) {
                     const lastField = container.lastChild;
-                    lastField.classList.add('animate__fadeOutRight');
-                    setTimeout(() => container.removeChild(lastField), 500);
+                    if (lastField && lastField.parentNode === container) {
+                        lastField.classList.add('animate__fadeOutRight');
+                        setTimeout(() => {
+                            if (lastField.parentNode === container) {
+                                container.removeChild(lastField);
+                            }
+                        }, 500);
+                    }
                 }
             }
         });
