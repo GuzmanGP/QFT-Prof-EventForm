@@ -13,40 +13,19 @@ export function toggleLoadingOverlay(show = true, message = 'Loading form data..
     }
     
     if (show) {
+        overlay.style.display = 'flex';  // Use flex instead of block
         overlay.classList.remove('d-none');
         loadingText.textContent = message;
-        // Force reflow before adding animations
-        overlay.offsetHeight;
-        overlay.classList.add('animate__animated', 'animate__fadeIn');
+        requestAnimationFrame(() => {
+            overlay.style.opacity = '1';
+        });
     } else {
-        overlay.classList.add('animate__animated', 'animate__fadeOut');
+        overlay.style.opacity = '0';
         setTimeout(() => {
-            overlay.classList.remove('animate__animated', 'animate__fadeIn', 'animate__fadeOut');
             overlay.classList.add('d-none');
-        }, 500);
+            overlay.style.display = 'none';
+        }, 300);
     }
-}
-
-// Function to show alerts in the interface
-export function showAlert(type, message) {
-    const alertContainer = document.querySelector('.alert-container');
-    if (!alertContainer) {
-        console.error('Alert container not found');
-        return;
-    }
-    
-    const alert = document.createElement('div');
-    alert.className = `alert alert-${type} alert-dismissible fade show animate__animated animate__fadeInDown`;
-    alert.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    alertContainer.appendChild(alert);
-    setTimeout(() => {
-        alert.classList.add('animate__fadeOutUp');
-        setTimeout(() => alert.remove(), 500);
-    }, 5000);
 }
 
 // Function to load form data
@@ -57,11 +36,10 @@ export async function loadForm(formId) {
             throw new Error('Questions container not found');
         }
 
-        toggleLoadingOverlay(true, 'Fetching form data...');
-        
-        // Initial delay to ensure loading overlay is visible
-        await new Promise(resolve => setTimeout(resolve, 800));
+        toggleLoadingOverlay(true, 'Initializing form load...');
+        await new Promise(resolve => setTimeout(resolve, 500));
 
+        toggleLoadingOverlay(true, 'Fetching form data...');
         const response = await fetch(`/api/forms/${formId}`);
         const data = await response.json();
         
@@ -71,9 +49,8 @@ export async function loadForm(formId) {
 
         const { form: formData } = data;
         
-        // Loading form fields with delay
-        toggleLoadingOverlay(true, 'Loading form fields...');
-        await new Promise(resolve => setTimeout(resolve, 800));
+        toggleLoadingOverlay(true, 'Processing form fields...');
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Set basic form fields with animation
         for (const field of ['title', 'category', 'subcategory']) {
@@ -84,13 +61,12 @@ export async function loadForm(formId) {
                 await new Promise(resolve => setTimeout(() => {
                     element.classList.remove('animate__animated', 'animate__fadeIn');
                     resolve();
-                }, 500));
+                }, 300));
             }
         }
 
-        // Loading metadata with delay
         toggleLoadingOverlay(true, 'Loading metadata...');
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Set metadata fields
         if (formData.category_metadata) {
@@ -100,8 +76,8 @@ export async function loadForm(formId) {
             setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
         }
         
-        await new Promise(resolve => setTimeout(resolve, 800));
         toggleLoadingOverlay(true, 'Loading questions...');
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         // Clear existing questions
         questionsContainer.innerHTML = '';
@@ -151,22 +127,21 @@ export async function loadForm(formId) {
                 }
             }
 
-            // Add animation to the card
             card.classList.add('animate__animated', 'animate__fadeInUp');
             await new Promise(resolve => setTimeout(() => {
                 card.classList.remove('animate__animated', 'animate__fadeInUp');
                 resolve();
-            }, 500));
+            }, 300));
         }
 
         // Update UI elements
         updateQuestionsList();
         updateQuestionCount();
         
-        // Final delay before hiding overlay
-        await new Promise(resolve => setTimeout(resolve, 800));
+        toggleLoadingOverlay(true, 'Finalizing...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         toggleLoadingOverlay(false);
-
         return true;
     } catch (error) {
         console.error('Error loading form:', error);
@@ -176,7 +151,7 @@ export async function loadForm(formId) {
     }
 }
 
-// Rest of the utility functions...
+// Rest of the existing utility functions...
 export function updateQuestionsHeader() {
     const count = document.querySelectorAll('.question-card').length;
     const header = document.getElementById('questionsHeader');
