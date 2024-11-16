@@ -16,24 +16,106 @@ body {
     background-color: #212529;
     color: #fff;
     font-size: 16px;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
     padding: 0;
+    display: flex;
+    flex-direction: column;
 }
 
+/* Update container styles */
 main.container-fluid {
-    height: 100%;
+    min-height: 100%;
+    height: auto;
     padding: 2rem;
+    flex: 1;
 }
 
+/* Remove fixed height from card */
 .card {
-    border-radius: 0;
-    border: none;
-    height: 100%;
+    background-color: #2b3035;
+    border: 1px solid var(--input-border);
+    transition: all 0.3s ease;
+    min-height: 100%;
+    height: auto;
+}
+
+/* Update form layout */
+#formConfiguration {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.form-content {
+    flex: 1 0 auto;
+    padding-bottom: 2rem;
+}
+
+.action-buttons {
+    flex-shrink: 0;
+    padding: 1rem;
+    background: rgba(33, 37, 41, 0.95);
+    backdrop-filter: blur(5px);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+    margin-top: auto;
 }
 
 .card-body {
     padding: 2rem;
+}
+
+@media (max-width: 768px) {
+    main.container-fluid {
+        padding: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    body {
+        font-size: 14px;
+    }
+    
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+    h4 { font-size: 1.1rem; }
+    
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .action-buttons .d-flex {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        margin: 0.25rem 0;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group > .form-control {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .input-group > .btn {
+        width: 100%;
+        margin-left: 0;
+        border-radius: 4px;
+    }
+    
+    .metadata-container .input-group {
+        margin-bottom: 1rem;
+    }
 }
 
 @media (max-width: 768px) {
