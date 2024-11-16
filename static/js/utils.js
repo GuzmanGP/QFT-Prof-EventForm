@@ -2,6 +2,24 @@
 import { clearFieldError } from './validationUtils.js';
 import { addQuestion } from './question.js';
 
+// Function to show/hide loading overlay
+export function toggleLoadingOverlay(show = true, message = 'Loading form data...') {
+    const overlay = document.getElementById('loadingOverlay');
+    const loadingText = overlay.querySelector('.loading-text');
+    
+    if (show) {
+        loadingText.textContent = message;
+        overlay.classList.remove('d-none');
+        overlay.classList.add('animate__animated', 'animate__fadeIn');
+    } else {
+        overlay.classList.add('animate__animated', 'animate__fadeOut');
+        setTimeout(() => {
+            overlay.classList.remove('animate__animated', 'animate__fadeIn', 'animate__fadeOut');
+            overlay.classList.add('d-none');
+        }, 500);
+    }
+}
+
 // Function to show alerts in the interface
 export function showAlert(type, message) {
     const alertContainer = document.querySelector('.alert-container');
@@ -112,6 +130,8 @@ function setMetadataFields(containerId, metadata = {}) {
 // Function to load form data
 export async function loadForm(formId) {
     try {
+        toggleLoadingOverlay(true, 'Fetching form data...');
+
         const response = await fetch(`/api/forms/${formId}`);
         const data = await response.json();
         
@@ -120,6 +140,8 @@ export async function loadForm(formId) {
         }
 
         const { form: formData } = data;
+        
+        toggleLoadingOverlay(true, 'Loading form fields...');
         
         // Set basic form fields with animation
         ['title', 'category', 'subcategory'].forEach((field, index) => {
@@ -133,6 +155,8 @@ export async function loadForm(formId) {
             }
         });
 
+        toggleLoadingOverlay(true, 'Loading metadata...');
+        
         // Set metadata fields
         setTimeout(() => {
             setMetadataFields('categoryMetadata', formData.category_metadata);
@@ -144,87 +168,98 @@ export async function loadForm(formId) {
         const existingQuestions = Array.from(questionsContainer.querySelectorAll('.question-card'));
         const startingOrder = existingQuestions.length + 1;
 
+        toggleLoadingOverlay(true, 'Loading questions...');
+
         // Add new questions with animation
-        formData.questions.forEach((questionData, index) => {
-            setTimeout(() => {
-                const card = addQuestion();
-                if (!card) return;
+        for (let i = 0; i < formData.questions.length; i++) {
+            const questionData = formData.questions[i];
+            await new Promise(resolve => {
+                setTimeout(async () => {
+                    const card = addQuestion();
+                    if (!card) {
+                        resolve();
+                        return;
+                    }
 
-                // Set question ID
-                card.dataset.questionId = questionData.id;
+                    // Set question ID
+                    card.dataset.questionId = questionData.id;
 
-                // Set question fields
-                const fields = {
-                    '.question-title': questionData.reference,
-                    '.question-content': questionData.content,
-                    '.answer-type': questionData.answer_type,
-                    '.question-required': questionData.required,
-                    '.question-ai-instructions': questionData.ai_instructions
-                };
+                    // Set question fields
+                    const fields = {
+                        '.question-title': questionData.reference,
+                        '.question-content': questionData.content,
+                        '.answer-type': questionData.answer_type,
+                        '.question-required': questionData.required,
+                        '.question-ai-instructions': questionData.ai_instructions
+                    };
 
-                Object.entries(fields).forEach(([selector, value]) => {
-                    const element = card.querySelector(selector);
-                    if (element) {
-                        if (element.type === 'checkbox') {
-                            element.checked = value;
-                        } else {
-                            element.value = value || '';
+                    Object.entries(fields).forEach(([selector, value]) => {
+                        const element = card.querySelector(selector);
+                        if (element) {
+                            if (element.type === 'checkbox') {
+                                element.checked = value;
+                            } else {
+                                element.value = value || '';
+                            }
+                        }
+                    });
+
+                    // Set order as data attribute
+                    card.dataset.order = startingOrder + i;
+
+                    // Handle options for list type questions
+                    if (questionData.answer_type === 'list' && questionData.options?.length) {
+                        const listOptions = card.querySelector('.list-options');
+                        const optionsList = card.querySelector('.options-list');
+                        if (listOptions && optionsList) {
+                            listOptions.classList.remove('d-none');
+                            questionData.options.forEach(option => {
+                                const optionTag = document.createElement('span');
+                                optionTag.className = 'option-tag';
+                                optionTag.innerHTML = `
+                                    <span class="option-text">${option}</span>
+                                    <button type="button" class="remove-option">×</button>
+                                `;
+                                optionsList.appendChild(optionTag);
+                            });
                         }
                     }
-                });
 
-                // Set order as data attribute
-                card.dataset.order = startingOrder + index;
-
-                // Handle options for list type questions
-                if (questionData.answer_type === 'list' && questionData.options?.length) {
-                    const listOptions = card.querySelector('.list-options');
-                    const optionsList = card.querySelector('.options-list');
-                    if (listOptions && optionsList) {
-                        listOptions.classList.remove('d-none');
-                        questionData.options.forEach(option => {
-                            const optionTag = document.createElement('span');
-                            optionTag.className = 'option-tag';
-                            optionTag.innerHTML = `
-                                <span class="option-text">${option}</span>
-                                <button type="button" class="remove-option">×</button>
-                            `;
-                            optionsList.appendChild(optionTag);
-                        });
+                    // Set question metadata
+                    if (questionData.question_metadata) {
+                        const metadataContainer = card.querySelector('.question-metadata');
+                        if (metadataContainer) {
+                            Object.entries(questionData.question_metadata).forEach(([key, value]) => {
+                                const field = document.createElement('div');
+                                field.className = 'input-group mb-2';
+                                field.innerHTML = `
+                                    <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
+                                    <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
+                                    <button type="button" class="btn btn-outline-danger remove-field">×</button>
+                                `;
+                                metadataContainer.appendChild(field);
+                            });
+                        }
                     }
-                }
 
-                // Set question metadata
-                if (questionData.question_metadata) {
-                    const metadataContainer = card.querySelector('.question-metadata');
-                    if (metadataContainer) {
-                        Object.entries(questionData.question_metadata).forEach(([key, value]) => {
-                            const field = document.createElement('div');
-                            field.className = 'input-group mb-2';
-                            field.innerHTML = `
-                                <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
-                                <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
-                                <button type="button" class="btn btn-outline-danger remove-field">×</button>
-                            `;
-                            metadataContainer.appendChild(field);
-                        });
-                    }
-                }
-
-                card.classList.add('animate__animated', 'animate__fadeInUp');
-                setTimeout(() => card.classList.remove('animate__animated', 'animate__fadeInUp'), 1000);
-            }, index * 200 + 500);
-        });
+                    card.classList.add('animate__animated', 'animate__fadeInUp');
+                    setTimeout(() => card.classList.remove('animate__animated', 'animate__fadeInUp'), 1000);
+                    resolve();
+                }, 200);
+            });
+        }
 
         // Update UI elements
         setTimeout(() => {
             updateQuestionsList();
             updateQuestionCount();
-        }, (formData.questions.length * 200) + 700);
+            toggleLoadingOverlay(false);
+        }, 500);
 
         return true;
     } catch (error) {
         showAlert('danger', `Error loading form: ${error.message}`);
+        toggleLoadingOverlay(false);
         return false;
     }
 }
