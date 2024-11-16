@@ -44,11 +44,13 @@ export function addMetadataField(container) {
         // Remove the field with animation
         field.classList.add('animate__fadeOutRight');
         setTimeout(() => {
-            field.remove();
-            // Update the counter
-            display.textContent = (currentCount - 1).toString();
-            display.classList.add('animate__animated', 'animate__pulse');
-            setTimeout(() => display.classList.remove('animate__animated', 'animate__pulse'), 1000);
+            if (field.parentNode === container) {
+                field.remove();
+                // Update the counter
+                display.textContent = (currentCount - 1).toString();
+                display.classList.add('animate__animated', 'animate__pulse');
+                setTimeout(() => display.classList.remove('animate__animated', 'animate__pulse'), 1000);
+            }
         }, 500);
     });
 
@@ -63,13 +65,20 @@ export function setupCounterButtons(buttons, container, display) {
             const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
             
             if (newCount <= 20) {
-                display.textContent = newCount;
                 if (isIncrease) {
                     addMetadataField(container);
+                    display.textContent = newCount;
                 } else if (container.children.length > 0) {
                     const lastField = container.lastChild;
-                    lastField.classList.add('animate__fadeOutRight');
-                    setTimeout(() => container.removeChild(lastField), 500);
+                    if (lastField && lastField.parentNode === container) {
+                        lastField.classList.add('animate__fadeOutRight');
+                        setTimeout(() => {
+                            if (lastField.parentNode === container) {
+                                container.removeChild(lastField);
+                                display.textContent = newCount;
+                            }
+                        }, 500);
+                    }
                 }
             }
         });
