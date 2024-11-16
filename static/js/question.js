@@ -1,7 +1,7 @@
 // question.js
 
 import { updateMetadataFields, addMetadataField } from './metadataFields.js';
-import { updateQuestionCount, showAlert } from './utils.js';
+import { updateQuestionCount, showAlert, updateQuestionsList } from './utils.js';
 import { showFieldError, clearFieldError, validateQuestion } from './validationUtils.js';
 
 // Function to update question numbers after removal

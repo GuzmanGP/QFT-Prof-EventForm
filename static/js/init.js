@@ -3,7 +3,7 @@
 import { addQuestion } from './question.js';
 import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
-import { updateQuestionsHeader, updateQuestionCount, showAlert, updateQuestionsList } from './utils.js';
+import { updateQuestionsHeader, updateQuestionCount, showAlert, updateQuestionsList, loadForm } from './utils.js';
 
 export function initializeForm() {
     const form = document.getElementById('formConfiguration');
@@ -24,6 +24,7 @@ export function initializeForm() {
         addQuestionBtn.addEventListener('click', () => {
             addQuestion();
             updateQuestionCount();
+            updateQuestionsList();
         });
     }
 
