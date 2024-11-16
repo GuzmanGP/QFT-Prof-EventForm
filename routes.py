@@ -64,32 +64,62 @@ def save_form():
             flash(str(e), 'danger')
             return redirect(url_for('index'))
         
-        # Create form
-        form = FormConfiguration(
+        # Check if form exists
+        existing_form = FormConfiguration.query.filter_by(
             title=data['title'],
-            category=data['category'],
-            subcategory=data['subcategory'],
-            category_metadata=data['category_metadata'],
-            subcategory_metadata=data['subcategory_metadata']
-        )
-        
-        # Add questions
-        for q_data in data['questions']:
-            question = Question(
-                reference=q_data['reference'],
-                content=q_data['content'],
-                answer_type=q_data.get('answer_type', 'text'),
-                options=q_data.get('options', []),
-                question_metadata=q_data.get('question_metadata', {}),
-                required=q_data.get('required', False),
-                order=q_data.get('order'),
-                ai_instructions=q_data.get('ai_instructions')
+            category=data['category']
+        ).first()
+
+        if existing_form:
+            # Update existing form
+            existing_form.subcategory = data['subcategory']
+            existing_form.category_metadata = data['category_metadata']
+            existing_form.subcategory_metadata = data['subcategory_metadata']
+            
+            # Get max order of existing questions
+            max_order = max([q.order or 0 for q in existing_form.questions]) if existing_form.questions else 0
+            
+            # Add new questions with continued ordering
+            for i, q_data in enumerate(data['questions'], start=max_order + 1):
+                question = Question(
+                    reference=q_data['reference'],
+                    content=q_data['content'],
+                    answer_type=q_data.get('answer_type', 'text'),
+                    options=q_data.get('options', []),
+                    question_metadata=q_data.get('question_metadata', {}),
+                    required=q_data.get('required', False),
+                    order=i,
+                    ai_instructions=q_data.get('ai_instructions')
+                )
+                existing_form.questions.append(question)
+            
+            db.session.commit()
+        else:
+            # Create new form
+            form = FormConfiguration(
+                title=data['title'],
+                category=data['category'],
+                subcategory=data['subcategory'],
+                category_metadata=data['category_metadata'],
+                subcategory_metadata=data['subcategory_metadata']
             )
-            form.questions.append(question)
-        
-        # Save to database
-        db.session.add(form)
-        db.session.commit()
+            
+            # Add questions
+            for i, q_data in enumerate(data['questions'], start=1):
+                question = Question(
+                    reference=q_data['reference'],
+                    content=q_data['content'],
+                    answer_type=q_data.get('answer_type', 'text'),
+                    options=q_data.get('options', []),
+                    question_metadata=q_data.get('question_metadata', {}),
+                    required=q_data.get('required', False),
+                    order=i,
+                    ai_instructions=q_data.get('ai_instructions')
+                )
+                form.questions.append(question)
+            
+            db.session.add(form)
+            db.session.commit()
         
         flash('Form saved successfully!', 'success')
         return redirect(url_for('index'))
