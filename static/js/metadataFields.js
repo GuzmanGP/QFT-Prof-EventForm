@@ -28,47 +28,52 @@ export function updateMetadataFields(container, count) {
 export function addMetadataField(container) {
     const field = document.createElement('div');
     field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
-
+    
     field.innerHTML = `
         <input type="text" class="form-control metadata-key" placeholder="Key">
         <input type="text" class="form-control metadata-value" placeholder="Value">
         <button type="button" class="btn btn-outline-danger remove-field">×</button>
     `;
-
-    // Add click handler for remove button
+    
     const removeButton = field.querySelector('.remove-field');
     removeButton.addEventListener('click', () => {
         const display = container.closest('.metadata-section').querySelector('.counter-display');
         const currentCount = parseInt(display.textContent);
         
-        // Remove the field with animation
-        field.classList.add('animate__fadeOutRight');
-        setTimeout(() => {
-            if (field.parentNode === container) {
-                field.remove();
-                // Update the counter
-                display.textContent = (currentCount - 1).toString();
-                display.classList.add('animate__animated', 'animate__pulse');
-                setTimeout(() => display.classList.remove('animate__animated', 'animate__pulse'), 1000);
-            }
-        }, 500);
+        if (field.parentNode === container) {
+            field.classList.add('animate__fadeOutRight');
+            setTimeout(() => {
+                if (field.parentNode === container) {
+                    container.removeChild(field);
+                    display.textContent = Math.max(0, currentCount - 1).toString();
+                }
+            }, 500);
+        }
     });
-
+    
     container.appendChild(field);
 }
 
 export function setupCounterButtons(buttons, container, display) {
+    // Remove existing listeners to prevent duplicates
     buttons.forEach(button => {
+        button.replaceWith(button.cloneNode(true));
+    });
+    
+    // Get fresh references
+    const newButtons = container.closest('.metadata-section').querySelectorAll('.counter-button');
+    
+    newButtons.forEach(button => {
         button.addEventListener('click', () => {
             const currentCount = parseInt(display.textContent);
             const isIncrease = button.classList.contains('increase-count');
             const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
             
             if (newCount <= 20) {
-                if (isIncrease) {
+                if (isIncrease && container.children.length < newCount) {
                     addMetadataField(container);
                     display.textContent = newCount;
-                } else if (container.children.length > 0) {
+                } else if (!isIncrease && container.children.length > 0) {
                     const lastField = container.lastChild;
                     if (lastField && lastField.parentNode === container) {
                         lastField.classList.add('animate__fadeOutRight');
