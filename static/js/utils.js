@@ -1,9 +1,6 @@
 // utils.js
-// Import dependencies
-import { clearFieldError } from './validationUtils.js';
-import { addQuestion } from './question.js';
 
-// Function to show alerts in the interface
+// Export showAlert function first
 export function showAlert(type, message) {
     const alertContainer = document.querySelector('.alert-container');
     if (!alertContainer) return;
@@ -18,6 +15,10 @@ export function showAlert(type, message) {
     alertContainer.appendChild(alert);
     setTimeout(() => alert.remove(), 5000);
 }
+
+// Import dependencies
+import { clearFieldError } from './validationUtils.js';
+import { addQuestion } from './question.js';
 
 // Function to show/hide loading overlay with enhanced animations
 export function toggleLoadingOverlay(show = true, message = 'Loading form data...') {
