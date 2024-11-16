@@ -33,6 +33,27 @@ export function initializeForm() {
         document.getElementById('questionsList').scrollIntoView({ behavior: 'smooth' });
     });
 
+    // Setup form load functionality
+    const formListModal = document.getElementById('formListModal');
+    const loadFormButtons = document.querySelectorAll('.load-form');
+    const bsModal = formListModal ? bootstrap.Modal.getInstance(formListModal) : null;
+
+    loadFormButtons.forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const formId = button.getAttribute('data-form-id');
+            if (!formId) {
+                showAlert('danger', 'Invalid form ID');
+                return;
+            }
+
+            const success = await loadForm(formId);
+            if (success && bsModal) {
+                bsModal.hide();
+            }
+        });
+    });
+
     // Setup metadata counters
     const metadataSections = document.querySelectorAll('.metadata-section');
     for (const section of metadataSections) {
