@@ -3,7 +3,7 @@
 import { addQuestion } from './question.js';
 import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
-import { updateQuestionsHeader, updateQuestionCount, showAlert } from './utils.js';
+import { updateQuestionsHeader, updateQuestionCount, showAlert, updateQuestionsList } from './utils.js';
 
 export function initializeForm() {
     const form = document.getElementById('formConfiguration');
@@ -41,6 +41,33 @@ export function initializeForm() {
     // Form submission handler
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
+    }
+
+    // Add reset button handler
+    const resetButton = form.querySelector('button[type="reset"]');
+    if (resetButton) {
+        form.addEventListener('reset', (e) => {
+            // Clear all option tags
+            document.querySelectorAll('.options-list').forEach(list => {
+                list.innerHTML = '';
+            });
+            
+            // Reset all answer type selects and hide list options
+            document.querySelectorAll('.answer-type').forEach(select => {
+                select.value = 'text';
+                const listOptions = select.closest('.card-body').querySelector('.list-options');
+                if (listOptions) {
+                    listOptions.classList.add('d-none');
+                    listOptions.classList.remove('animate__fadeIn');
+                }
+            });
+            
+            // Update questions menu references
+            setTimeout(() => {
+                updateQuestionsList();
+                updateQuestionCount();
+            }, 100);
+        });
     }
 }
 
@@ -116,9 +143,12 @@ function getQuestionOptions(card) {
     const options = {};
     
     if (card.querySelector('.answer-type').value === 'list') {
-        const optionsInput = card.querySelector('.list-options input').value;
-        if (optionsInput) {
-            options.options = optionsInput.split(',').map(opt => opt.trim()).filter(Boolean);
+        const optionsList = card.querySelector('.options-list');
+        const optionTags = optionsList.querySelectorAll('.option-tag');
+        if (optionTags.length > 0) {
+            options.options = Array.from(optionTags).map(tag => 
+                tag.querySelector('.option-text').textContent
+            );
         }
     }
 

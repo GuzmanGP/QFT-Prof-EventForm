@@ -20,7 +20,10 @@ export function updateMetadataFields(container, count) {
         }
     } else {
         while (container.children.length > count) {
-            container.removeChild(container.lastChild);
+            const lastChild = container.lastChild;
+            if (lastChild && lastChild.parentNode === container) {
+                container.removeChild(lastChild);
+            }
         }
     }
 }
@@ -44,7 +47,7 @@ export function addMetadataField(container) {
             field.classList.add('animate__fadeOutRight');
             setTimeout(() => {
                 if (field.parentNode === container) {
-                    container.removeChild(field);
+                    field.remove(); // Using remove() instead of removeChild
                     display.textContent = Math.max(0, currentCount - 1).toString();
                 }
             }, 500);
@@ -78,8 +81,8 @@ export function setupCounterButtons(buttons, container, display) {
                     if (lastField && lastField.parentNode === container) {
                         lastField.classList.add('animate__fadeOutRight');
                         setTimeout(() => {
-                            if (lastField.parentNode === container) {
-                                container.removeChild(lastField);
+                            if (lastField && lastField.parentNode === container) {
+                                lastField.remove(); // Using remove() instead of removeChild
                                 display.textContent = newCount;
                             }
                         }, 500);
