@@ -2,6 +2,22 @@
 import { clearFieldError } from './validationUtils.js';
 import { addQuestion } from './question.js';
 
+// Function to show alerts in the interface
+export function showAlert(type, message) {
+    const alertContainer = document.querySelector('.alert-container');
+    if (!alertContainer) return;
+
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    alertContainer.appendChild(alert);
+    setTimeout(() => alert.remove(), 5000);
+}
+
 // Function to show/hide loading overlay with enhanced animations
 export function toggleLoadingOverlay(show = true, message = 'Loading form data...') {
     const overlay = document.getElementById('loadingOverlay');
@@ -82,12 +98,15 @@ export async function loadForm(formId) {
         // Clear existing questions
         questionsContainer.innerHTML = '';
         
-        // Add questions with animation
-        for (const questionData of formData.questions) {
+        // Add questions with animation and maintain order
+        const sortedQuestions = formData.questions.sort((a, b) => (a.order || 0) - (b.order || 0));
+        for (const questionData of sortedQuestions) {
             const card = addQuestion();
             if (!card) continue;
 
+            // Set question ID
             card.dataset.questionId = questionData.id;
+            card.dataset.order = questionData.order || 0;
             
             // Set question fields
             const fields = {
@@ -127,6 +146,23 @@ export async function loadForm(formId) {
                 }
             }
 
+            // Set question metadata
+            if (questionData.question_metadata) {
+                const metadataContainer = card.querySelector('.question-metadata');
+                if (metadataContainer) {
+                    Object.entries(questionData.question_metadata).forEach(([key, value]) => {
+                        const field = document.createElement('div');
+                        field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+                        field.innerHTML = `
+                            <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
+                            <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
+                            <button type="button" class="btn btn-outline-danger remove-field">×</button>
+                        `;
+                        metadataContainer.appendChild(field);
+                    });
+                }
+            }
+
             card.classList.add('animate__animated', 'animate__fadeInUp');
             await new Promise(resolve => setTimeout(() => {
                 card.classList.remove('animate__animated', 'animate__fadeInUp');
@@ -151,7 +187,7 @@ export async function loadForm(formId) {
     }
 }
 
-// Rest of the existing utility functions...
+// Function to update questions header
 export function updateQuestionsHeader() {
     const count = document.querySelectorAll('.question-card').length;
     const header = document.getElementById('questionsHeader');
@@ -160,6 +196,7 @@ export function updateQuestionsHeader() {
     }
 }
 
+// Function to update question count
 export function updateQuestionCount() {
     const count = document.querySelectorAll('.question-card').length;
     const countDisplay = document.getElementById('questionCount');
@@ -169,6 +206,7 @@ export function updateQuestionCount() {
     return count;
 }
 
+// Function to update questions list
 export function updateQuestionsList() {
     const navList = document.getElementById('questionNavList');
     if (!navList) {
@@ -200,6 +238,7 @@ export function updateQuestionsList() {
     });
 }
 
+// Function to set metadata fields
 function setMetadataFields(containerId, metadata = {}) {
     const container = document.getElementById(containerId);
     const countDisplay = document.getElementById(`${containerId}Count`);
@@ -213,7 +252,7 @@ function setMetadataFields(containerId, metadata = {}) {
     countDisplay.textContent = count.toString();
     container.innerHTML = '';
     
-    Object.entries(metadata).forEach(([key, value], index) => {
+    Object.entries(metadata).forEach(([key, value]) => {
         const field = document.createElement('div');
         field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
         field.innerHTML = `
