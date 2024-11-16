@@ -56,11 +56,13 @@ export function updateQuestionCount() {
 // Function to update questions list
 export function updateQuestionsList() {
     const navList = document.getElementById('questionNavList');
+    if (!navList) return;
+    
     const questions = document.querySelectorAll('.question-card');
     
     navList.innerHTML = '';
     questions.forEach((card, index) => {
-        const reference = card.querySelector('.question-title').value || 'Undefined reference';
+        const reference = card.querySelector('.question-title')?.value || 'Undefined reference';
         const full_reference = `Question ${index + 1}: ${reference}`;
         
         const listItem = document.createElement('div');
