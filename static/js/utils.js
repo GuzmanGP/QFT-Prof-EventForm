@@ -159,7 +159,8 @@ export async function loadForm(formId) {
                     '.question-content': questionData.content,
                     '.answer-type': questionData.answer_type,
                     '.question-required': questionData.required,
-                    '.question-ai-instructions': questionData.ai_instructions
+                    '.question-ai-instructions': questionData.ai_instructions,
+                    'order': index + 1  // Added order field to match rendering sequence
                 };
 
                 Object.entries(fields).forEach(([selector, value]) => {
@@ -167,6 +168,9 @@ export async function loadForm(formId) {
                     if (element) {
                         if (element.type === 'checkbox') {
                             element.checked = value;
+                        } else if (selector === 'order') {
+                            // Set order as a data attribute
+                            card.dataset.order = value;
                         } else {
                             element.value = value || '';
                         }
