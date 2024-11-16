@@ -158,6 +158,57 @@ function setupQuestionValidation(card) {
     });
 }
 
+// Add setupListOptions function
+function setupListOptions(card) {
+    const optionsInput = card.querySelector('.options-input');
+    const optionsList = card.querySelector('.options-list');
+    
+    optionsInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const value = optionsInput.value.trim();
+            
+            if (value) {
+                const optionTag = document.createElement('div');
+                optionTag.className = 'option-tag animate__animated animate__fadeIn';
+                optionTag.innerHTML = `
+                    <span class="option-text">${value}</span>
+                    <span class="remove-option">&times;</span>
+                `;
+                
+                optionTag.querySelector('.remove-option').addEventListener('click', () => {
+                    optionTag.classList.add('animate__fadeOut');
+                    setTimeout(() => optionTag.remove(), 300);
+                });
+                
+                optionsList.appendChild(optionTag);
+                optionsInput.value = '';
+            }
+        }
+    });
+}
+
+// Update getQuestionOptions function
+function getQuestionOptions(card) {
+    const options = {};
+    
+    if (card.querySelector('.answer-type').value === 'list') {
+        const optionTags = card.querySelectorAll('.option-tag');
+        if (optionTags.length > 0) {
+            options.options = Array.from(optionTags).map(tag => 
+                tag.querySelector('.option-text').textContent
+            );
+        }
+    }
+    
+    const aiEnabled = card.querySelector('.question-ai')?.checked;
+    if (aiEnabled) {
+        options.ai_instructions = card.querySelector('.question-ai-instructions')?.value;
+    }
+    
+    return options;
+}
+
 // Function to add a new question to the form
 export function addQuestion(questionData = null) {
     const template = document.getElementById('questionTemplate');
@@ -179,11 +230,12 @@ export function addQuestion(questionData = null) {
     const questionNumber = updateQuestionCount() + 1;
     card.querySelector('.question-number').textContent = `Question ${questionNumber}`;
 
-    // Initialize metadata counter
+    // Initialize all functionality
     initializeMetadataCounter(card);
     configureAnswerTypeChange(card);
     configureAIProcessing(card);
     setupQuestionValidation(card);
+    setupListOptions(card);  // Add this line
 
     // If question data is provided, populate the fields with animation
     if (questionData) {
