@@ -36,8 +36,25 @@ body {
         padding-right: 15px;
     }
     main.container {
-        padding-bottom: 7rem;
+        padding-bottom: 9rem;  /* More padding on mobile due to stacked buttons */
     }
+    #questions .question-card:last-child {
+        margin-bottom: 2rem;
+    }
+}
+
+/* Main container padding */
+main.container {
+    padding-bottom: 7rem;  /* Increase from 5rem */
+}
+
+#questions .question-card:last-child {
+    margin-bottom: 3rem;  /* Add specific margin for last question */
+}
+
+.question-card {
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--input-border);
 }
 
 .form-control {
