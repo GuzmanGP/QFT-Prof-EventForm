@@ -43,87 +43,89 @@
             {% endif %}
         {% endwith %}
         
-        <form id="formConfiguration" method="POST" action="{{ url_for('save_form') }}">
-            <div class="mb-3">
-                <label class="form-label">Form Title<span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="title" name="title" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Category<span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="category" name="category" required>
-                
-                <div class="metadata-section mt-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6>Category Metadata</h6>
-                        <div class="counter-group">
-                            <button type="button" class="counter-button decrease-count" data-target="categoryMetadata">-</button>
-                            <span class="counter-display" id="categoryMetaCount">0</span>
-                            <button type="button" class="counter-button increase-count" data-target="categoryMetadata">+</button>
-                        </div>
-                    </div>
-                    <div id="categoryMetadata" class="metadata-container"></div>
+        <form id="formConfiguration" method="POST" action="{{ url_for('save_form') }}" class="d-flex flex-column h-100">
+            <!-- Basic form fields -->
+            <div class="form-content">
+                <!-- Title, category, subcategory sections -->
+                <div class="mb-3">
+                    <label class="form-label">Form Title<span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="title" name="title" required>
                 </div>
-            </div>
 
-            <div class="mb-3">
-                <label class="form-label">Subcategory</label>
-                <input type="text" class="form-control" id="subcategory" name="subcategory">
-                
-                <div class="metadata-section mt-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6>Subcategory Metadata</h6>
-                        <div class="counter-group">
-                            <button type="button" class="counter-button decrease-count" data-target="subcategoryMetadata">-</button>
-                            <span class="counter-display" id="subcategoryMetaCount">0</span>
-                            <button type="button" class="counter-button increase-count" data-target="subcategoryMetadata">+</button>
+                <div class="mb-3">
+                    <label class="form-label">Category<span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="category" name="category" required>
+                    
+                    <div class="metadata-section mt-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6>Category Metadata</h6>
+                            <div class="counter-group">
+                                <button type="button" class="counter-button decrease-count" data-target="categoryMetadata">-</button>
+                                <span class="counter-display" id="categoryMetaCount">0</span>
+                                <button type="button" class="counter-button increase-count" data-target="categoryMetadata">+</button>
+                            </div>
                         </div>
+                        <div id="categoryMetadata" class="metadata-container"></div>
                     </div>
-                    <div id="subcategoryMetadata" class="metadata-container"></div>
                 </div>
-            </div>
 
-            <hr>
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0">Questions (<span id="questionCount">0</span>)</h4>
-            </div>
+                <div class="mb-3">
+                    <label class="form-label">Subcategory</label>
+                    <input type="text" class="form-control" id="subcategory" name="subcategory">
+                    
+                    <div class="metadata-section mt-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6>Subcategory Metadata</h6>
+                            <div class="counter-group">
+                                <button type="button" class="counter-button decrease-count" data-target="subcategoryMetadata">-</button>
+                                <span class="counter-display" id="subcategoryMetaCount">0</span>
+                                <button type="button" class="counter-button increase-count" data-target="subcategoryMetadata">+</button>
+                            </div>
+                        </div>
+                        <div id="subcategoryMetadata" class="metadata-container"></div>
+                    </div>
+                </div>
 
-            <div id="questionsList" class="question-list mb-3">
-                <div class="list-group" id="questionNavList"></div>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0">Questions (<span id="questionCount">0</span>)</h4>
+                </div>
+
+                <div id="questionsList" class="question-list mb-3">
+                    <div class="list-group" id="questionNavList"></div>
+                </div>
+                
+                <div id="questions" class="questions-container"></div>
             </div>
             
-            <div id="questions"></div>
-
-            <!-- Hidden fields for metadata and questions -->
+            <!-- Action buttons section -->
+            <div class="action-buttons mt-auto">
+                <div class="d-flex justify-content-around align-items-center flex-wrap gap-2">
+                    <button type="button" class="btn btn-action" id="addQuestion">
+                        <i class="fas fa-plus me-2"></i>Add Question
+                    </button>
+                    <button type="button" class="btn btn-action" data-bs-toggle="modal" data-bs-target="#formListModal">
+                        <i class="fas fa-folder-open me-2"></i>Load Form
+                    </button>
+                    <button type="button" class="btn btn-action back-to-menu">
+                        <i class="fas fa-arrow-up me-2"></i>Back to Menu
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="saveButton">
+                        <span class="button-text">
+                            <i class="fas fa-save me-2"></i>Save
+                        </span>
+                    </button>
+                    <button type="reset" class="btn btn-action-danger">
+                        <i class="fas fa-rotate-right me-2"></i>Reset
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Hidden inputs -->
             <input type="hidden" name="category_metadata" id="categoryMetadataInput">
             <input type="hidden" name="subcategory_metadata" id="subcategoryMetadataInput">
             <input type="hidden" name="questions" id="questionsInput">
         </form>
-    </div>
-</div>
-
-<!-- Fixed Action Buttons -->
-<div class="fixed-action-buttons">
-    <div class="container">
-        <div class="d-flex justify-content-around align-items-center">
-            <button type="button" class="btn btn-action" id="addQuestion">
-                <i class="fas fa-plus me-2"></i>Add Question
-            </button>
-            <button type="button" class="btn btn-action" data-bs-toggle="modal" data-bs-target="#formListModal">
-                <i class="fas fa-folder-open me-2"></i>Load Form
-            </button>
-            <button type="button" class="btn btn-action back-to-menu">
-                <i class="fas fa-arrow-up me-2"></i>Back to Menu
-            </button>
-            <button type="submit" class="btn btn-primary" id="saveButton" form="formConfiguration">
-                <span class="button-text">
-                    <i class="fas fa-save me-2"></i>Save
-                </span>
-            </button>
-            <button type="reset" class="btn btn-action-danger" form="formConfiguration">
-                <i class="fas fa-rotate-right me-2"></i>Reset
-            </button>
-        </div>
     </div>
 </div>
 
