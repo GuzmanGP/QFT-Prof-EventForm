@@ -16,6 +16,91 @@ body {
     background-color: #212529;
     color: #fff;
     font-size: 16px;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+main.container-fluid {
+    height: 100%;
+    padding: 0;
+}
+
+.card {
+    border-radius: 0;
+    border: none;
+    height: 100%;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    body {
+        font-size: 14px;
+    }
+    
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+    h4 { font-size: 1.1rem; }
+    
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    main.container-fluid {
+        padding-bottom: 9rem;  /* More padding on mobile due to stacked buttons */
+    }
+    
+    #questions .question-card:last-child {
+        margin-bottom: 2rem;
+    }
+    
+    .form-control {
+        padding: 0.5rem;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group > .form-control {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .input-group > .btn {
+        width: 100%;
+        margin-left: 0;
+        border-radius: 4px;
+    }
+    
+    .metadata-container .input-group {
+        margin-bottom: 1rem;
+    }
+    
+    .fixed-action-buttons .container {
+        padding: 0;
+    }
+    
+    .fixed-action-buttons .d-flex {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .fixed-action-buttons .btn {
+        width: 100%;
+        padding: 0.75rem;
+        margin: 0;
+    }
 }
 
 /* Responsive font sizes */
@@ -35,7 +120,7 @@ body {
         padding-left: 15px;
         padding-right: 15px;
     }
-    main.container {
+    main.container-fluid {
         padding-bottom: 9rem;  /* More padding on mobile due to stacked buttons */
     }
     #questions .question-card:last-child {
