@@ -2,21 +2,35 @@
 import { clearFieldError } from './validationUtils.js';
 import { addQuestion } from './question.js';
 
-// Function to show/hide loading overlay
+// Function to show/hide loading overlay with enhanced animations
 export function toggleLoadingOverlay(show = true, message = 'Loading form data...') {
     const overlay = document.getElementById('loadingOverlay');
     const loadingText = overlay.querySelector('.loading-text');
+    const spinner = overlay.querySelector('.spinner-border');
     
     if (show) {
         loadingText.textContent = message;
         overlay.classList.remove('d-none');
-        overlay.classList.add('animate__animated', 'animate__fadeIn');
+        overlay.style.opacity = '0';
+        
+        // Add animations
+        requestAnimationFrame(() => {
+            overlay.style.transition = 'opacity 0.3s ease-in-out';
+            overlay.style.opacity = '1';
+            spinner.classList.add('animate__animated', 'animate__rotateIn');
+            loadingText.classList.add('animate__animated', 'animate__fadeIn');
+        });
     } else {
-        overlay.classList.add('animate__animated', 'animate__fadeOut');
+        overlay.style.transition = 'opacity 0.3s ease-in-out';
+        overlay.style.opacity = '0';
+        spinner.classList.add('animate__animated', 'animate__rotateOut');
+        loadingText.classList.add('animate__animated', 'animate__fadeOut');
+        
         setTimeout(() => {
-            overlay.classList.remove('animate__animated', 'animate__fadeIn', 'animate__fadeOut');
             overlay.classList.add('d-none');
-        }, 500);
+            spinner.classList.remove('animate__animated', 'animate__rotateIn', 'animate__rotateOut');
+            loadingText.classList.remove('animate__animated', 'animate__fadeIn', 'animate__fadeOut');
+        }, 300);
     }
 }
 
@@ -131,6 +145,9 @@ function setMetadataFields(containerId, metadata = {}) {
 export async function loadForm(formId) {
     try {
         toggleLoadingOverlay(true, 'Fetching form data...');
+        
+        // Add initial delay to ensure loading overlay is visible
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         const response = await fetch(`/api/forms/${formId}`);
         const data = await response.json();
@@ -141,33 +158,44 @@ export async function loadForm(formId) {
 
         const { form: formData } = data;
         
+        // Increase visibility time for loading states
+        await new Promise(resolve => setTimeout(resolve, 500));
         toggleLoadingOverlay(true, 'Loading form fields...');
         
         // Set basic form fields with animation
-        ['title', 'category', 'subcategory'].forEach((field, index) => {
-            const element = document.getElementById(field);
-            if (element && formData[field]) {
-                setTimeout(() => {
-                    element.value = formData[field];
-                    element.classList.add('animate__animated', 'animate__fadeIn');
-                    setTimeout(() => element.classList.remove('animate__animated', 'animate__fadeIn'), 1000);
-                }, index * 100);
-            }
-        });
+        await Promise.all(['title', 'category', 'subcategory'].map((field, index) => {
+            return new Promise(resolve => {
+                const element = document.getElementById(field);
+                if (element && formData[field]) {
+                    setTimeout(() => {
+                        element.value = formData[field];
+                        element.classList.add('animate__animated', 'animate__fadeIn');
+                        setTimeout(() => element.classList.remove('animate__animated', 'animate__fadeIn'), 1000);
+                        resolve();
+                    }, index * 200);
+                } else {
+                    resolve();
+                }
+            });
+        }));
 
+        await new Promise(resolve => setTimeout(resolve, 500));
         toggleLoadingOverlay(true, 'Loading metadata...');
         
         // Set metadata fields
-        setTimeout(() => {
-            setMetadataFields('categoryMetadata', formData.category_metadata);
-            setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
-        }, 300);
+        await new Promise(resolve => {
+            setTimeout(() => {
+                setMetadataFields('categoryMetadata', formData.category_metadata);
+                setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
+                resolve();
+            }, 500);
+        });
 
-        // Store existing questions
         const questionsContainer = document.getElementById('questions');
         const existingQuestions = Array.from(questionsContainer.querySelectorAll('.question-card'));
         const startingOrder = existingQuestions.length + 1;
 
+        await new Promise(resolve => setTimeout(resolve, 500));
         toggleLoadingOverlay(true, 'Loading questions...');
 
         // Add new questions with animation
@@ -245,16 +273,18 @@ export async function loadForm(formId) {
                     card.classList.add('animate__animated', 'animate__fadeInUp');
                     setTimeout(() => card.classList.remove('animate__animated', 'animate__fadeInUp'), 1000);
                     resolve();
-                }, 200);
+                }, 300); // Increased delay between questions
             });
         }
 
-        // Update UI elements
-        setTimeout(() => {
-            updateQuestionsList();
-            updateQuestionCount();
-            toggleLoadingOverlay(false);
-        }, 500);
+        // Update UI elements with final delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+        updateQuestionsList();
+        updateQuestionCount();
+        
+        // Final delay before hiding overlay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        toggleLoadingOverlay(false);
 
         return true;
     } catch (error) {
