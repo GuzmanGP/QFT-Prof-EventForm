@@ -1,0 +1,84 @@
+El problema del sobrescrito de datos puede estar en la lógica que procesa la relación entre formularios y preguntas. Revisando los archivos, algunos puntos clave:
+
+1. Creación o Actualización de Preguntas en el Frontend
+En init.js, la función getQuestionsData() que recopila las preguntas no incluye un campo id para identificar preguntas existentes:
+
+javascript
+Copiar código
+return Array.from(questions).map(card => ({
+    reference: card.querySelector('.question-title').value,
+    content: card.querySelector('.question-content').value,
+    answer_type: card.querySelector('.answer-type').value,
+    required: card.querySelector('.question-required').checked,
+    question_metadata: getQuestionMetadata(card),
+    ...getQuestionOptions(card)
+}));
+Si el backend no puede diferenciar entre preguntas nuevas y existentes, puede eliminar todas las preguntas asociadas a un formulario antes de insertar las nuevas.
+
+Solución
+Añadir un campo id al recoger los datos:
+
+javascript
+Copiar código
+return Array.from(questions).map(card => ({
+    id: card.dataset.id || null, // id puede venir del backend
+    reference: card.querySelector('.question-title').value,
+    content: card.querySelector('.question-content').value,
+    answer_type: card.querySelector('.answer-type').value,
+    required: card.querySelector('.question-required').checked,
+    question_metadata: getQuestionMetadata(card),
+    ...getQuestionOptions(card)
+}));
+2. Gestión en el Backend
+El archivo routes.py debería:
+
+Verificar si las preguntas ya existen en la base de datos.
+Actualizar preguntas existentes si se proporciona un id.
+Crear nuevas preguntas si no hay un id.
+Solución Backend
+En tu controlador o endpoint para guardar el formulario:
+
+python
+Copiar código
+def save_form_and_questions(data):
+    form_id = data.get('form_id')
+    questions = data.get('questions', [])
+
+    # Actualizar o crear el formulario
+    form = Form.query.get(form_id) if form_id else Form()
+    form.title = data['title']
+    db.session.add(form)
+    db.session.flush()  # Asegurar que form.id está disponible
+
+    # Actualizar o crear preguntas
+    for question_data in questions:
+        question_id = question_data.get('id')
+        if question_id:
+            question = Question.query.get(question_id)
+            if question:
+                question.update_from_dict(question_data)
+        else:
+            question = Question(form_id=form.id, **question_data)
+            db.session.add(question)
+
+    # Eliminar preguntas que ya no están en la lista enviada
+    existing_ids = {q['id'] for q in questions if q.get('id')}
+    Question.query.filter(Question.form_id == form.id, ~Question.id.in_(existing_ids)).delete()
+
+    db.session.commit()
+3. Validación de Datos
+Revisar que cada pregunta tenga un id único al guardarse.
+
+4. Control Visual en el Frontend
+Al cargar un formulario, incluye el id de las preguntas en el DOM para que getQuestionsData() pueda usarlo:
+
+javascript
+Copiar código
+function addQuestionWithData(questionData) {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.dataset.id = questionData.id || ''; // Agregar ID al DOM
+
+    // Resto del código para popular la tarjeta
+}
+Implementa estas soluciones en conjunto para evitar sobrescrituras innecesarias y gestionar eficientemente las actualizaciones en las preguntas relacionadas con un formulario.

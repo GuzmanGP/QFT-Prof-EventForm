@@ -76,22 +76,42 @@ def save_form():
             existing_form.category_metadata = data['category_metadata']
             existing_form.subcategory_metadata = data['subcategory_metadata']
             
-            # Get max order of existing questions
-            max_order = max([q.order or 0 for q in existing_form.questions]) if existing_form.questions else 0
+            # Get existing question IDs
+            existing_question_ids = {q.id for q in existing_form.questions}
+            submitted_question_ids = {int(q['id']) for q in data['questions'] if q.get('id')}
             
-            # Add new questions with continued ordering
-            for i, q_data in enumerate(data['questions'], start=max_order + 1):
-                question = Question(
-                    reference=q_data['reference'],
-                    content=q_data['content'],
-                    answer_type=q_data.get('answer_type', 'text'),
-                    options=q_data.get('options', []),
-                    question_metadata=q_data.get('question_metadata', {}),
-                    required=q_data.get('required', False),
-                    order=i,
-                    ai_instructions=q_data.get('ai_instructions')
-                )
-                existing_form.questions.append(question)
+            # Delete questions that are no longer present
+            questions_to_delete = existing_question_ids - submitted_question_ids
+            if questions_to_delete:
+                Question.query.filter(Question.id.in_(questions_to_delete)).delete(synchronize_session=False)
+            
+            # Update or create questions
+            for q_data in data['questions']:
+                if q_data.get('id'):
+                    # Update existing question
+                    question = Question.query.get(int(q_data['id']))
+                    if question:
+                        question.reference = q_data['reference']
+                        question.content = q_data['content']
+                        question.answer_type = q_data.get('answer_type', 'text')
+                        question.options = q_data.get('options', [])
+                        question.question_metadata = q_data.get('question_metadata', {})
+                        question.required = q_data.get('required', False)
+                        question.order = q_data.get('order')
+                        question.ai_instructions = q_data.get('ai_instructions')
+                else:
+                    # Create new question
+                    question = Question(
+                        reference=q_data['reference'],
+                        content=q_data['content'],
+                        answer_type=q_data.get('answer_type', 'text'),
+                        options=q_data.get('options', []),
+                        question_metadata=q_data.get('question_metadata', {}),
+                        required=q_data.get('required', False),
+                        order=q_data.get('order'),
+                        ai_instructions=q_data.get('ai_instructions')
+                    )
+                    existing_form.questions.append(question)
             
             db.session.commit()
         else:
@@ -105,7 +125,7 @@ def save_form():
             )
             
             # Add questions
-            for i, q_data in enumerate(data['questions'], start=1):
+            for q_data in data['questions']:
                 question = Question(
                     reference=q_data['reference'],
                     content=q_data['content'],
@@ -113,7 +133,7 @@ def save_form():
                     options=q_data.get('options', []),
                     question_metadata=q_data.get('question_metadata', {}),
                     required=q_data.get('required', False),
-                    order=i,
+                    order=q_data.get('order'),
                     ai_instructions=q_data.get('ai_instructions')
                 )
                 form.questions.append(question)
@@ -143,6 +163,7 @@ def get_form(form_id):
                 'category_metadata': form.category_metadata,
                 'subcategory_metadata': form.subcategory_metadata,
                 'questions': [{
+                    'id': q.id,
                     'reference': q.reference,
                     'content': q.content,
                     'answer_type': q.answer_type,
@@ -151,7 +172,7 @@ def get_form(form_id):
                     'required': q.required,
                     'order': q.order,
                     'ai_instructions': q.ai_instructions
-                } for q in form.questions]
+                } for q in sorted(form.questions, key=lambda x: x.order or 0)]
             }
         })
     except Exception as e:
