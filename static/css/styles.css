@@ -832,3 +832,47 @@ main.container {
     80% { transform: translateX(-2px); }
     100% { opacity: 1; transform: translateX(0); }
 }
+
+/* Professional button styles */
+.btn-action {
+    background-color: #2c3e50;
+    border-color: #2c3e50;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    background-color: #34495e;
+    border-color: #34495e;
+    color: #fff;
+}
+
+.btn-action-danger {
+    background-color: #c0392b;
+    border-color: #c0392b;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.btn-action-danger:hover {
+    background-color: #e74c3c;
+    border-color: #e74c3c;
+    color: #fff;
+}
+
+.fixed-action-buttons .btn {
+    min-width: 120px;
+    margin: 0 0.25rem;
+}
+
+@media (max-width: 768px) {
+    .fixed-action-buttons .btn {
+        margin: 0.25rem 0;
+        width: 100%;
+        min-width: auto;
+    }
+}
