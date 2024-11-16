@@ -4,37 +4,6 @@ import { updateMetadataFields, addMetadataField } from './metadataFields.js';
 import { updateQuestionCount, showAlert } from './utils.js';
 import { showFieldError, clearFieldError, validateQuestion } from './validationUtils.js';
 
-// Function to update the questions menu
-function updateQuestionsList() {
-    const navList = document.getElementById('questionNavList');
-    const questions = document.querySelectorAll('.question-card');
-    
-    navList.innerHTML = '';
-    questions.forEach((card, index) => {
-        const reference = card.querySelector('.question-title').value || 'Undefined reference';
-        const full_reference = `Question ${index + 1}: ${reference}`;
-        
-        const listItem = document.createElement('div');
-        listItem.className = 'question-menu-item animate__animated animate__fadeInLeft';
-        
-        const link = document.createElement('a');
-        link.href = '#';
-        link.className = 'question-menu-link';
-        link.innerHTML = `
-            <i class="fas fa-chevron-right me-2"></i>
-            <span>${full_reference}</span>
-        `;
-        
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            card.scrollIntoView({ behavior: 'smooth' });
-        });
-        
-        listItem.appendChild(link);
-        navList.appendChild(listItem);
-    });
-}
-
 // Function to update question numbers after removal
 function updateQuestionNumbers() {
     const questions = document.querySelectorAll('.question-card');
@@ -235,7 +204,7 @@ export function addQuestion(questionData = null) {
     configureAnswerTypeChange(card);
     configureAIProcessing(card);
     setupQuestionValidation(card);
-    setupListOptions(card);  // Add this line
+    setupListOptions(card);
 
     // If question data is provided, populate the fields with animation
     if (questionData) {
@@ -248,7 +217,24 @@ export function addQuestion(questionData = null) {
             if (questionData.answer_type === 'list' && questionData.options) {
                 const listOptions = card.querySelector('.list-options');
                 listOptions.classList.remove('d-none');
-                listOptions.querySelector('input').value = questionData.options.join(', ');
+                
+                // Add options as tags
+                const optionsList = listOptions.querySelector('.options-list');
+                questionData.options.forEach(opt => {
+                    const optionTag = document.createElement('div');
+                    optionTag.className = 'option-tag';
+                    optionTag.innerHTML = `
+                        <span class="option-text">${opt}</span>
+                        <span class="remove-option">&times;</span>
+                    `;
+                    
+                    optionTag.querySelector('.remove-option').addEventListener('click', () => {
+                        optionTag.classList.add('animate__fadeOut');
+                        setTimeout(() => optionTag.remove(), 300);
+                    });
+                    
+                    optionsList.appendChild(optionTag);
+                });
             }
             
             if (questionData.ai_instructions) {

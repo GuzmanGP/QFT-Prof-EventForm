@@ -53,6 +53,37 @@ export function updateQuestionCount() {
     return count;
 }
 
+// Function to update questions list
+export function updateQuestionsList() {
+    const navList = document.getElementById('questionNavList');
+    const questions = document.querySelectorAll('.question-card');
+    
+    navList.innerHTML = '';
+    questions.forEach((card, index) => {
+        const reference = card.querySelector('.question-title').value || 'Undefined reference';
+        const full_reference = `Question ${index + 1}: ${reference}`;
+        
+        const listItem = document.createElement('div');
+        listItem.className = 'question-menu-item animate__animated animate__fadeInLeft';
+        
+        const link = document.createElement('a');
+        link.href = '#';
+        link.className = 'question-menu-link';
+        link.innerHTML = `
+            <i class="fas fa-chevron-right me-2"></i>
+            <span>${full_reference}</span>
+        `;
+        
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            card.scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        listItem.appendChild(link);
+        navList.appendChild(listItem);
+    });
+}
+
 // Function to load form data
 export async function loadForm(formId) {
     try {

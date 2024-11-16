@@ -12,8 +12,11 @@ export function initializeForm() {
 
     // Add initial question if none exists
     if (!questionsList.querySelector('.question-card')) {
-        addQuestion();
-        updateQuestionCount();
+        setTimeout(() => {
+            addQuestion();
+            updateQuestionCount();
+            updateQuestionsList();
+        }, 100);
     }
 
     // Add question button handler
@@ -73,13 +76,16 @@ export function initializeForm() {
 
 function handleFormSubmit(e) {
     e.preventDefault();
-    const form = e.target;
+    
+    // Validate form
+    if (!validateForm(e.target)) {
+        return;
+    }
 
+    const form = e.target;
+    
     // Get form data
-    const formData = new FormData();
-    formData.append('title', document.getElementById('title').value);
-    formData.append('category', document.getElementById('category').value);
-    formData.append('subcategory', document.getElementById('subcategory')?.value || '');
+    const formData = new FormData(form);
     
     // Get metadata values
     const categoryMetadata = getMetadataValues('categoryMetadata');
