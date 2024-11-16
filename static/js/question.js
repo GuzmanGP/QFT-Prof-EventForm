@@ -72,10 +72,6 @@ function initializeMetadataCounter(card) {
     const buttons = metadataSection.querySelectorAll('.counter-button');
     const display = metadataSection.querySelector('.counter-display');
     
-    setupCounterButtons(buttons, container, display);
-}
-
-function setupCounterButtons(buttons, container, display) {
     buttons.forEach(button => {
         button.addEventListener('click', () => {
             const currentCount = parseInt(display.textContent);
