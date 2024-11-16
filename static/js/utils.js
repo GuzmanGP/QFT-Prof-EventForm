@@ -2,8 +2,11 @@
 import { clearFieldError } from './validationUtils.js';
 import { addQuestion } from './question.js';
 
+// Export declarations
+export { showAlert, toggleLoadingOverlay, loadForm, updateQuestionsHeader, updateQuestionCount, updateQuestionsList };
+
 // Function to show alerts in the interface
-export function showAlert(type, message) {
+function showAlert(type, message) {
     const alertContainer = document.querySelector('.alert-container');
     if (!alertContainer) return;
 
@@ -19,7 +22,7 @@ export function showAlert(type, message) {
 }
 
 // Function to show/hide loading overlay with enhanced animations
-export function toggleLoadingOverlay(show = true, message = 'Loading form data...') {
+function toggleLoadingOverlay(show = true, message = 'Loading form data...') {
     const overlay = document.getElementById('loadingOverlay');
     const loadingText = overlay?.querySelector('.loading-text');
     
@@ -45,7 +48,7 @@ export function toggleLoadingOverlay(show = true, message = 'Loading form data..
 }
 
 // Function to load form data
-export async function loadForm(formId) {
+async function loadForm(formId) {
     try {
         const questionsContainer = document.getElementById('questions');
         if (!questionsContainer) {
@@ -188,7 +191,7 @@ export async function loadForm(formId) {
 }
 
 // Function to update questions header
-export function updateQuestionsHeader() {
+function updateQuestionsHeader() {
     const count = document.querySelectorAll('.question-card').length;
     const header = document.getElementById('questionsHeader');
     if (header) {
@@ -197,7 +200,7 @@ export function updateQuestionsHeader() {
 }
 
 // Function to update question count
-export function updateQuestionCount() {
+function updateQuestionCount() {
     const count = document.querySelectorAll('.question-card').length;
     const countDisplay = document.getElementById('questionCount');
     if (countDisplay) {
@@ -207,7 +210,7 @@ export function updateQuestionCount() {
 }
 
 // Function to update questions list
-export function updateQuestionsList() {
+function updateQuestionsList() {
     const navList = document.getElementById('questionNavList');
     if (!navList) {
         console.error('Question navigation list not found');

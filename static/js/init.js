@@ -6,6 +6,10 @@ import { setupCounterButtons } from './metadataFields.js';
 import { updateQuestionsHeader, updateQuestionCount, showAlert, updateQuestionsList, loadForm } from './utils.js';
 
 export function initializeForm() {
+    // Initialize Bootstrap Modal
+    const formListModal = document.getElementById('formListModal');
+    const bsModal = new bootstrap.Modal(formListModal);
+
     const form = document.getElementById('formConfiguration');
     const addQuestionBtn = document.getElementById('addQuestion');
     const questionsList = document.getElementById('questions');
@@ -29,15 +33,12 @@ export function initializeForm() {
     }
 
     // Setup back to menu button
-    document.querySelector('.back-to-menu').addEventListener('click', () => {
+    document.querySelector('.back-to-menu')?.addEventListener('click', () => {
         document.getElementById('questionsList').scrollIntoView({ behavior: 'smooth' });
     });
 
     // Setup form load functionality
-    const formListModal = document.getElementById('formListModal');
     const loadFormButtons = document.querySelectorAll('.load-form');
-    const bsModal = formListModal ? bootstrap.Modal.getInstance(formListModal) : null;
-
     loadFormButtons.forEach(button => {
         button.addEventListener('click', async (e) => {
             e.preventDefault();
@@ -48,7 +49,7 @@ export function initializeForm() {
             }
 
             const success = await loadForm(formId);
-            if (success && bsModal) {
+            if (success) {
                 bsModal.hide();
             }
         });
@@ -69,7 +70,7 @@ export function initializeForm() {
     }
 
     // Add reset button handler
-    const resetButton = form.querySelector('button[type="reset"]');
+    const resetButton = form?.querySelector('button[type="reset"]');
     if (resetButton) {
         form.addEventListener('reset', (e) => {
             // Clear all option tags
@@ -80,7 +81,7 @@ export function initializeForm() {
             // Reset all answer type selects and hide list options
             document.querySelectorAll('.answer-type').forEach(select => {
                 select.value = 'text';
-                const listOptions = select.closest('.card-body').querySelector('.list-options');
+                const listOptions = select.closest('.card-body')?.querySelector('.list-options');
                 if (listOptions) {
                     listOptions.classList.add('d-none');
                     listOptions.classList.remove('animate__fadeIn');
@@ -174,8 +175,8 @@ function getQuestionOptions(card) {
     
     if (card.querySelector('.answer-type').value === 'list') {
         const optionsList = card.querySelector('.options-list');
-        const optionTags = optionsList.querySelectorAll('.option-tag');
-        if (optionTags.length > 0) {
+        const optionTags = optionsList?.querySelectorAll('.option-tag');
+        if (optionTags?.length > 0) {
             options.options = Array.from(optionTags).map(tag => 
                 tag.querySelector('.option-text').textContent
             );
