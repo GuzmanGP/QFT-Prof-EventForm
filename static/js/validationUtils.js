@@ -84,7 +84,6 @@ export function validateQuestion(card) {
     const reference = card.querySelector('.question-title');
     const content = card.querySelector('.question-content');
     const answerType = card.querySelector('.answer-type');
-    const listOptions = card.querySelector('.list-options input');
 
     if (!reference.value.trim()) {
         showFieldError(reference, 'Question reference is required');
@@ -103,10 +102,12 @@ export function validateQuestion(card) {
     }
 
     if (answerType.value === 'list') {
-        const options = listOptions.value.trim();
-        if (!options || options.split(',').filter(opt => opt.trim()).length < 2) {
-            showFieldError(listOptions, 'At least two comma-separated options are required');
-            errors.push(`Question ${questionIndex}: List options must contain at least two items`);
+        const optionsList = card.querySelector('.options-list');
+        const optionTags = optionsList.querySelectorAll('.option-tag');
+        if (optionTags.length < 2) {
+            const optionsInput = card.querySelector('.options-input');
+            showFieldError(optionsInput, 'At least two options are required');
+            errors.push(`Question ${questionIndex}: List must have at least two options`);
             isValid = false;
         }
     }
