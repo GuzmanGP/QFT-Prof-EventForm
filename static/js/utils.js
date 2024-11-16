@@ -1,4 +1,5 @@
 // utils.js
+// Import dependencies
 import { clearFieldError } from './validationUtils.js';
 import { addQuestion } from './question.js';
 

@@ -37,7 +37,7 @@ export function initializeForm() {
         document.getElementById('questionsList').scrollIntoView({ behavior: 'smooth' });
     });
 
-    // Setup form load functionality
+    // Setup form load functionality with enhanced error handling
     const loadFormButtons = document.querySelectorAll('.load-form');
     loadFormButtons.forEach(button => {
         button.addEventListener('click', async (e) => {
@@ -48,9 +48,15 @@ export function initializeForm() {
                 return;
             }
 
-            const success = await loadForm(formId);
-            if (success) {
-                bsModal.hide();
+            try {
+                const success = await loadForm(formId);
+                if (success) {
+                    bsModal.hide();
+                    showAlert('success', 'Form loaded successfully');
+                }
+            } catch (error) {
+                console.error('Error loading form:', error);
+                showAlert('danger', `Error loading form: ${error.message}`);
             }
         });
     });
