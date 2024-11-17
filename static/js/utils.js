@@ -1,4 +1,4 @@
-// utils.js
+// utils.js - Export functions first
 export function showAlert(type, message) {
     const alertContainer = document.querySelector('.alert-container');
     if (!alertContainer) return;
@@ -14,11 +14,6 @@ export function showAlert(type, message) {
     setTimeout(() => alert.remove(), 5000);
 }
 
-// Import dependencies
-import { clearFieldError } from './validationUtils.js';
-import { addQuestion } from './question.js';
-
-// Function to show/hide loading overlay with enhanced animations
 export function toggleLoadingOverlay(show = true, message = 'Loading form data...') {
     const overlay = document.getElementById('loadingOverlay');
     const loadingText = overlay?.querySelector('.loading-text');
@@ -44,7 +39,86 @@ export function toggleLoadingOverlay(show = true, message = 'Loading form data..
     }
 }
 
-// Function to load form data
+// Import dependencies after exports
+import { clearFieldError } from './validationUtils.js';
+import { addQuestion } from './question.js';
+
+// Rest of the utility functions
+export function updateQuestionsHeader() {
+    const count = document.querySelectorAll('.question-card').length;
+    const header = document.getElementById('questionsHeader');
+    if (header) {
+        header.textContent = `Questions (${count})`;
+    }
+}
+
+export function updateQuestionCount() {
+    const count = document.querySelectorAll('.question-card').length;
+    const countDisplay = document.getElementById('questionCount');
+    if (countDisplay) {
+        countDisplay.textContent = count.toString();
+    }
+    return count;
+}
+
+export function updateQuestionsList() {
+    const navList = document.getElementById('questionNavList');
+    if (!navList) {
+        console.error('Question navigation list not found');
+        return;
+    }
+    
+    const questions = document.querySelectorAll('.question-card');
+    navList.innerHTML = '';
+    
+    questions.forEach((card, index) => {
+        const reference = card.querySelector('.question-title')?.value || 'Undefined reference';
+        const listItem = document.createElement('div');
+        listItem.className = 'question-menu-item animate__animated animate__fadeInLeft';
+        
+        listItem.innerHTML = `
+            <a href="#" class="question-menu-link">
+                <i class="fas fa-chevron-right me-2"></i>
+                <span>Question ${index + 1}: ${reference}</span>
+            </a>
+        `;
+        
+        listItem.querySelector('a').addEventListener('click', (e) => {
+            e.preventDefault();
+            card.scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        navList.appendChild(listItem);
+    });
+}
+
+// Helper function to set metadata fields
+function setMetadataFields(containerId, metadata = {}) {
+    const container = document.getElementById(containerId);
+    const countDisplay = document.getElementById(`${containerId}Count`);
+    
+    if (!container || !countDisplay) {
+        console.error(`Metadata container or count display not found for ${containerId}`);
+        return;
+    }
+
+    const count = Object.keys(metadata).length;
+    countDisplay.textContent = count.toString();
+    container.innerHTML = '';
+    
+    Object.entries(metadata).forEach(([key, value]) => {
+        const field = document.createElement('div');
+        field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+        field.innerHTML = `
+            <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
+            <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
+            <button type="button" class="btn btn-outline-danger remove-field">×</button>
+        `;
+        container.appendChild(field);
+    });
+}
+
+// Export loadForm function
 export async function loadForm(formId) {
     try {
         const questionsContainer = document.getElementById('questions');
@@ -185,81 +259,4 @@ export async function loadForm(formId) {
         toggleLoadingOverlay(false);
         return false;
     }
-}
-
-// Function to update questions header
-export function updateQuestionsHeader() {
-    const count = document.querySelectorAll('.question-card').length;
-    const header = document.getElementById('questionsHeader');
-    if (header) {
-        header.textContent = `Questions (${count})`;
-    }
-}
-
-// Function to update question count
-export function updateQuestionCount() {
-    const count = document.querySelectorAll('.question-card').length;
-    const countDisplay = document.getElementById('questionCount');
-    if (countDisplay) {
-        countDisplay.textContent = count.toString();
-    }
-    return count;
-}
-
-// Function to update questions list
-export function updateQuestionsList() {
-    const navList = document.getElementById('questionNavList');
-    if (!navList) {
-        console.error('Question navigation list not found');
-        return;
-    }
-    
-    const questions = document.querySelectorAll('.question-card');
-    navList.innerHTML = '';
-    
-    questions.forEach((card, index) => {
-        const reference = card.querySelector('.question-title')?.value || 'Undefined reference';
-        const listItem = document.createElement('div');
-        listItem.className = 'question-menu-item animate__animated animate__fadeInLeft';
-        
-        listItem.innerHTML = `
-            <a href="#" class="question-menu-link">
-                <i class="fas fa-chevron-right me-2"></i>
-                <span>Question ${index + 1}: ${reference}</span>
-            </a>
-        `;
-        
-        listItem.querySelector('a').addEventListener('click', (e) => {
-            e.preventDefault();
-            card.scrollIntoView({ behavior: 'smooth' });
-        });
-        
-        navList.appendChild(listItem);
-    });
-}
-
-// Function to set metadata fields
-function setMetadataFields(containerId, metadata = {}) {
-    const container = document.getElementById(containerId);
-    const countDisplay = document.getElementById(`${containerId}Count`);
-    
-    if (!container || !countDisplay) {
-        console.error(`Metadata container or count display not found for ${containerId}`);
-        return;
-    }
-
-    const count = Object.keys(metadata).length;
-    countDisplay.textContent = count.toString();
-    container.innerHTML = '';
-    
-    Object.entries(metadata).forEach(([key, value]) => {
-        const field = document.createElement('div');
-        field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
-        field.innerHTML = `
-            <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
-            <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
-            <button type="button" class="btn btn-outline-danger remove-field">×</button>
-        `;
-        container.appendChild(field);
-    });
 }

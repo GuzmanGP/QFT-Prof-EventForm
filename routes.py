@@ -152,7 +152,14 @@ def save_form():
 @app.route('/api/forms/<int:form_id>', methods=['GET'])
 def get_form(form_id):
     try:
+        question_ids = request.args.getlist('question_ids', type=int)
         form = FormConfiguration.query.get_or_404(form_id)
+        
+        # Filter questions if question_ids provided
+        questions = form.questions
+        if question_ids:
+            questions = [q for q in questions if q.id in question_ids]
+            
         return jsonify({
             'success': True,
             'form': {
@@ -172,7 +179,7 @@ def get_form(form_id):
                     'required': q.required,
                     'order': q.order,
                     'ai_instructions': q.ai_instructions
-                } for q in sorted(form.questions, key=lambda x: x.order or 0)]
+                } for q in sorted(questions, key=lambda x: x.order or 0)]
             }
         })
     except Exception as e:

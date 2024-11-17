@@ -3,13 +3,9 @@
 import { addQuestion } from './question.js';
 import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
-import { updateQuestionsHeader, updateQuestionCount, showAlert, updateQuestionsList, loadForm } from './utils.js';
+import { updateQuestionsHeader, updateQuestionCount, showAlert, updateQuestionsList } from './utils.js';
 
 export function initializeForm() {
-    // Initialize Bootstrap Modal
-    const formListModal = document.getElementById('formListModal');
-    const bsModal = new bootstrap.Modal(formListModal);
-
     const form = document.getElementById('formConfiguration');
     const addQuestionBtn = document.getElementById('addQuestion');
     const questionsList = document.getElementById('questions');
@@ -35,30 +31,6 @@ export function initializeForm() {
     // Setup back to menu button
     document.querySelector('.back-to-menu')?.addEventListener('click', () => {
         document.getElementById('questionsList').scrollIntoView({ behavior: 'smooth' });
-    });
-
-    // Setup form load functionality with enhanced error handling
-    const loadFormButtons = document.querySelectorAll('.load-form');
-    loadFormButtons.forEach(button => {
-        button.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const formId = button.getAttribute('data-form-id');
-            if (!formId) {
-                showAlert('danger', 'Invalid form ID');
-                return;
-            }
-
-            try {
-                const success = await loadForm(formId);
-                if (success) {
-                    bsModal.hide();
-                    showAlert('success', 'Form loaded successfully');
-                }
-            } catch (error) {
-                console.error('Error loading form:', error);
-                showAlert('danger', `Error loading form: ${error.message}`);
-            }
-        });
     });
 
     // Setup metadata counters
@@ -128,7 +100,14 @@ function handleFormSubmit(e) {
     const questionsData = getQuestionsData();
     document.getElementById('questionsInput').value = JSON.stringify(questionsData);
 
-    // Submit the form
+    // Show loading state
+    const saveButton = form.querySelector('#saveButton');
+    if (saveButton) {
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+    }
+
+    // Submit form
     form.submit();
 }
 
