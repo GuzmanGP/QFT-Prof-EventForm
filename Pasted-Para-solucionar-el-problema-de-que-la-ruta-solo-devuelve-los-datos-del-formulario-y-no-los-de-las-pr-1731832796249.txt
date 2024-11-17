@@ -1,0 +1,151 @@
+Para solucionar el problema de que la ruta solo devuelve los datos del formulario y no los de las preguntas asociadas, necesitas ajustar la consulta en el backend para incluir las preguntas relacionadas. Aquí tienes cómo hacerlo:
+
+1. Actualiza la Ruta del Backend
+En tu archivo routes.py, asegúrate de que la consulta utiliza una relación adecuada entre los modelos de Form y Question. La consulta debería obtener tanto los datos del formulario como sus preguntas asociadas.
+
+Ejemplo de Ruta
+python
+Copiar código
+from flask import jsonify, request
+from models import Form, Question
+from sqlalchemy.orm import joinedload
+
+@app.route('/api/forms/<int:form_id>', methods=['GET'])
+def get_form(form_id):
+    try:
+        # Incluye preguntas asociadas utilizando `joinedload`
+        form = Form.query.options(joinedload(Form.questions)).filter_by(id=form_id).first()
+
+        if not form:
+            return jsonify({'success': False, 'error': 'Form not found'}), 404
+
+        # Serializa los datos del formulario y preguntas
+        form_data = {
+            'id': form.id,
+            'title': form.title,
+            'category': form.category,
+            'subcategory': form.subcategory,
+            'questions': [
+                {
+                    'id': question.id,
+                    'reference': question.reference,
+                    'content': question.content,
+                    'answer_type': question.answer_type,
+                    'required': question.required,
+                    'options': question.options,  # Suponiendo que es un JSON o lista
+                    'question_metadata': question.question_metadata  # Suponiendo que es un JSON
+                }
+                for question in form.questions
+            ]
+        }
+
+        return jsonify({'success': True, 'form': form_data})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+2. Modelo Form y Relación con Question
+Asegúrate de que tu modelo Form tenga la relación definida con Question en models.py:
+
+python
+Copiar código
+from sqlalchemy.orm import relationship
+
+class Form(db.Model):
+    __tablename__ = 'forms'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    category = db.Column(db.String(100), nullable=False)
+    subcategory = db.Column(db.String(100), nullable=True)
+    questions = relationship('Question', backref='form', lazy=True)
+
+class Question(db.Model):
+    __tablename__ = 'questions'
+    id = db.Column(db.Integer, primary_key=True)
+    reference = db.Column(db.String(50), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    answer_type = db.Column(db.String(50), nullable=False)
+    required = db.Column(db.Boolean, default=False)
+    options = db.Column(db.JSON, nullable=True)  # Cambia según tu esquema
+    question_metadata = db.Column(db.JSON, nullable=True)  # Cambia según tu esquema
+    form_id = db.Column(db.Integer, db.ForeignKey('forms.id'), nullable=False)
+3. Verifica la Respuesta de la API
+La API debería devolver una estructura similar a esta:
+
+json
+Copiar código
+{
+    "success": true,
+    "form": {
+        "id": 1,
+        "title": "Form Title",
+        "category": "Category Name",
+        "subcategory": "Subcategory Name",
+        "questions": [
+            {
+                "id": 101,
+                "reference": "Question Reference",
+                "content": "Question Content",
+                "answer_type": "text",
+                "required": true,
+                "options": ["Option 1", "Option 2"],
+                "question_metadata": {
+                    "key1": "value1",
+                    "key2": "value2"
+                }
+            }
+        ]
+    }
+}
+4. Ajusta el Frontend
+En el archivo init.js, asegúrate de que la función loadForm procesa correctamente las preguntas:
+
+javascript
+Copiar código
+export async function loadForm(formId) {
+    try {
+        const response = await fetch(`/api/forms/${formId}`);
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to load form');
+        }
+
+        const formData = data.form;
+
+        // Cargar los datos del formulario
+        ['title', 'category', 'subcategory'].forEach(field => {
+            const element = document.getElementById(field);
+            if (element && formData[field]) {
+                element.value = formData[field];
+            }
+        });
+
+        // Limpiar preguntas previas
+        const questionsContainer = document.getElementById('questions');
+        questionsContainer.innerHTML = '';
+
+        // Cargar las preguntas
+        formData.questions.forEach(questionData => {
+            const card = addQuestion(); // Usa la función existente para añadir preguntas
+            card.dataset.questionId = questionData.id;
+            setQuestionFields(card, questionData); // Usa `setQuestionFields` para popular los datos
+        });
+
+        updateQuestionsList();
+        updateQuestionCount();
+    } catch (error) {
+        console.error('Error loading form:', error);
+        showAlert('danger', `Error loading form: ${error.message}`);
+    }
+}
+5. Pruebas
+Prueba la Ruta del Backend:
+
+Usa herramientas como Postman para asegurarte de que la API devuelve los datos del formulario y las preguntas correctamente.
+Depura el Frontend:
+
+Confirma que loadForm recibe correctamente los datos de la API.
+Asegúrate de que las funciones addQuestion y setQuestionFields actualizan correctamente el DOM.
+Verifica la Base de Datos:
+
+Confirma que las preguntas están correctamente asociadas al formulario en la base de datos.
+Con estos ajustes, deberías poder renderizar los datos del formulario y sus preguntas asociadas. Si encuentras algún problema, comparte el error o comportamiento inesperado para más ayuda.
