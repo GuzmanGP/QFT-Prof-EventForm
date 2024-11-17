@@ -93,16 +93,6 @@ function configureAnswerTypeChange(card) {
                 listOptions.classList.add('d-none');
             }, 500);
         }
-        
-        const input = listOptions.querySelector('input');
-        // Fix: Check if input exists before setting required
-        if (input) {
-            input.required = isListType;
-        }
-        
-        if (!isListType && input.classList.contains('is-invalid')) {
-            clearFieldError(input);
-        }
     });
 }
 
@@ -130,7 +120,6 @@ function setupQuestionValidation(card) {
     });
 }
 
-// Add setupListOptions function
 function setupListOptions(card) {
     const optionsInput = card.querySelector('.options-input');
     const optionsList = card.querySelector('.options-list');
@@ -142,42 +131,38 @@ function setupListOptions(card) {
         return;
     }
     
-    // Create modal instance with proper configuration
-    const modal = new bootstrap.Modal(modalElement, {
-        keyboard: true,
-        backdrop: 'static',
-        focus: true
-    });
+    // Create modal instance
+    const modal = new bootstrap.Modal(modalElement);
     
-    // Ensure input is enabled when modal opens
+    // Focus input when modal opens
     modalElement.addEventListener('shown.bs.modal', () => {
-        optionsInput.removeAttribute('disabled');
         optionsInput.focus();
+        optionsInput.value = ''; // Clear any previous value
     });
     
-    // Add option when clicking Add button
+    // Handle option addition via button click
     addButton.addEventListener('click', () => {
         const value = optionsInput.value.trim();
         if (value) {
-            addOptionToList(value, optionsList, optionsInput);
+            addOptionToList(value, optionsList);
             modal.hide();
         }
     });
     
-    // Add option on Enter key in input
+    // Handle option addition via Enter key
     optionsInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             const value = optionsInput.value.trim();
             if (value) {
-                addOptionToList(value, optionsList, optionsInput);
+                addOptionToList(value, optionsList);
                 modal.hide();
             }
         }
     });
     
     // Helper function to add option
-    function addOptionToList(value, list, input) {
+    function addOptionToList(value, list) {
         const existingOptions = Array.from(list.querySelectorAll('.option-text'))
             .map(opt => opt.textContent.toLowerCase());
         
@@ -194,20 +179,22 @@ function setupListOptions(card) {
         `;
         
         list.appendChild(optionTag);
-        input.value = '';
         
+        // Update required state based on options count
         const optionsCount = list.querySelectorAll('.option-tag').length;
         if (optionsCount >= 2) {
-            clearFieldError(input);
+            const input = card.querySelector('.options-input');
+            if (input) {
+                input.required = false;
+                clearFieldError(input);
+            }
         }
     }
     
     // Reset modal on hide
     modalElement.addEventListener('hidden.bs.modal', () => {
-        if (optionsInput) {
-            optionsInput.value = '';
-            clearFieldError(optionsInput);
-        }
+        optionsInput.value = '';
+        clearFieldError(optionsInput);
     });
     
     // Add event delegation for remove option
@@ -227,27 +214,6 @@ function setupListOptions(card) {
             }
         }
     });
-}
-
-// Update getQuestionOptions function
-function getQuestionOptions(card) {
-    const options = {};
-    
-    if (card.querySelector('.answer-type').value === 'list') {
-        const optionTags = card.querySelectorAll('.option-tag');
-        if (optionTags.length > 0) {
-            options.options = Array.from(optionTags).map(tag => 
-                tag.querySelector('.option-text').textContent
-            );
-        }
-    }
-    
-    const aiEnabled = card.querySelector('.question-ai')?.checked;
-    if (aiEnabled) {
-        options.ai_instructions = card.querySelector('.question-ai-instructions')?.value;
-    }
-    
-    return options;
 }
 
 // Function to add a new question to the form
@@ -310,12 +276,6 @@ export function addQuestion(questionData = null) {
                                 <span class="option-text">${opt}</span>
                                 <span class="remove-option">&times;</span>
                             `;
-                            
-                            optionTag.querySelector('.remove-option').addEventListener('click', () => {
-                                optionTag.classList.add('animate__fadeOut');
-                                setTimeout(() => optionTag.remove(), 300);
-                            });
-                            
                             optionsList.appendChild(optionTag);
                         });
                     }
@@ -398,18 +358,13 @@ export function validateQuestions() {
     const errors = [];
     let isValid = true;
 
-    for (let i = 0; i < questions.length; i++) {
-        const card = questions[i];
-        const validationResult = validateQuestion(card);
-        if (!validationResult.isValid) {
-            errors.push(...validationResult.errors);
+    questions.forEach((card, index) => {
+        const validation = validateQuestion(card);
+        if (!validation.isValid) {
+            errors.push(...validation.errors);
             isValid = false;
-            
-            // Add shake animation to invalid card
-            card.classList.add('animate__animated', 'animate__shakeX');
-            setTimeout(() => card.classList.remove('animate__animated', 'animate__shakeX'), 1000);
         }
-    }
+    });
 
     return { isValid, errors };
 }
