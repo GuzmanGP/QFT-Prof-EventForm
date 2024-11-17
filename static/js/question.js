@@ -183,10 +183,10 @@ function setupListOptions(card) {
     // Create modal instance
     const modal = new bootstrap.Modal(modalElement);
     
-    // Focus and enable input when modal opens
-    modalElement.addEventListener('show.bs.modal', () => {
+    // Focus and enable input when modal shows
+    modalElement.addEventListener('shown.bs.modal', () => {
         optionsInput.disabled = false;
-        setTimeout(() => optionsInput.focus(), 500);
+        optionsInput.focus();
     });
     
     // Handle option addition via button click
@@ -214,6 +214,7 @@ function setupListOptions(card) {
     modalElement.addEventListener('hidden.bs.modal', () => {
         optionsInput.value = '';
         optionsInput.disabled = false;
+        clearFieldError(optionsInput);
     });
 }
 
@@ -283,7 +284,8 @@ export function addQuestion(questionData = null) {
         questionsContainer.appendChild(card);
 
         // Update question number after appending
-        const questionNumber = updateQuestionCount() + 1;
+        const questions = questionsContainer.querySelectorAll('.question-card');
+        const questionNumber = questions.length;
         const numberElement = card.querySelector('.question-number');
         if (numberElement) {
             numberElement.textContent = `Question ${questionNumber}`;
