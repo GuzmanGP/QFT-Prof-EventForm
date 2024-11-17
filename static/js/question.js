@@ -131,17 +131,19 @@ function setupListOptions(card) {
     // Create modal instance
     const modal = new bootstrap.Modal(modalElement);
     
-    // Focus input when modal opens and ensure it's enabled
-    modalElement.addEventListener('shown.bs.modal', () => {
-        optionsInput.removeAttribute('disabled');
-        optionsInput.focus();
+    // Focus and enable input when modal opens
+    modalElement.addEventListener('show.bs.modal', () => {
+        setTimeout(() => {
+            optionsInput.disabled = false;
+            optionsInput.focus();
+        }, 200);
     });
     
     // Handle option addition via button click
     addButton.addEventListener('click', () => {
         const value = optionsInput.value.trim();
         if (value) {
-            addOptionToList(value, optionsList, optionsInput);
+            addOptionToList(value, optionsList);
             modal.hide();
         }
     });
@@ -152,14 +154,14 @@ function setupListOptions(card) {
             e.preventDefault();
             const value = optionsInput.value.trim();
             if (value) {
-                addOptionToList(value, optionsList, optionsInput);
+                addOptionToList(value, optionsList);
                 modal.hide();
             }
         }
     });
     
-    // Helper function to add option with proper error handling
-    function addOptionToList(value, list, input) {
+    // Helper function to add option
+    function addOptionToList(value, list) {
         const existingOptions = Array.from(list.querySelectorAll('.option-text'))
             .map(opt => opt.textContent.toLowerCase());
         
@@ -177,21 +179,18 @@ function setupListOptions(card) {
         
         list.appendChild(optionTag);
         
-        // Only update validation state if we have the input element
+        // Clear validation errors if we have enough options
         const optionsCount = list.querySelectorAll('.option-tag').length;
-        if (optionsCount >= 2 && input) {
-            input.required = false;
-            clearFieldError(input);
+        if (optionsCount >= 2) {
+            clearFieldError(optionsInput);
         }
     }
     
-    // Reset modal on hide and ensure input is enabled
+    // Reset modal on hide
     modalElement.addEventListener('hidden.bs.modal', () => {
-        if (optionsInput) {
-            optionsInput.value = '';
-            optionsInput.removeAttribute('disabled');
-            clearFieldError(optionsInput);
-        }
+        optionsInput.value = '';
+        optionsInput.disabled = false;
+        clearFieldError(optionsInput);
     });
     
     // Add event delegation for remove option
@@ -204,8 +203,7 @@ function setupListOptions(card) {
                     optionTag.remove();
                     // Check remaining options count
                     const remainingCount = optionsList.querySelectorAll('.option-tag').length;
-                    if (remainingCount < 2 && optionsInput) {
-                        optionsInput.required = true;
+                    if (remainingCount < 2) {
                         showAlert('warning', 'At least two options are required');
                     }
                 }, 300);
