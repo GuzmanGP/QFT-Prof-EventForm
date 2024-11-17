@@ -1,8 +1,4 @@
 // utils.js - Export functions first
-// Import dependencies at the top
-import { addQuestion } from './question.js';
-import { clearFieldError } from './validationUtils.js';
-
 export function smoothTransition(element, animationClass, duration = 300) {
     element.classList.add('animate__animated', animationClass);
     return new Promise(resolve => setTimeout(() => {
@@ -82,6 +78,10 @@ export function clearErrorState(container) {
         setTimeout(() => errorState.remove(), 300);
     }
 }
+
+// Import dependencies after exports but before function implementations
+import { addQuestion } from './question.js';
+import { clearFieldError } from './validationUtils.js';
 
 export function toggleLoadingOverlay(show = true, message = 'Loading...') {
     const overlay = document.getElementById('loadingOverlay');
