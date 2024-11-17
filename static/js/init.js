@@ -1,22 +1,34 @@
 // init.js
-
 import { addQuestion } from './question.js';
 import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
-import { updateQuestionsHeader, updateQuestionCount, showAlert, updateQuestionsList } from './utils.js';
+import { 
+    updateQuestionsHeader, 
+    updateQuestionCount, 
+    showAlert, 
+    updateQuestionsList, 
+    toggleLoadingOverlay,
+    setMetadataFields,
+    setQuestionFields 
+} from './utils.js';
 
 export function initializeForm() {
     const form = document.getElementById('formConfiguration');
     const addQuestionBtn = document.getElementById('addQuestion');
     const questionsList = document.getElementById('questions');
 
-    // Add initial question if none exists
-    if (!questionsList.querySelector('.question-card')) {
-        setTimeout(() => {
-            addQuestion();
-            updateQuestionCount();
-            updateQuestionsList();
-        }, 100);
+    // Load initial form data if available
+    if (window.initialFormData) {
+        loadInitialFormData(window.initialFormData);
+    } else {
+        // Add initial question if none exists and no initial data
+        if (!questionsList.querySelector('.question-card')) {
+            setTimeout(() => {
+                addQuestion();
+                updateQuestionCount();
+                updateQuestionsList();
+            }, 100);
+        }
     }
 
     // Add question button handler
@@ -75,6 +87,71 @@ export function initializeForm() {
     }
 }
 
+async function loadInitialFormData(formData) {
+    try {
+        toggleLoadingOverlay(true, 'Loading form data...');
+        await new Promise(resolve => setTimeout(resolve, 300)); // Add slight delay for animation
+
+        // Set basic form fields
+        ['title', 'category', 'subcategory'].forEach(field => {
+            const element = document.getElementById(field);
+            if (element && formData[field]) {
+                element.value = formData[field];
+                element.classList.add('animate__animated', 'animate__fadeIn');
+                setTimeout(() => element.classList.remove('animate__animated', 'animate__fadeIn'), 500);
+            }
+        });
+
+        // Set metadata with animation delay
+        if (formData.category_metadata) {
+            toggleLoadingOverlay(true, 'Loading category metadata...');
+            await new Promise(resolve => setTimeout(resolve, 200));
+            setMetadataFields('categoryMetadata', formData.category_metadata);
+        }
+        
+        if (formData.subcategory_metadata) {
+            toggleLoadingOverlay(true, 'Loading subcategory metadata...');
+            await new Promise(resolve => setTimeout(resolve, 200));
+            setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
+        }
+
+        // Add questions with animation
+        const questionsContainer = document.getElementById('questions');
+        questionsContainer.innerHTML = '';
+        
+        toggleLoadingOverlay(true, 'Loading questions...');
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        for (const questionData of formData.questions) {
+            const card = addQuestion();
+            if (!card) continue;
+
+            // Set question data
+            card.dataset.questionId = questionData.id;
+            setQuestionFields(card, questionData);
+            
+            // Add animation class
+            card.classList.add('animate__animated', 'animate__fadeInUp');
+            await new Promise(resolve => setTimeout(resolve, 100));
+            card.classList.remove('animate__animated', 'animate__fadeInUp');
+        }
+
+        // Update UI
+        updateQuestionsList();
+        updateQuestionCount();
+
+        toggleLoadingOverlay(true, 'Finalizing...');
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        toggleLoadingOverlay(false);
+        showAlert('success', 'Form loaded successfully');
+    } catch (error) {
+        console.error('Error loading form data:', error);
+        showAlert('danger', `Error loading form: ${error.message}`);
+        toggleLoadingOverlay(false);
+    }
+}
+
 function handleFormSubmit(e) {
     e.preventDefault();
     
@@ -130,7 +207,7 @@ function getMetadataValues(containerId) {
 function getQuestionsData() {
     const questions = document.querySelectorAll('.question-card');
     return Array.from(questions).map((card, index) => ({
-        id: card.dataset.questionId, // Add question ID if it exists
+        id: card.dataset.questionId,
         reference: card.querySelector('.question-title').value,
         content: card.querySelector('.question-content').value,
         answer_type: card.querySelector('.answer-type').value,

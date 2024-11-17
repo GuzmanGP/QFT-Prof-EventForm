@@ -39,11 +39,6 @@ export function toggleLoadingOverlay(show = true, message = 'Loading form data..
     }
 }
 
-// Import dependencies after exports
-import { clearFieldError } from './validationUtils.js';
-import { addQuestion } from './question.js';
-
-// Rest of the utility functions
 export function updateQuestionsHeader() {
     const count = document.querySelectorAll('.question-card').length;
     const header = document.getElementById('questionsHeader');
@@ -93,7 +88,7 @@ export function updateQuestionsList() {
 }
 
 // Helper function to set metadata fields
-function setMetadataFields(containerId, metadata = {}) {
+export function setMetadataFields(containerId, metadata = {}) {
     const container = document.getElementById(containerId);
     const countDisplay = document.getElementById(`${containerId}Count`);
     
@@ -117,6 +112,65 @@ function setMetadataFields(containerId, metadata = {}) {
         container.appendChild(field);
     });
 }
+
+// Helper function to set question fields
+export function setQuestionFields(card, questionData) {
+    // Set basic fields
+    const fields = {
+        '.question-title': questionData.reference,
+        '.question-content': questionData.content,
+        '.answer-type': questionData.answer_type,
+        '.question-required': questionData.required,
+        '.question-ai-instructions': questionData.ai_instructions
+    };
+
+    Object.entries(fields).forEach(([selector, value]) => {
+        const element = card.querySelector(selector);
+        if (element) {
+            if (element.type === 'checkbox') {
+                element.checked = value;
+            } else {
+                element.value = value || '';
+            }
+        }
+    });
+
+    // Handle options for list type questions
+    if (questionData.answer_type === 'list' && questionData.options?.length) {
+        const listOptions = card.querySelector('.list-options');
+        const optionsList = card.querySelector('.options-list');
+        if (listOptions && optionsList) {
+            listOptions.classList.remove('d-none');
+            questionData.options.forEach(option => {
+                const optionTag = document.createElement('span');
+                optionTag.className = 'option-tag';
+                optionTag.innerHTML = `
+                    <span class="option-text">${option}</span>
+                    <button type="button" class="remove-option">×</button>
+                `;
+                optionsList.appendChild(optionTag);
+            });
+        }
+    }
+
+    // Set question metadata
+    if (questionData.question_metadata) {
+        const metadataContainer = card.querySelector('.question-metadata');
+        if (metadataContainer) {
+            Object.entries(questionData.question_metadata).forEach(([key, value]) => {
+                const field = document.createElement('div');
+                field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+                field.innerHTML = `
+                    <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
+                    <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
+                    <button type="button" class="btn btn-outline-danger remove-field">×</button>
+                `;
+                metadataContainer.appendChild(field);
+            });
+        }
+    }
+}
+
 
 // Export loadForm function
 export async function loadForm(formId) {
@@ -183,59 +237,7 @@ export async function loadForm(formId) {
             card.dataset.order = questionData.order || 0;
             
             // Set question fields
-            const fields = {
-                '.question-title': questionData.reference,
-                '.question-content': questionData.content,
-                '.answer-type': questionData.answer_type,
-                '.question-required': questionData.required,
-                '.question-ai-instructions': questionData.ai_instructions
-            };
-
-            Object.entries(fields).forEach(([selector, value]) => {
-                const element = card.querySelector(selector);
-                if (element) {
-                    if (element.type === 'checkbox') {
-                        element.checked = value;
-                    } else {
-                        element.value = value || '';
-                    }
-                }
-            });
-
-            // Handle options for list type questions
-            if (questionData.answer_type === 'list' && questionData.options?.length) {
-                const listOptions = card.querySelector('.list-options');
-                const optionsList = card.querySelector('.options-list');
-                if (listOptions && optionsList) {
-                    listOptions.classList.remove('d-none');
-                    questionData.options.forEach(option => {
-                        const optionTag = document.createElement('span');
-                        optionTag.className = 'option-tag';
-                        optionTag.innerHTML = `
-                            <span class="option-text">${option}</span>
-                            <button type="button" class="remove-option">×</button>
-                        `;
-                        optionsList.appendChild(optionTag);
-                    });
-                }
-            }
-
-            // Set question metadata
-            if (questionData.question_metadata) {
-                const metadataContainer = card.querySelector('.question-metadata');
-                if (metadataContainer) {
-                    Object.entries(questionData.question_metadata).forEach(([key, value]) => {
-                        const field = document.createElement('div');
-                        field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
-                        field.innerHTML = `
-                            <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
-                            <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
-                            <button type="button" class="btn btn-outline-danger remove-field">×</button>
-                        `;
-                        metadataContainer.appendChild(field);
-                    });
-                }
-            }
+            setQuestionFields(card, questionData);
 
             card.classList.add('animate__animated', 'animate__fadeInUp');
             await new Promise(resolve => setTimeout(() => {
@@ -260,3 +262,7 @@ export async function loadForm(formId) {
         return false;
     }
 }
+
+// Import dependencies after exports
+import { clearFieldError } from './validationUtils.js';
+import { addQuestion } from './question.js';

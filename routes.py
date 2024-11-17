@@ -40,9 +40,35 @@ def validate_form_data(data):
         raise ValueError('\n'.join(errors))
 
 @app.route('/')
-def index():
+@app.route('/<int:form_id>')
+def index(form_id=None):
     forms = FormConfiguration.query.order_by(FormConfiguration.created_at.desc()).all()
-    return render_template('form.html', forms=forms)
+    
+    # If form_id is provided, load that form's data
+    form_data = None
+    if form_id:
+        form = FormConfiguration.query.get_or_404(form_id)
+        form_data = {
+            'id': form.id,
+            'title': form.title,
+            'category': form.category,
+            'subcategory': form.subcategory,
+            'category_metadata': form.category_metadata,
+            'subcategory_metadata': form.subcategory_metadata,
+            'questions': [{
+                'id': q.id,
+                'reference': q.reference,
+                'content': q.content,
+                'answer_type': q.answer_type,
+                'options': q.options,
+                'question_metadata': q.question_metadata,
+                'required': q.required,
+                'order': q.order,
+                'ai_instructions': q.ai_instructions
+            } for q in sorted(form.questions, key=lambda x: x.order or 0)]
+        }
+    
+    return render_template('form.html', forms=forms, form_data=form_data)
 
 @app.route('/save-form', methods=['POST'])
 def save_form():
@@ -148,42 +174,6 @@ def save_form():
         db.session.rollback()
         flash(f'Error saving form: {str(e)}', 'danger')
         return redirect(url_for('index'))
-
-@app.route('/api/forms/<int:form_id>', methods=['GET'])
-def get_form(form_id):
-    try:
-        question_ids = request.args.getlist('question_ids', type=int)
-        form = FormConfiguration.query.get_or_404(form_id)
-        
-        # Filter questions if question_ids provided
-        questions = form.questions
-        if question_ids:
-            questions = [q for q in questions if q.id in question_ids]
-            
-        return jsonify({
-            'success': True,
-            'form': {
-                'id': form.id,
-                'title': form.title,
-                'category': form.category,
-                'subcategory': form.subcategory,
-                'category_metadata': form.category_metadata,
-                'subcategory_metadata': form.subcategory_metadata,
-                'questions': [{
-                    'id': q.id,
-                    'reference': q.reference,
-                    'content': q.content,
-                    'answer_type': q.answer_type,
-                    'options': q.options,
-                    'question_metadata': q.question_metadata,
-                    'required': q.required,
-                    'order': q.order,
-                    'ai_instructions': q.ai_instructions
-                } for q in sorted(questions, key=lambda x: x.order or 0)]
-            }
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 404
 
 @app.errorhandler(404)
 def not_found_error(error):
