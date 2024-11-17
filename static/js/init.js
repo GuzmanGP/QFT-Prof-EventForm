@@ -147,7 +147,6 @@ function handleFormSubmit(e) {
     }
 
     const form = e.target;
-    const formData = new FormData(form);
     
     try {
         // Get metadata values
@@ -164,7 +163,13 @@ function handleFormSubmit(e) {
             showAlert('danger', 'At least one question is required');
             return;
         }
-        document.getElementById('questionsInput').value = JSON.stringify(questionsData);
+        
+        // Update hidden input with questions data
+        const questionsInput = document.getElementById('questionsInput');
+        if (!questionsInput) {
+            throw new Error('Questions input element not found');
+        }
+        questionsInput.value = JSON.stringify(questionsData);
 
         // Show loading state
         const saveButton = form.querySelector('#saveButton');
@@ -178,6 +183,13 @@ function handleFormSubmit(e) {
     } catch (error) {
         console.error('Error submitting form:', error);
         showAlert('danger', `Error submitting form: ${error.message}`);
+        
+        // Reset save button state
+        const saveButton = form.querySelector('#saveButton');
+        if (saveButton) {
+            saveButton.disabled = false;
+            saveButton.innerHTML = '<i class="fas fa-save me-2"></i>Save';
+        }
     }
 }
 

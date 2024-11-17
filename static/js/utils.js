@@ -1,4 +1,8 @@
 // utils.js - Export functions first
+// Import dependencies at the top
+import { addQuestion } from './question.js';
+import { clearFieldError } from './validationUtils.js';
+
 export function smoothTransition(element, animationClass, duration = 300) {
     element.classList.add('animate__animated', animationClass);
     return new Promise(resolve => setTimeout(() => {
@@ -150,9 +154,6 @@ export function updateQuestionsList() {
         navList.appendChild(listItem);
     });
 }
-
-// Import dependencies after all exports
-import { addQuestion } from './question.js';
 
 export async function loadForm(formId) {
     const questionsContainer = document.getElementById('questions');
@@ -329,108 +330,6 @@ export function setQuestionFields(card, questionData) {
             });
         }
     }
-}
-
-// Import dependencies after all exports
-import { clearFieldError } from './validationUtils.js';
-import { addQuestion } from './question.js';
-
-export async function loadForm(formId) {
-    const questionsContainer = document.getElementById('questions');
-    let retryCount = 0;
-    const maxRetries = 3;
-    
-    async function attemptLoad() {
-        try {
-            if (!questionsContainer) {
-                throw new Error('Questions container not found');
-            }
-
-            toggleLoadingOverlay(true, 'Initializing form load...');
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            toggleLoadingOverlay(true, 'Fetching form data...');
-            const response = await fetch(`/api/forms/${formId}`);
-            const data = await response.json();
-            
-            if (!data.success) {
-                throw new Error(data.error || 'Failed to load form');
-            }
-
-            const { form: formData } = data;
-            
-            toggleLoadingOverlay(true, 'Processing form fields...');
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // Set basic form fields with animation
-            for (const field of ['title', 'category', 'subcategory']) {
-                const element = document.getElementById(field);
-                if (element && formData[field]) {
-                    element.value = formData[field];
-                    await smoothTransition(element, 'animate__fadeIn');
-                }
-            }
-
-            toggleLoadingOverlay(true, 'Loading metadata...');
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // Set metadata fields
-            if (formData.category_metadata) {
-                setMetadataFields('categoryMetadata', formData.category_metadata);
-            }
-            if (formData.subcategory_metadata) {
-                setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
-            }
-            
-            toggleLoadingOverlay(true, 'Loading questions...');
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Clear existing questions
-            questionsContainer.innerHTML = '';
-            
-            // Add questions with animation and maintain order
-            const sortedQuestions = formData.questions.sort((a, b) => (a.order || 0) - (b.order || 0));
-            for (const questionData of sortedQuestions) {
-                const card = addQuestion();
-                if (!card) continue;
-
-                // Set question ID
-                card.dataset.questionId = questionData.id;
-                card.dataset.order = questionData.order || 0;
-                
-                // Set question fields
-                setQuestionFields(card, questionData);
-                await smoothTransition(card, 'animate__fadeInUp');
-            }
-
-            // Update UI elements
-            updateQuestionsList();
-            updateQuestionCount();
-            
-            toggleLoadingOverlay(true, 'Finalizing...');
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            toggleLoadingOverlay(false);
-            clearErrorState(questionsContainer);
-            return true;
-        } catch (error) {
-            console.error(`Error loading form (attempt ${retryCount + 1}/${maxRetries}):`, error);
-            
-            if (retryCount < maxRetries - 1) {
-                retryCount++;
-                showAlert('warning', `Loading failed, retrying... (${retryCount}/${maxRetries})`);
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retry
-                return attemptLoad();
-            } else {
-                toggleLoadingOverlay(false);
-                showErrorState(questionsContainer, `Failed to load form after ${maxRetries} attempts: ${error.message}`);
-                questionsContainer.dataset.formId = formId;
-                return false;
-            }
-        }
-    }
-    
-    return attemptLoad();
 }
 
 export async function getQuestionsData(formId) {
