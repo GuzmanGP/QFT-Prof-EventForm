@@ -81,7 +81,6 @@ export function clearErrorState(container) {
 
 // Import dependencies after exports but before function implementations
 import { clearFieldError } from './validationUtils.js';
-import { addQuestion } from './question.js';
 
 export function toggleLoadingOverlay(show = true, message = 'Loading...') {
     const overlay = document.getElementById('loadingOverlay');
@@ -171,16 +170,17 @@ export async function loadForm(formId) {
             await new Promise(resolve => setTimeout(resolve, 300));
 
             toggleLoadingOverlay(true, 'Fetching form data...');
-            const response = await fetch(`/api/forms/${formId}`);
-            const data = await response.json();
-            
-            if (!data.success) {
-                throw new Error(data.error || 'Failed to load form');
+            const response = await fetch(`/${formId}`);
+            const form_data = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(form_data, 'text/html');
+            const scriptTag = doc.querySelector('script:last-of-type');
+            const formData = JSON.parse(scriptTag.textContent.replace('window.initialFormData = ', '').replace(';', ''));
+
+            if (!formData) {
+                throw new Error('Failed to load form data');
             }
 
-            const { form: formData } = data;
-            console.log('Loaded form data:', formData); // Debug log
-            
             // Set basic form fields with animation
             for (const field of ['title', 'category', 'subcategory']) {
                 const element = document.getElementById(field);
@@ -197,25 +197,33 @@ export async function loadForm(formId) {
             if (formData.subcategory_metadata) {
                 setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
             }
-            
+
             // Clear existing questions
             questionsContainer.innerHTML = '';
-            
+
             // Add questions with animation and maintain order
             if (formData.questions && Array.isArray(formData.questions)) {
                 console.log('Processing questions:', formData.questions); // Debug log
                 const sortedQuestions = formData.questions.sort((a, b) => (a.order || 0) - (b.order || 0));
-                
+
                 for (const questionData of sortedQuestions) {
                     console.log('Adding question:', questionData); // Debug log
-                    addQuestion(questionData);
+                    const card = addQuestion();
+                    if (!card) {
+                        console.error('Failed to add question card');
+                        continue;
+                    }
+
+                    // Set question ID and data
+                    card.dataset.questionId = questionData.id;
+                    setQuestionFields(card, questionData);
                 }
             }
 
             // Update UI elements
             updateQuestionsList();
             updateQuestionCount();
-            
+
             toggleLoadingOverlay(false);
             clearErrorState(questionsContainer);
             return true;
@@ -317,25 +325,5 @@ export function setQuestionFields(card, questionData) {
                 metadataContainer.appendChild(field);
             });
         }
-    }
-}
-
-export async function getQuestionsData(formId) {
-    try {
-        toggleLoadingOverlay(true, 'Fetching form data...');
-        const response = await fetch(`/api/forms/${formId}`);
-        const data = await response.json();
-        
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to load form');
-        }
-
-        const { form: formData } = data;
-        return formData;
-    } catch (error) {
-        console.error('Error loading form:', error);
-        showAlert('danger', `Error loading form: ${error.message}`);
-        toggleLoadingOverlay(false);
-        return null;
     }
 }
