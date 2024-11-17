@@ -1,3 +1,4 @@
+import { initializeForm } from './init.js';
 import { 
     updateQuestionCount, 
     showAlert, 
