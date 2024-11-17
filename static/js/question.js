@@ -41,12 +41,10 @@ function initializeMetadataCounter(card) {
     const buttons = metadataSection.querySelectorAll('.counter-button');
     const display = metadataSection.querySelector('.counter-display');
     
-    // Remove any existing event listeners
     buttons.forEach(button => {
         button.replaceWith(button.cloneNode(true));
     });
     
-    // Get fresh references after replacing buttons
     const newButtons = metadataSection.querySelectorAll('.counter-button');
     
     newButtons.forEach(button => {
@@ -114,7 +112,6 @@ function setupQuestionValidation(card) {
         }
     }
 
-    // Add input event listener to update questions list when reference changes
     fields.reference.addEventListener('input', () => {
         updateQuestionsList();
     });
@@ -134,17 +131,17 @@ function setupListOptions(card) {
     // Create modal instance
     const modal = new bootstrap.Modal(modalElement);
     
-    // Focus input when modal opens
+    // Focus input when modal opens and ensure it's enabled
     modalElement.addEventListener('shown.bs.modal', () => {
+        optionsInput.removeAttribute('disabled');
         optionsInput.focus();
-        optionsInput.value = ''; // Clear any previous value
     });
     
     // Handle option addition via button click
     addButton.addEventListener('click', () => {
         const value = optionsInput.value.trim();
         if (value) {
-            addOptionToList(value, optionsList);
+            addOptionToList(value, optionsList, optionsInput);
             modal.hide();
         }
     });
@@ -155,14 +152,14 @@ function setupListOptions(card) {
             e.preventDefault();
             const value = optionsInput.value.trim();
             if (value) {
-                addOptionToList(value, optionsList);
+                addOptionToList(value, optionsList, optionsInput);
                 modal.hide();
             }
         }
     });
     
-    // Helper function to add option
-    function addOptionToList(value, list) {
+    // Helper function to add option with proper error handling
+    function addOptionToList(value, list, input) {
         const existingOptions = Array.from(list.querySelectorAll('.option-text'))
             .map(opt => opt.textContent.toLowerCase());
         
@@ -180,21 +177,21 @@ function setupListOptions(card) {
         
         list.appendChild(optionTag);
         
-        // Update required state based on options count
+        // Only update validation state if we have the input element
         const optionsCount = list.querySelectorAll('.option-tag').length;
-        if (optionsCount >= 2) {
-            const input = card.querySelector('.options-input');
-            if (input) {
-                input.required = false;
-                clearFieldError(input);
-            }
+        if (optionsCount >= 2 && input) {
+            input.required = false;
+            clearFieldError(input);
         }
     }
     
-    // Reset modal on hide
+    // Reset modal on hide and ensure input is enabled
     modalElement.addEventListener('hidden.bs.modal', () => {
-        optionsInput.value = '';
-        clearFieldError(optionsInput);
+        if (optionsInput) {
+            optionsInput.value = '';
+            optionsInput.removeAttribute('disabled');
+            clearFieldError(optionsInput);
+        }
     });
     
     // Add event delegation for remove option
@@ -207,7 +204,8 @@ function setupListOptions(card) {
                     optionTag.remove();
                     // Check remaining options count
                     const remainingCount = optionsList.querySelectorAll('.option-tag').length;
-                    if (remainingCount < 2) {
+                    if (remainingCount < 2 && optionsInput) {
+                        optionsInput.required = true;
                         showAlert('warning', 'At least two options are required');
                     }
                 }, 300);
