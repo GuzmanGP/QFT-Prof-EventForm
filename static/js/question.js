@@ -95,7 +95,10 @@ function configureAnswerTypeChange(card) {
         }
         
         const input = listOptions.querySelector('input');
-        input.required = isListType;
+        // Fix: Check if input exists before setting required
+        if (input) {
+            input.required = isListType;
+        }
         
         if (!isListType && input.classList.contains('is-invalid')) {
             clearFieldError(input);
@@ -132,8 +135,25 @@ function setupListOptions(card) {
     const optionsInput = card.querySelector('.options-input');
     const optionsList = card.querySelector('.options-list');
     const addButton = card.querySelector('.add-option-confirm');
-    const modalElement = card.querySelector('#addOptionModal');
-    const modal = new bootstrap.Modal(modalElement);
+    const modalElement = card.querySelector('#optionModal');
+    
+    if (!modalElement || !optionsInput || !optionsList || !addButton) {
+        console.error('Required modal elements not found');
+        return;
+    }
+    
+    // Create modal instance with proper configuration
+    const modal = new bootstrap.Modal(modalElement, {
+        keyboard: true,
+        backdrop: 'static',
+        focus: true
+    });
+    
+    // Ensure input is enabled when modal opens
+    modalElement.addEventListener('shown.bs.modal', () => {
+        optionsInput.removeAttribute('disabled');
+        optionsInput.focus();
+    });
     
     // Add option when clicking Add button
     addButton.addEventListener('click', () => {
@@ -184,10 +204,12 @@ function setupListOptions(card) {
     
     // Reset modal on hide
     modalElement.addEventListener('hidden.bs.modal', () => {
-        optionsInput.value = '';
-        clearFieldError(optionsInput);
+        if (optionsInput) {
+            optionsInput.value = '';
+            clearFieldError(optionsInput);
+        }
     });
-
+    
     // Add event delegation for remove option
     optionsList.addEventListener('click', (e) => {
         if (e.target.classList.contains('remove-option')) {
