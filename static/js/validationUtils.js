@@ -111,9 +111,8 @@ export function validateQuestion(card) {
             clearFieldError(optionsInput);
             optionsInput.required = false;
         } else {
-            // Only show error if we don't have enough options
-            optionsInput.required = true;
-            if (!optionsInput.value.trim() && optionsCount < 2) {
+            // Show error only if both conditions are true: no input and not enough options
+            if (optionsCount < 2 && !optionsInput.value.trim()) {
                 showFieldError(optionsInput, 'Please add at least two options');
                 errors.push(`Question ${questionIndex}: At least two options are required`);
                 isValid = false;
