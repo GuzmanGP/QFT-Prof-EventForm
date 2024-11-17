@@ -2,6 +2,8 @@
 
 // Function to show field-specific error
 export function showFieldError(field, message) {
+    if (!field) return;
+    
     field.classList.add('is-invalid');
     
     // Remove existing error messages
@@ -29,6 +31,8 @@ export function showFieldError(field, message) {
 
 // Function to clear form field errors
 export function clearFieldError(field) {
+    if (!field) return;
+    
     if (field.classList.contains('is-invalid')) {
         field.classList.remove('is-invalid', 'error-highlight');
         const feedback = field.nextElementSibling;
@@ -58,7 +62,9 @@ export function showErrorSummary(errors) {
     summary.appendChild(closeButton);
 
     const form = document.getElementById('formConfiguration');
-    form.insertAdjacentElement('beforebegin', summary);
+    if (form) {
+        form.insertAdjacentElement('beforebegin', summary);
+    }
 }
 
 // Function to clear all validation errors
@@ -77,6 +83,8 @@ export function clearAllErrors() {
 
 // Function to validate a single question
 export function validateQuestion(card) {
+    if (!card) return { isValid: false, errors: ['Invalid question card'] };
+    
     const errors = [];
     let isValid = true;
     const questionIndex = Array.from(card.parentElement.children).indexOf(card) + 1;
@@ -84,6 +92,10 @@ export function validateQuestion(card) {
     const reference = card.querySelector('.question-title');
     const content = card.querySelector('.question-content');
     const answerType = card.querySelector('.answer-type');
+    
+    if (!reference || !content || !answerType) {
+        return { isValid: false, errors: ['Question elements not found'] };
+    }
 
     if (!reference.value.trim()) {
         showFieldError(reference, 'Question reference is required');
@@ -103,19 +115,14 @@ export function validateQuestion(card) {
 
     if (answerType.value === 'list') {
         const optionsList = card.querySelector('.options-list');
-        const optionsCount = optionsList.querySelectorAll('.option-tag').length;
-        const optionsInput = card.querySelector('.options-input');
-        
-        if (optionsCount >= 2) {
-            // If we have enough options, clear any error
-            if (optionsInput) {
-                clearFieldError(optionsInput);
+        if (optionsList) {
+            const optionsCount = optionsList.querySelectorAll('.option-tag').length;
+            if (optionsCount < 2) {
+                const optionsInput = card.querySelector('.options-input');
+                showFieldError(optionsInput || optionsList, 'Please add at least two options');
+                errors.push(`Question ${questionIndex}: At least two options are required`);
+                isValid = false;
             }
-        } else {
-            // Show error only if both conditions are true: not enough options
-            showFieldError(optionsInput || optionsList, 'Please add at least two options');
-            errors.push(`Question ${questionIndex}: At least two options are required`);
-            isValid = false;
         }
     }
 
