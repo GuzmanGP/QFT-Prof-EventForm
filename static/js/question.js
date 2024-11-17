@@ -9,9 +9,11 @@ function updateQuestionNumbers() {
     const questions = document.querySelectorAll('.question-card');
     questions.forEach((card, index) => {
         const numberElement = card.querySelector('.question-number');
-        numberElement.classList.add('animate__animated', 'animate__pulse');
-        numberElement.textContent = `Question ${index + 1}`;
-        setTimeout(() => numberElement.classList.remove('animate__animated', 'animate__pulse'), 1000);
+        if (numberElement) {
+            numberElement.classList.add('animate__animated', 'animate__pulse');
+            numberElement.textContent = `Question ${index + 1}`;
+            setTimeout(() => numberElement.classList.remove('animate__animated', 'animate__pulse'), 1000);
+        }
     });
 }
 
@@ -135,31 +137,36 @@ function setupQuestionValidation(card) {
     const fields = {
         reference: card.querySelector('.question-title'),
         content: card.querySelector('.question-content'),
-        answerType: card.querySelector('.answer-type')
+        answerType: card.querySelector('.answer-type'),
+        required: card.querySelector('.question-required')
     };
 
-    // Check if all required fields exist
-    const missingFields = Object.entries(fields)
-        .filter(([key, element]) => !element)
-        .map(([key]) => key);
-    
-    if (missingFields.length > 0) {
-        console.warn('Missing required fields:', missingFields);
-        return;
-    }
-
-    for (const key in fields) {
-        const field = fields[key];
-        field.addEventListener('input', () => {
-            if (field.classList.contains('is-invalid')) {
-                clearFieldError(field);
+    // Add null check before setting required property
+    if (fields.required) {
+        fields.required.addEventListener('input', () => {
+            if (fields.required.classList.contains('is-invalid')) {
+                clearFieldError(fields.required);
             }
         });
     }
 
-    fields.reference.addEventListener('input', () => {
-        updateQuestionsList();
+    // Validate reference and content fields
+    Object.entries(fields).forEach(([key, field]) => {
+        if (field && key !== 'required') {
+            field.addEventListener('input', () => {
+                if (field.classList.contains('is-invalid')) {
+                    clearFieldError(field);
+                }
+            });
+        }
     });
+
+    // Update question list when reference changes
+    if (fields.reference) {
+        fields.reference.addEventListener('input', () => {
+            updateQuestionsList();
+        });
+    }
 }
 
 function setupListOptions(card) {
