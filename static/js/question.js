@@ -389,7 +389,8 @@ function addQuestion(questionData = null) {
     }
 }
 
-export function validateQuestions() {
+// Move validateQuestions function definition here
+function validateQuestions() {
     const questions = document.querySelectorAll('.question-card');
     const errors = [];
     let isValid = true;
