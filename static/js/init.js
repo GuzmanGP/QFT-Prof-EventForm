@@ -9,7 +9,8 @@ import {
     updateQuestionsList, 
     toggleLoadingOverlay,
     setMetadataFields,
-    setQuestionFields 
+    setQuestionFields,
+    showErrorState 
 } from './utils.js';
 
 export function initializeForm() {
@@ -62,7 +63,7 @@ export function initializeForm() {
     // Add reset button handler
     const resetButton = form?.querySelector('button[type="reset"]');
     if (resetButton) {
-        resetButton.addEventListener('reset', (e) => {
+        resetButton.addEventListener('click', () => {
             // Clear all option tags
             document.querySelectorAll('.options-list').forEach(list => {
                 list.innerHTML = '';
@@ -108,25 +109,18 @@ export async function loadInitialFormData(formData) {
         }
         questionsContainer.innerHTML = '';
 
-        // Set metadata
-        if (formData.category_metadata) {
-            setMetadataFields('categoryMetadata', formData.category_metadata);
-        }
-        if (formData.subcategory_metadata) {
-            setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
-        }
-
         // Add questions
         if (formData.questions && Array.isArray(formData.questions)) {
             console.log('Processing questions:', formData.questions); // Debug log
             for (const questionData of formData.questions) {
+                console.log('Adding question:', questionData); // Debug log
                 const card = addQuestion();
                 if (!card) {
                     console.error('Failed to add question card');
                     continue;
                 }
 
-                // Set question data
+                // Set question ID and data
                 card.dataset.questionId = questionData.id;
                 setQuestionFields(card, questionData);
             }
@@ -135,11 +129,11 @@ export async function loadInitialFormData(formData) {
         // Update UI
         updateQuestionsList();
         updateQuestionCount();
-
         toggleLoadingOverlay(false);
     } catch (error) {
         console.error('Error loading form data:', error);
         showAlert('danger', `Error loading form: ${error.message}`);
+        showErrorState(questionsContainer, error.message, formData?.id);
         toggleLoadingOverlay(false);
     }
 }

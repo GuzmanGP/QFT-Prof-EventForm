@@ -1,4 +1,12 @@
 // utils.js - Export functions first
+export function smoothTransition(element, animationClass, duration = 300) {
+    element.classList.add('animate__animated', animationClass);
+    return new Promise(resolve => setTimeout(() => {
+        element.classList.remove('animate__animated', animationClass);
+        resolve();
+    }, duration));
+}
+
 export function showAlert(type, message) {
     const alertContainer = document.querySelector('.alert-container');
     if (!alertContainer) return;
@@ -14,19 +22,11 @@ export function showAlert(type, message) {
     setTimeout(() => alert.remove(), 5000);
 }
 
-export function smoothTransition(element, animationClass, duration = 300) {
-    element.classList.add('animate__animated', animationClass);
-    return new Promise(resolve => setTimeout(() => {
-        element.classList.remove('animate__animated', animationClass);
-        resolve();
-    }, duration));
-}
-
-export function showErrorState(container, message) {
+export function showErrorState(container, message, formId) {
     // Clear previous error states
     clearErrorState(container);
     
-    // Create error message element
+    // Create error message element with improved UI
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-state mt-3 animate__animated animate__fadeIn';
     errorDiv.innerHTML = `
@@ -46,14 +46,20 @@ export function showErrorState(container, message) {
     
     container.appendChild(errorDiv);
     
-    // Add event listeners
+    // Add event listeners with improved error handling
     const retryButton = errorDiv.querySelector('.retry-load');
     const newFormButton = errorDiv.querySelector('.create-new');
     
     if (retryButton) {
         retryButton.addEventListener('click', async () => {
-            clearErrorState(container);
-            await loadForm(container.dataset.formId);
+            try {
+                clearErrorState(container);
+                showAlert('info', 'Retrying form load...');
+                await loadForm(formId);
+            } catch (error) {
+                console.error('Error during retry:', error);
+                showAlert('danger', 'Failed to retry loading form');
+            }
         });
     }
     
@@ -143,6 +149,104 @@ export function updateQuestionsList() {
         
         navList.appendChild(listItem);
     });
+}
+
+// Import dependencies after all exports
+import { addQuestion } from './question.js';
+
+export async function loadForm(formId) {
+    const questionsContainer = document.getElementById('questions');
+    let retryCount = 0;
+    const maxRetries = 3;
+    const retryDelay = 1000; // 1 second delay between retries
+    
+    async function attemptLoad() {
+        try {
+            if (!questionsContainer) {
+                throw new Error('Questions container not found');
+            }
+
+            toggleLoadingOverlay(true, 'Initializing form load...');
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            toggleLoadingOverlay(true, 'Fetching form data...');
+            const response = await fetch(`/api/forms/${formId}`);
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to load form');
+            }
+
+            const { form: formData } = data;
+            console.log('Loaded form data:', formData); // Debug log
+            
+            // Set basic form fields with animation
+            for (const field of ['title', 'category', 'subcategory']) {
+                const element = document.getElementById(field);
+                if (element && formData[field]) {
+                    element.value = formData[field];
+                    await smoothTransition(element, 'animate__fadeIn');
+                }
+            }
+
+            // Set metadata fields
+            if (formData.category_metadata) {
+                setMetadataFields('categoryMetadata', formData.category_metadata);
+            }
+            if (formData.subcategory_metadata) {
+                setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
+            }
+            
+            // Clear existing questions
+            questionsContainer.innerHTML = '';
+            
+            // Add questions with animation and maintain order
+            if (formData.questions && Array.isArray(formData.questions)) {
+                console.log('Processing questions:', formData.questions); // Debug log
+                const sortedQuestions = formData.questions.sort((a, b) => (a.order || 0) - (b.order || 0));
+                
+                for (const questionData of sortedQuestions) {
+                    console.log('Adding question:', questionData); // Debug log
+                    const card = addQuestion();
+                    if (!card) {
+                        console.error('Failed to add question card');
+                        continue;
+                    }
+
+                    // Set question ID and data
+                    card.dataset.questionId = questionData.id;
+                    card.dataset.order = questionData.order || 0;
+                    
+                    // Set question fields
+                    setQuestionFields(card, questionData);
+                    await smoothTransition(card, 'animate__fadeInUp');
+                }
+            }
+
+            // Update UI elements
+            updateQuestionsList();
+            updateQuestionCount();
+            
+            toggleLoadingOverlay(false);
+            clearErrorState(questionsContainer);
+            return true;
+        } catch (error) {
+            console.error(`Error loading form (attempt ${retryCount + 1}/${maxRetries}):`, error);
+            
+            if (retryCount < maxRetries - 1) {
+                retryCount++;
+                showAlert('warning', `Loading failed, retrying... (${retryCount}/${maxRetries})`);
+                await new Promise(resolve => setTimeout(resolve, retryDelay));
+                return attemptLoad();
+            } else {
+                toggleLoadingOverlay(false);
+                showErrorState(questionsContainer, `Failed to load form after ${maxRetries} attempts: ${error.message}`, formId);
+                return false;
+            }
+        }
+    }
+    
+    return attemptLoad();
 }
 
 export function setMetadataFields(containerId, metadata = {}) {
