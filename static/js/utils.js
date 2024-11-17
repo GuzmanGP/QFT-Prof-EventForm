@@ -55,7 +55,7 @@ export function showErrorState(container, message, formId) {
             try {
                 clearErrorState(container);
                 showAlert('info', 'Retrying form load...');
-                await loadForm({ id: formId });
+                await loadForm(formId);
             } catch (error) {
                 console.error('Error during retry:', error);
                 showAlert('danger', 'Failed to retry loading form');
@@ -152,12 +152,16 @@ export async function loadForm(formData) {
         throw new Error('Invalid form data');
     }
     
-    const formId = typeof formData === 'object' ? formData.id : formData;
+    // Extract formId properly whether it's a string/number or an object
+    const formId = formData.id || formData;
     if (!formId) {
         throw new Error('Invalid form ID');
     }
     
-    return attemptLoad(`/api/form/${formId}`);
+    // Ensure proper URL construction
+    const url = `/api/form/${formId}`;
+    console.debug('Constructed URL:', url);
+    return attemptLoad(url);
 }
 
 async function attemptLoad(url, attempts = 3) {
@@ -166,9 +170,11 @@ async function attemptLoad(url, attempts = 3) {
         throw new Error('Questions container not found');
     }
 
+    toggleLoadingOverlay(true, 'Loading form...');
+
     for (let i = 1; i <= attempts; i++) {
         try {
-            console.debug(`Attempting to load form from: ${url}`);
+            console.debug(`Attempting to load form from: ${url} (attempt ${i}/${attempts})`);
             const response = await fetch(url);
             
             if (response.status === 404) {
@@ -196,6 +202,7 @@ async function attemptLoad(url, attempts = 3) {
                 await addQuestion();
                 updateQuestionCount();
                 updateQuestionsList();
+                toggleLoadingOverlay(false);
                 return true;
             }
             
@@ -233,14 +240,22 @@ async function attemptLoad(url, attempts = 3) {
 
         } catch (error) {
             console.error(`Error loading form (attempt ${i}/${attempts}):`, error);
-            if (i === attempts) {
-                // Show a more user-friendly error message
-                const errorMsg = error.message.includes('Form not found') ? 
-                    error.message : 
-                    `Failed to load form after ${attempts} attempts: ${error.message}`;
-                throw new Error(errorMsg);
+            
+            // If this is not the last attempt, wait and retry
+            if (i < attempts) {
+                showAlert('warning', `Loading failed (attempt ${i}/${attempts}). Retrying...`);
+                await new Promise(resolve => setTimeout(resolve, 1000 * i)); // Exponential backoff
+                continue;
             }
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+            
+            // On final attempt, show error state and throw
+            toggleLoadingOverlay(false);
+            const errorMsg = error.message.includes('Form not found') ? 
+                error.message : 
+                `Failed to load form after ${attempts} attempts: ${error.message}`;
+            
+            showErrorState(questionsContainer, errorMsg, formData?.id);
+            throw new Error(errorMsg);
         }
     }
 }
