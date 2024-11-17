@@ -133,17 +133,15 @@ function setupListOptions(card) {
     
     // Focus and enable input when modal opens
     modalElement.addEventListener('show.bs.modal', () => {
-        setTimeout(() => {
-            optionsInput.disabled = false;
-            optionsInput.focus();
-        }, 200);
+        optionsInput.disabled = false;
+        optionsInput.focus();
     });
     
     // Handle option addition via button click
     addButton.addEventListener('click', () => {
         const value = optionsInput.value.trim();
         if (value) {
-            addOptionToList(value, optionsList);
+            addOptionToList(value, optionsList, optionsInput);
             modal.hide();
         }
     });
@@ -154,65 +152,42 @@ function setupListOptions(card) {
             e.preventDefault();
             const value = optionsInput.value.trim();
             if (value) {
-                addOptionToList(value, optionsList);
+                addOptionToList(value, optionsList, optionsInput);
                 modal.hide();
             }
         }
     });
     
-    // Helper function to add option
-    function addOptionToList(value, list) {
-        const existingOptions = Array.from(list.querySelectorAll('.option-text'))
-            .map(opt => opt.textContent.toLowerCase());
-        
-        if (existingOptions.includes(value.toLowerCase())) {
-            showAlert('warning', 'This option already exists');
-            return;
-        }
-        
-        const optionTag = document.createElement('div');
-        optionTag.className = 'option-tag animate__animated animate__fadeIn';
-        optionTag.innerHTML = `
-            <span class="option-text">${value}</span>
-            <span class="remove-option">&times;</span>
-        `;
-        
-        list.appendChild(optionTag);
-        
-        // Clear validation errors if we have enough options
-        const optionsCount = list.querySelectorAll('.option-tag').length;
-        if (optionsCount >= 2) {
-            clearFieldError(optionsInput);
-        }
-    }
-    
     // Reset modal on hide
     modalElement.addEventListener('hidden.bs.modal', () => {
         optionsInput.value = '';
         optionsInput.disabled = false;
-        clearFieldError(optionsInput);
-    });
-    
-    // Add event delegation for remove option
-    optionsList.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-option')) {
-            const optionTag = e.target.closest('.option-tag');
-            if (optionTag) {
-                optionTag.classList.add('animate__fadeOut');
-                setTimeout(() => {
-                    optionTag.remove();
-                    // Check remaining options count
-                    const remainingCount = optionsList.querySelectorAll('.option-tag').length;
-                    if (remainingCount < 2) {
-                        showAlert('warning', 'At least two options are required');
-                    }
-                }, 300);
-            }
-        }
     });
 }
 
-// Function to add a new question to the form
+function addOptionToList(value, list, input) {
+    const existingOptions = Array.from(list.querySelectorAll('.option-text'))
+        .map(opt => opt.textContent.toLowerCase());
+    
+    if (existingOptions.includes(value.toLowerCase())) {
+        showAlert('warning', 'This option already exists');
+        return;
+    }
+    
+    const optionTag = document.createElement('div');
+    optionTag.className = 'option-tag animate__animated animate__fadeIn';
+    optionTag.innerHTML = `
+        <span class="option-text">${value}</span>
+        <span class="remove-option">&times;</span>
+    `;
+    
+    list.appendChild(optionTag);
+    if (input) {
+        input.value = '';
+    }
+}
+
+// Add event delegation for remove option
 export function addQuestion(questionData = null) {
     try {
         const template = document.getElementById('questionTemplate');
@@ -254,55 +229,71 @@ export function addQuestion(questionData = null) {
         if (questionData) {
             try {
                 setTimeout(() => {
-                    card.querySelector('.question-title').value = questionData.reference || '';
-                    card.querySelector('.question-content').value = questionData.content || '';
-                    card.querySelector('.answer-type').value = questionData.answer_type || 'text';
-                    card.querySelector('.question-required').checked = questionData.required || false;
+                    const titleInput = card.querySelector('.question-title');
+                    const contentInput = card.querySelector('.question-content');
+                    const answerTypeSelect = card.querySelector('.answer-type');
+                    const requiredCheckbox = card.querySelector('.question-required');
+                    
+                    if (titleInput) titleInput.value = questionData.reference || '';
+                    if (contentInput) contentInput.value = questionData.content || '';
+                    if (answerTypeSelect) answerTypeSelect.value = questionData.answer_type || 'text';
+                    if (requiredCheckbox) requiredCheckbox.checked = questionData.required || false;
                     
                     if (questionData.answer_type === 'list' && questionData.options) {
                         const listOptions = card.querySelector('.list-options');
-                        listOptions.classList.remove('d-none');
-                        
-                        // Add options as tags
-                        const optionsList = listOptions.querySelector('.options-list');
-                        questionData.options.forEach(opt => {
-                            const optionTag = document.createElement('div');
-                            optionTag.className = 'option-tag';
-                            optionTag.innerHTML = `
-                                <span class="option-text">${opt}</span>
-                                <span class="remove-option">&times;</span>
-                            `;
-                            optionsList.appendChild(optionTag);
-                        });
+                        if (listOptions) {
+                            listOptions.classList.remove('d-none');
+                            
+                            // Add options as tags
+                            const optionsList = listOptions.querySelector('.options-list');
+                            if (optionsList) {
+                                questionData.options.forEach(opt => {
+                                    const optionTag = document.createElement('div');
+                                    optionTag.className = 'option-tag';
+                                    optionTag.innerHTML = `
+                                        <span class="option-text">${opt}</span>
+                                        <span class="remove-option">&times;</span>
+                                    `;
+                                    optionsList.appendChild(optionTag);
+                                });
+                            }
+                        }
                     }
                     
                     if (questionData.ai_instructions) {
                         const aiCheckbox = card.querySelector('.question-ai');
                         const aiInstructions = card.querySelector('.ai-instructions');
-                        aiCheckbox.checked = true;
-                        aiInstructions.style.display = 'block';
-                        aiInstructions.querySelector('textarea').value = questionData.ai_instructions;
+                        if (aiCheckbox && aiInstructions) {
+                            aiCheckbox.checked = true;
+                            aiInstructions.style.display = 'block';
+                            const aiTextarea = aiInstructions.querySelector('textarea');
+                            if (aiTextarea) {
+                                aiTextarea.value = questionData.ai_instructions;
+                            }
+                        }
                     }
                     
                     // Set metadata
                     if (questionData.question_metadata) {
                         const container = card.querySelector('.question-metadata');
                         const display = card.querySelector('.question-meta-count');
-                        const count = Object.keys(questionData.question_metadata).length;
-                        display.textContent = count.toString();
-                        
-                        Object.entries(questionData.question_metadata).forEach(([key, value], index) => {
-                            setTimeout(() => {
-                                const field = document.createElement('div');
-                                field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
-                                field.innerHTML = `
-                                    <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
-                                    <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
-                                    <button type="button" class="btn btn-outline-danger remove-field">×</button>
-                                `;
-                                container.appendChild(field);
-                            }, index * 100);
-                        });
+                        if (container && display) {
+                            const count = Object.keys(questionData.question_metadata).length;
+                            display.textContent = count.toString();
+                            
+                            Object.entries(questionData.question_metadata).forEach(([key, value], index) => {
+                                setTimeout(() => {
+                                    const field = document.createElement('div');
+                                    field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+                                    field.innerHTML = `
+                                        <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
+                                        <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
+                                        <button type="button" class="btn btn-outline-danger remove-field">×</button>
+                                    `;
+                                    container.appendChild(field);
+                                }, index * 100);
+                            });
+                        }
                     }
                 }, 300);
             } catch (populateError) {
@@ -312,36 +303,48 @@ export function addQuestion(questionData = null) {
         }
 
         // Add remove event with animation
-        card.querySelector('.remove-question').addEventListener('click', function() {
-            if (document.querySelectorAll('.question-card').length <= 1) {
-                showAlert('warning', 'At least one question is required');
-                return;
-            }
-            
-            card.classList.add('animate__animated', 'animate__fadeOutDown');
-            setTimeout(() => {
-                card.remove();
-                updateQuestionNumbers();
-                updateQuestionsList();
-                updateQuestionCount();
-            }, 500);
-        });
+        const removeButton = card.querySelector('.remove-question');
+        if (removeButton) {
+            removeButton.addEventListener('click', function() {
+                if (document.querySelectorAll('.question-card').length <= 1) {
+                    showAlert('warning', 'At least one question is required');
+                    return;
+                }
+                
+                card.classList.add('animate__animated', 'animate__fadeOutDown');
+                setTimeout(() => {
+                    card.remove();
+                    updateQuestionNumbers();
+                    updateQuestionsList();
+                    updateQuestionCount();
+                }, 500);
+            });
+        }
 
         // Add toggle icon rotation
-        header.addEventListener('click', () => {
+        if (header) {
+            header.addEventListener('click', () => {
+                const icon = header.querySelector('.toggle-icon');
+                if (icon && contentDiv) {
+                    icon.style.transform = contentDiv.classList.contains('show') ? 'rotate(0deg)' : 'rotate(180deg)';
+                }
+            });
+
+            // Set initial rotation state
             const icon = header.querySelector('.toggle-icon');
-            icon.style.transform = contentDiv.classList.contains('show') ? 'rotate(0deg)' : 'rotate(180deg)';
-        });
+            if (icon) {
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
 
-        // Set initial rotation state
-        const icon = header.querySelector('.toggle-icon');
-        icon.style.transform = 'rotate(180deg)';
+        const questionsContainer = document.getElementById('questions');
+        if (questionsContainer) {
+            questionsContainer.appendChild(card);
+            updateQuestionsList();
+            updateQuestionCount();
+        }
 
-        document.getElementById('questions').appendChild(card);
-        updateQuestionsList();
-        updateQuestionCount();
-
-        return card; // Return the card for error checking
+        return card;
     } catch (error) {
         console.error('Error adding question:', error);
         showAlert('danger', `Failed to load question: ${error.message}`);
