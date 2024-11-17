@@ -106,7 +106,7 @@ export function validateQuestion(card) {
         const optionsCount = optionsList.querySelectorAll('.option-tag').length;
         const optionsInput = card.querySelector('.options-input');
         
-        if (optionsCount < 2) {
+        if (optionsCount < 2 && optionsInput.value.trim() === '') {
             showFieldError(optionsInput, 'At least two options are required');
             errors.push(`Question ${questionIndex}: At least two options are required`);
             isValid = false;
