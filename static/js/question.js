@@ -4,6 +4,9 @@ import { updateMetadataFields, addMetadataField } from './metadataFields.js';
 import { updateQuestionCount, showAlert, updateQuestionsList } from './utils.js';
 import { showFieldError, clearFieldError, validateQuestion } from './validationUtils.js';
 
+// Export the addQuestion function and validateQuestions
+export { addQuestion, validateQuestions };
+
 // Function to update question numbers after removal
 function updateQuestionNumbers() {
     const questions = document.querySelectorAll('.question-card');
