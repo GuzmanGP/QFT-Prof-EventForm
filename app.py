@@ -19,8 +19,10 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 
 db.init_app(app)
 
+# Import routes before running the app
+import routes
+
 with app.app_context():
     import models
     db.drop_all()  # Drop all tables
     db.create_all()  # Recreate all tables
-    import routes

@@ -79,7 +79,7 @@ export function clearErrorState(container) {
     }
 }
 
-// Import dependencies after exports but before function implementations
+// Import dependencies
 import { clearFieldError } from './validationUtils.js';
 import { addQuestion } from './question.js';
 
@@ -105,23 +105,6 @@ export function toggleLoadingOverlay(show = true, message = 'Loading...') {
             overlay.style.display = 'none';
         }, 300);
     }
-}
-
-export function updateQuestionsHeader() {
-    const count = document.querySelectorAll('.question-card').length;
-    const header = document.getElementById('questionsHeader');
-    if (header) {
-        header.textContent = `Questions (${count})`;
-    }
-}
-
-export function updateQuestionCount() {
-    const count = document.querySelectorAll('.question-card').length;
-    const countDisplay = document.getElementById('questionCount');
-    if (countDisplay) {
-        countDisplay.textContent = count.toString();
-    }
-    return count;
 }
 
 export function updateQuestionsList() {
@@ -153,6 +136,15 @@ export function updateQuestionsList() {
         
         navList.appendChild(listItem);
     });
+}
+
+export function updateQuestionCount() {
+    const count = document.querySelectorAll('.question-card').length;
+    const countDisplay = document.getElementById('questionCount');
+    if (countDisplay) {
+        countDisplay.textContent = count.toString();
+    }
+    return count;
 }
 
 export async function loadForm(formId) {
