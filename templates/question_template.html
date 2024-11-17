@@ -35,9 +35,9 @@
                 <div class="mb-3 list-options d-none">
                     <label class="form-label">Options</label>
                     <div class="options-container">
-                        <button type="button" class="btn btn-outline-primary add-option-btn mb-2" data-bs-toggle="modal" data-bs-target="#optionModal">
-                            <i class="fas fa-plus me-2"></i>Add Option
-                        </button>
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control options-input" placeholder="Type option and press Enter">
+                        </div>
                         <div class="options-list"></div>
                     </div>
                 </div>
@@ -69,25 +69,6 @@
                         </div>
                     </div>
                     <div class="question-metadata metadata-container"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Add Option Modal -->
-        <div class="modal fade" id="optionModal" tabindex="-1" aria-labelledby="optionModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="optionModalLabel">Add Option</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="text" class="form-control options-input" placeholder="Enter option text">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary add-option-confirm">Add</button>
-                    </div>
                 </div>
             </div>
         </div>

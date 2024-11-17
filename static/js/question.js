@@ -41,6 +41,65 @@ function configureAIProcessing(card) {
     });
 }
 
+function setupListOptions(card) {
+    const optionsInput = card.querySelector('.options-input');
+    const optionsList = card.querySelector('.options-list');
+    
+    if (!optionsInput || !optionsList) {
+        console.error('Required options elements not found');
+        return;
+    }
+    
+    // Handle option addition via Enter key
+    optionsInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const value = optionsInput.value.trim();
+            if (value) {
+                addOptionToList(value, optionsList);
+                optionsInput.value = '';
+            }
+        }
+    });
+
+    // Add event delegation for remove option
+    optionsList.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-option')) {
+            const optionTag = e.target.closest('.option-tag');
+            if (optionTag) {
+                optionTag.classList.add('animate__fadeOut');
+                setTimeout(() => {
+                    optionTag.remove();
+                }, 300);
+            }
+        }
+    });
+}
+
+function addOptionToList(value, list) {
+    if (!list) {
+        console.error('Options list element not found');
+        return;
+    }
+
+    const existingOptions = Array.from(list.querySelectorAll('.option-text'))
+        .map(opt => opt.textContent.toLowerCase());
+    
+    if (existingOptions.includes(value.toLowerCase())) {
+        showAlert('warning', 'This option already exists');
+        return;
+    }
+    
+    const optionTag = document.createElement('div');
+    optionTag.className = 'option-tag animate__animated animate__fadeIn';
+    optionTag.innerHTML = `
+        <span class="option-text">${value}</span>
+        <span class="remove-option">&times;</span>
+    `;
+    
+    list.appendChild(optionTag);
+}
+
 // Function to safely set field value
 function safeSetField(element, value, isCheckbox = false) {
     if (!element) return false;
@@ -169,91 +228,7 @@ function setupQuestionValidation(card) {
     }
 }
 
-function setupListOptions(card) {
-    const optionsInput = card.querySelector('.options-input');
-    const optionsList = card.querySelector('.options-list');
-    const addButton = card.querySelector('.add-option-confirm');
-    const modalElement = card.querySelector('#optionModal');
-    
-    if (!modalElement || !optionsInput || !optionsList || !addButton) {
-        console.error('Required modal elements not found');
-        return;
-    }
-    
-    // Create modal instance with proper configuration
-    const modal = new bootstrap.Modal(modalElement, {
-        keyboard: true,
-        backdrop: true,
-        focus: true
-    });
-    
-    // Enable input and set focus when modal opens
-    modalElement.addEventListener('show.bs.modal', () => {
-        setTimeout(() => {
-            optionsInput.disabled = false;
-            optionsInput.focus();
-        }, 100);
-    });
-    
-    // Ensure input stays enabled
-    optionsInput.addEventListener('focus', () => {
-        optionsInput.disabled = false;
-    });
-    
-    // Handle option addition via button click
-    addButton.addEventListener('click', () => {
-        const value = optionsInput.value.trim();
-        if (value) {
-            addOptionToList(value, optionsList);
-            modal.hide();
-        }
-    });
-    
-    // Handle option addition via Enter key
-    optionsInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const value = optionsInput.value.trim();
-            if (value) {
-                addOptionToList(value, optionsList);
-                modal.hide();
-            }
-        }
-    });
-    
-    // Reset modal on hide
-    modalElement.addEventListener('hidden.bs.modal', () => {
-        optionsInput.value = '';
-        optionsInput.disabled = false;
-    });
-}
-
-function addOptionToList(value, list) {
-    if (!list) {
-        console.error('Options list element not found');
-        return;
-    }
-
-    const existingOptions = Array.from(list.querySelectorAll('.option-text'))
-        .map(opt => opt.textContent.toLowerCase());
-    
-    if (existingOptions.includes(value.toLowerCase())) {
-        showAlert('warning', 'This option already exists');
-        return;
-    }
-    
-    const optionTag = document.createElement('div');
-    optionTag.className = 'option-tag animate__animated animate__fadeIn';
-    optionTag.innerHTML = `
-        <span class="option-text">${value}</span>
-        <span class="remove-option">&times;</span>
-    `;
-    
-    list.appendChild(optionTag);
-}
-
-// Add event delegation for remove option
-export function addQuestion(questionData = null) {
+function addQuestion(questionData = null) {
     try {
         const template = document.getElementById('questionTemplate');
         if (!template) {
