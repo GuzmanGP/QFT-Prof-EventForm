@@ -55,7 +55,7 @@ export function showErrorState(container, message, formId) {
             try {
                 clearErrorState(container);
                 showAlert('info', 'Retrying form load...');
-                await loadForm(formId);
+                await loadForm({ id: formId });
             } catch (error) {
                 console.error('Error during retry:', error);
                 showAlert('danger', 'Failed to retry loading form');
@@ -147,12 +147,16 @@ export function updateQuestionCount() {
     return count;
 }
 
-export async function loadForm(formId) {
-    if (!formId) {
+export async function loadForm(formData) {
+    if (!formData) {
         throw new Error('Invalid form data');
     }
     
-    const formId = formId.id || formId;
+    const formId = typeof formData === 'object' ? formData.id : formData;
+    if (!formId) {
+        throw new Error('Invalid form ID');
+    }
+    
     return attemptLoad(`/api/form/${formId}`);
 }
 
