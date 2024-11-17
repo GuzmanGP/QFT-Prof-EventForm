@@ -36,6 +36,58 @@ def load_form_index(form_id=None):
     
     return render_template('form.html', forms=forms, form_data=form_data)
 
+@app.route('/save_form', methods=['POST'])
+def save_form():
+    try:
+        # Get form data
+        form_data = request.form
+        
+        # Extract basic form fields
+        title = form_data.get('title')
+        category = form_data.get('category')
+        subcategory = form_data.get('subcategory')
+        
+        # Parse JSON data from hidden inputs
+        category_metadata = json.loads(form_data.get('category_metadata', '{}'))
+        subcategory_metadata = json.loads(form_data.get('subcategory_metadata', '{}'))
+        questions_data = json.loads(form_data.get('questions', '[]'))
+        
+        # Create or update form configuration
+        form = FormConfiguration(
+            title=title,
+            category=category,
+            subcategory=subcategory,
+            category_metadata=category_metadata,
+            subcategory_metadata=subcategory_metadata
+        )
+        
+        db.session.add(form)
+        db.session.flush()  # Get form ID
+        
+        # Process questions
+        for q_data in questions_data:
+            question = Question(
+                form_id=form.id,
+                reference=q_data['reference'],
+                content=q_data['content'],
+                answer_type=q_data['answer_type'],
+                options=q_data.get('options', []),
+                question_metadata=q_data.get('question_metadata', {}),
+                required=q_data.get('required', False),
+                order=q_data.get('order', 0),
+                ai_instructions=q_data.get('ai_instructions')
+            )
+            db.session.add(question)
+        
+        db.session.commit()
+        flash('Form saved successfully', 'success')
+        return redirect(url_for('new_form_index'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error saving form: {str(e)}', 'danger')
+        return redirect(url_for('new_form_index'))
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('error.html', error="Page not found"), 404
