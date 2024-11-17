@@ -171,6 +171,10 @@ async function attemptLoad(url, attempts = 3) {
             console.debug(`Attempting to load form from: ${url}`);
             const response = await fetch(url);
             
+            if (response.status === 404) {
+                throw new Error('Form not found. Please check the form ID and try again.');
+            }
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -183,6 +187,17 @@ async function attemptLoad(url, attempts = 3) {
             }
             
             const formData = JSON.parse(data);
+            
+            // Clear existing questions
+            questionsContainer.innerHTML = '';
+            
+            // Add a new empty question if no questions exist
+            if (!formData.questions || formData.questions.length === 0) {
+                await addQuestion();
+                updateQuestionCount();
+                updateQuestionsList();
+                return true;
+            }
             
             // Set basic form fields with animation
             for (const field of ['title', 'category', 'subcategory']) {
@@ -200,9 +215,6 @@ async function attemptLoad(url, attempts = 3) {
             if (formData.subcategory_metadata) {
                 setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
             }
-
-            // Clear existing questions
-            questionsContainer.innerHTML = '';
 
             // Add questions with animation
             if (formData.questions && Array.isArray(formData.questions)) {
@@ -222,7 +234,11 @@ async function attemptLoad(url, attempts = 3) {
         } catch (error) {
             console.error(`Error loading form (attempt ${i}/${attempts}):`, error);
             if (i === attempts) {
-                throw new Error(`Failed to load form after ${attempts} attempts: ${error.message}`);
+                // Show a more user-friendly error message
+                const errorMsg = error.message.includes('Form not found') ? 
+                    error.message : 
+                    `Failed to load form after ${attempts} attempts: ${error.message}`;
+                throw new Error(errorMsg);
             }
             await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
         }

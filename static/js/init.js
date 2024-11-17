@@ -13,34 +13,11 @@ import {
     loadForm 
 } from './utils.js';
 
-// Add debug logging to loadFormData
-async function loadFormData(formId) {
-    console.debug('Attempting to load form data for ID:', formId);
-    try {
-        const response = await fetch(`/api/form/${formId}`);
-        console.debug('Form data response status:', response.status);
-        const data = await response.text(); // Get raw text first
-        console.debug('Raw response data:', data);
-        
-        try {
-            return JSON.parse(data);
-        } catch (parseError) {
-            console.error('JSON parse error:', parseError);
-            console.debug('Failed to parse data:', data);
-            throw new Error('Invalid JSON response from server');
-        }
-    } catch (error) {
-        console.error('Form load error:', error);
-        throw error;
-    }
-}
-
 export async function initializeForm() {
     const form = document.getElementById('formConfiguration');
-    const addQuestionBtn = document.getElementById('addQuestion');
-    const questionsList = document.getElementById('questions');
+    const questionsContainer = document.getElementById('questions');
 
-    if (!form || !questionsList) {
+    if (!form || !questionsContainer) {
         throw new Error('Required form elements not found');
     }
 
@@ -51,15 +28,16 @@ export async function initializeForm() {
             await loadForm(window.initialFormData);
         } else {
             console.debug('No initial form data, adding empty question');
-            // Add initial question if none exists and no initial data
-            if (!questionsList.querySelector('.question-card')) {
+            // Add initial question if none exists
+            if (!questionsContainer.querySelector('.question-card')) {
                 await addQuestion();
                 updateQuestionCount();
                 updateQuestionsList();
             }
         }
-
+        
         // Add question button handler
+        const addQuestionBtn = document.getElementById('addQuestion');
         if (addQuestionBtn) {
             addQuestionBtn.addEventListener('click', async () => {
                 await addQuestion();
@@ -67,11 +45,6 @@ export async function initializeForm() {
                 updateQuestionsList();
             });
         }
-
-        // Setup back to menu button
-        document.querySelector('.back-to-menu')?.addEventListener('click', () => {
-            document.getElementById('questionsList').scrollIntoView({ behavior: 'smooth' });
-        });
 
         // Setup metadata counters
         const metadataSections = document.querySelectorAll('.metadata-section');
@@ -118,7 +91,19 @@ export async function initializeForm() {
         }
     } catch (error) {
         console.error('Error in initializeForm:', error);
-        showErrorState(questionsList, error.message);
+        const errorMessage = error.message.includes('Form not found') ?
+            'The requested form could not be found. Creating a new form instead.' :
+            error.message;
+        
+        showErrorState(questionsContainer, errorMessage);
+        
+        // If form not found, create a new form
+        if (error.message.includes('Form not found')) {
+            await addQuestion();
+            updateQuestionCount();
+            updateQuestionsList();
+        }
+        
         throw error;
     }
 }
