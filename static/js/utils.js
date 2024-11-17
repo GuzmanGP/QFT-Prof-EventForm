@@ -46,7 +46,7 @@ export function showErrorState(container, message, formId) {
     
     container.appendChild(errorDiv);
     
-    // Add event listeners with improved error handling
+    // Add event listeners for retry and new form buttons
     const retryButton = errorDiv.querySelector('.retry-load');
     const newFormButton = errorDiv.querySelector('.create-new');
     
@@ -80,8 +80,8 @@ export function clearErrorState(container) {
 }
 
 // Import dependencies after exports but before function implementations
-import { addQuestion } from './question.js';
 import { clearFieldError } from './validationUtils.js';
+import { addQuestion } from './question.js';
 
 export function toggleLoadingOverlay(show = true, message = 'Loading...') {
     const overlay = document.getElementById('loadingOverlay');
@@ -208,19 +208,7 @@ export async function loadForm(formId) {
                 
                 for (const questionData of sortedQuestions) {
                     console.log('Adding question:', questionData); // Debug log
-                    const card = addQuestion();
-                    if (!card) {
-                        console.error('Failed to add question card');
-                        continue;
-                    }
-
-                    // Set question ID and data
-                    card.dataset.questionId = questionData.id;
-                    card.dataset.order = questionData.order || 0;
-                    
-                    // Set question fields
-                    setQuestionFields(card, questionData);
-                    await smoothTransition(card, 'animate__fadeInUp');
+                    addQuestion(questionData);
                 }
             }
 
@@ -349,83 +337,5 @@ export async function getQuestionsData(formId) {
         showAlert('danger', `Error loading form: ${error.message}`);
         toggleLoadingOverlay(false);
         return null;
-    }
-}
-
-export async function handleFormSubmit(formId, formElement) {
-    try {
-        const questionsContainer = document.getElementById('questions');
-        if (!questionsContainer) {
-            throw new Error('Questions container not found');
-        }
-
-        toggleLoadingOverlay(true, 'Submitting form data...');
-        
-        // Get form data
-        const formData = new FormData(formElement);
-        const questions = [];
-
-        // Collect question data
-        const questionCards = document.querySelectorAll('.question-card');
-        for (const card of questionCards) {
-            const questionId = card.dataset.questionId;
-            const questionData = {
-                id: questionId,
-                order: card.dataset.order,
-                reference: card.querySelector('.question-title').value,
-                content: card.querySelector('.question-content').value,
-                answer_type: card.querySelector('.answer-type').value,
-                required: card.querySelector('.question-required').checked,
-                ai_instructions: card.querySelector('.question-ai-instructions').value,
-                options: [],
-                question_metadata: {}
-            };
-
-            // Collect options for list type questions
-            if (questionData.answer_type === 'list') {
-                const optionsList = card.querySelector('.options-list');
-                if (optionsList) {
-                    const optionTags = optionsList.querySelectorAll('.option-tag');
-                    for (const optionTag of optionTags) {
-                        questionData.options.push(optionTag.querySelector('.option-text').textContent);
-                    }
-                }
-            }
-
-            // Collect question metadata
-            const metadataFields = card.querySelectorAll('.question-metadata .input-group');
-            for (const field of metadataFields) {
-                const keyInput = field.querySelector('.metadata-key');
-                const valueInput = field.querySelector('.metadata-value');
-                if (keyInput && valueInput) {
-                    questionData.question_metadata[keyInput.value] = valueInput.value;
-                }
-            }
-
-            questions.push(questionData);
-        }
-
-        // Add question data to formData
-        formData.append('questions', JSON.stringify(questions));
-
-        // Submit form data to API
-        const response = await fetch(`/api/forms/${formId}`, {
-            method: 'POST',
-            body: formData
-        });
-
-        const data = await response.json();
-
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to submit form');
-        }
-
-        // Handle success
-        toggleLoadingOverlay(false);
-        showAlert('success', data.message);
-    } catch (error) {
-        console.error('Error submitting form:', error);
-        showAlert('danger', `Error submitting form: ${error.message}`);
-        toggleLoadingOverlay(false);
     }
 }

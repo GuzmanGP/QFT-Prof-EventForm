@@ -8,9 +8,6 @@ def new_form_index():
 
 @app.route('/<int:form_id>')
 def load_form_index(form_id=None):
-    forms = FormConfiguration.query.order_by(FormConfiguration.created_at.desc()).all()
-    
-    # If form_id is provided, load that form's data
     form_data = None
     if form_id:
         form = FormConfiguration.query.get_or_404(form_id)
@@ -34,7 +31,7 @@ def load_form_index(form_id=None):
             } for q in sorted(form.questions, key=lambda x: x.order or 0)]
         }
     
-    return render_template('form.html', forms=forms, form_data=form_data)
+    return render_template('form.html', form_data=form_data)
 
 @app.route('/save_form', methods=['POST'])
 def save_form():
