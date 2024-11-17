@@ -1050,3 +1050,20 @@ main.container {
         min-width: auto;
     }
 }
+
+/* Add to existing styles.css file */
+.modal-dialog {
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 1rem);
+}
+
+.modal-content {
+    width: 100%;
+}
+
+/* Ensure input and buttons are clickable */
+.modal input,
+.modal button {
+    pointer-events: all;
+}

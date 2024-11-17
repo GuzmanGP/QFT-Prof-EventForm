@@ -131,41 +131,63 @@ function setupQuestionValidation(card) {
 function setupListOptions(card) {
     const optionsInput = card.querySelector('.options-input');
     const optionsList = card.querySelector('.options-list');
+    const addButton = card.querySelector('.add-option-confirm');
+    const modalElement = card.querySelector('#addOptionModal');
+    const modal = new bootstrap.Modal(modalElement);
     
+    // Add option when clicking Add button
+    addButton.addEventListener('click', () => {
+        const value = optionsInput.value.trim();
+        if (value) {
+            addOptionToList(value, optionsList, optionsInput);
+            modal.hide();
+        }
+    });
+    
+    // Add option on Enter key in input
     optionsInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             const value = optionsInput.value.trim();
-            
-            // Check for duplicates
-            const existingOptions = Array.from(optionsList.querySelectorAll('.option-text'))
-                .map(opt => opt.textContent.toLowerCase());
-            
-            if (existingOptions.includes(value.toLowerCase())) {
-                showFieldError(optionsInput, 'This option already exists');
-                return;
-            }
-            
             if (value) {
-                const optionTag = document.createElement('div');
-                optionTag.className = 'option-tag animate__animated animate__fadeIn';
-                optionTag.innerHTML = `
-                    <span class="option-text">${value}</span>
-                    <span class="remove-option">&times;</span>
-                `;
-                
-                optionsList.appendChild(optionTag);
-                optionsInput.value = '';
-                
-                // Clear validation errors if we have 2+ options
-                const optionsCount = optionsList.querySelectorAll('.option-tag').length;
-                if (optionsCount >= 2) {
-                    clearFieldError(optionsInput);
-                }
+                addOptionToList(value, optionsList, optionsInput);
+                modal.hide();
             }
         }
     });
     
+    // Helper function to add option
+    function addOptionToList(value, list, input) {
+        const existingOptions = Array.from(list.querySelectorAll('.option-text'))
+            .map(opt => opt.textContent.toLowerCase());
+        
+        if (existingOptions.includes(value.toLowerCase())) {
+            showAlert('warning', 'This option already exists');
+            return;
+        }
+        
+        const optionTag = document.createElement('div');
+        optionTag.className = 'option-tag animate__animated animate__fadeIn';
+        optionTag.innerHTML = `
+            <span class="option-text">${value}</span>
+            <span class="remove-option">&times;</span>
+        `;
+        
+        list.appendChild(optionTag);
+        input.value = '';
+        
+        const optionsCount = list.querySelectorAll('.option-tag').length;
+        if (optionsCount >= 2) {
+            clearFieldError(input);
+        }
+    }
+    
+    // Reset modal on hide
+    modalElement.addEventListener('hidden.bs.modal', () => {
+        optionsInput.value = '';
+        clearFieldError(optionsInput);
+    });
+
     // Add event delegation for remove option
     optionsList.addEventListener('click', (e) => {
         if (e.target.classList.contains('remove-option')) {
@@ -177,7 +199,7 @@ function setupListOptions(card) {
                     // Check remaining options count
                     const remainingCount = optionsList.querySelectorAll('.option-tag').length;
                     if (remainingCount < 2) {
-                        showFieldError(optionsInput, 'At least two options are required');
+                        showAlert('warning', 'At least two options are required');
                     }
                 }, 300);
             }
