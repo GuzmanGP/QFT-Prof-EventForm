@@ -148,32 +148,38 @@ export function updateQuestionCount() {
 }
 
 export async function loadForm(formId) {
-    const questionsContainer = document.getElementById('questions');
-    let retryCount = 0;
-    const maxRetries = 3;
-    const retryDelay = 1000; // 1 second delay between retries
+    if (!formId) {
+        throw new Error('Invalid form data');
+    }
     
-    async function attemptLoad() {
+    const formId = formId.id || formId;
+    return attemptLoad(`/api/form/${formId}`);
+}
+
+async function attemptLoad(url, attempts = 3) {
+    const questionsContainer = document.getElementById('questions');
+    if (!questionsContainer) {
+        throw new Error('Questions container not found');
+    }
+
+    for (let i = 1; i <= attempts; i++) {
         try {
-            if (!questionsContainer) {
-                throw new Error('Questions container not found');
+            console.debug(`Attempting to load form from: ${url}`);
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-
-            toggleLoadingOverlay(true, 'Initializing form load...');
-            await new Promise(resolve => setTimeout(resolve, 300));
-
-            toggleLoadingOverlay(true, 'Fetching form data...');
-            const response = await fetch(`/${formId}`);
-            const form_data = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(form_data, 'text/html');
-            const scriptTag = doc.querySelector('script:last-of-type');
-            const formData = JSON.parse(scriptTag.textContent.replace('window.initialFormData = ', '').replace(';', ''));
-
-            if (!formData) {
-                throw new Error('Failed to load form data');
+            
+            const data = await response.text();
+            console.debug('Received response:', data);
+            
+            if (!data || data.trim() === '') {
+                throw new Error('Empty response received');
             }
-
+            
+            const formData = JSON.parse(data);
+            
             // Set basic form fields with animation
             for (const field of ['title', 'category', 'subcategory']) {
                 const element = document.getElementById(field);
@@ -194,13 +200,10 @@ export async function loadForm(formId) {
             // Clear existing questions
             questionsContainer.innerHTML = '';
 
-            // Add questions with animation and maintain order
+            // Add questions with animation
             if (formData.questions && Array.isArray(formData.questions)) {
-                console.log('Processing questions:', formData.questions); // Debug log
                 const sortedQuestions = formData.questions.sort((a, b) => (a.order || 0) - (b.order || 0));
-
                 for (const questionData of sortedQuestions) {
-                    console.log('Adding question:', questionData); // Debug log
                     await addQuestion(questionData);
                 }
             }
@@ -208,27 +211,18 @@ export async function loadForm(formId) {
             // Update UI elements
             updateQuestionsList();
             updateQuestionCount();
-
             toggleLoadingOverlay(false);
             clearErrorState(questionsContainer);
             return true;
+
         } catch (error) {
-            console.error(`Error loading form (attempt ${retryCount + 1}/${maxRetries}):`, error);
-            
-            if (retryCount < maxRetries - 1) {
-                retryCount++;
-                showAlert('warning', `Loading failed, retrying... (${retryCount}/${maxRetries})`);
-                await new Promise(resolve => setTimeout(resolve, retryDelay));
-                return attemptLoad();
-            } else {
-                toggleLoadingOverlay(false);
-                showErrorState(questionsContainer, `Failed to load form after ${maxRetries} attempts: ${error.message}`, formId);
-                return false;
+            console.error(`Error loading form (attempt ${i}/${attempts}):`, error);
+            if (i === attempts) {
+                throw new Error(`Failed to load form after ${attempts} attempts: ${error.message}`);
             }
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
         }
     }
-    
-    return attemptLoad();
 }
 
 export function setMetadataFields(containerId, metadata = {}) {
