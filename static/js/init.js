@@ -13,6 +13,28 @@ import {
     loadForm 
 } from './utils.js';
 
+// Add debug logging to loadFormData
+async function loadFormData(formId) {
+    console.debug('Attempting to load form data for ID:', formId);
+    try {
+        const response = await fetch(`/api/form/${formId}`);
+        console.debug('Form data response status:', response.status);
+        const data = await response.text(); // Get raw text first
+        console.debug('Raw response data:', data);
+        
+        try {
+            return JSON.parse(data);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            console.debug('Failed to parse data:', data);
+            throw new Error('Invalid JSON response from server');
+        }
+    } catch (error) {
+        console.error('Form load error:', error);
+        throw error;
+    }
+}
+
 export async function initializeForm() {
     const form = document.getElementById('formConfiguration');
     const addQuestionBtn = document.getElementById('addQuestion');
@@ -25,8 +47,10 @@ export async function initializeForm() {
     try {
         // Load initial form data if available
         if (window.initialFormData) {
+            console.debug('Initial form data found:', window.initialFormData);
             await loadForm(window.initialFormData);
         } else {
+            console.debug('No initial form data, adding empty question');
             // Add initial question if none exists and no initial data
             if (!questionsList.querySelector('.question-card')) {
                 await addQuestion();
@@ -69,6 +93,7 @@ export async function initializeForm() {
         const resetButton = form?.querySelector('button[type="reset"]');
         if (resetButton) {
             resetButton.addEventListener('click', () => {
+                console.debug('Form reset initiated');
                 // Clear all option tags
                 document.querySelectorAll('.options-list').forEach(list => {
                     list.innerHTML = '';
@@ -100,7 +125,7 @@ export async function initializeForm() {
 
 export async function loadInitialFormData(formData) {
     try {
-        console.log('Loading initial form data:', formData);
+        console.debug('Loading initial form data:', formData);
         toggleLoadingOverlay(true, 'Loading form data...');
         
         // Set basic fields
@@ -120,7 +145,7 @@ export async function loadInitialFormData(formData) {
 
         // Add questions with improved error handling
         if (formData.questions && Array.isArray(formData.questions)) {
-            console.log('Processing questions:', formData.questions);
+            console.debug('Processing questions:', formData.questions);
             for (const questionData of formData.questions) {
                 try {
                     const card = await addQuestion(questionData);
