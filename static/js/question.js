@@ -137,22 +137,22 @@ function setupQuestionValidation(card) {
     const fields = {
         reference: card.querySelector('.question-title'),
         content: card.querySelector('.question-content'),
-        answerType: card.querySelector('.answer-type'),
-        required: card.querySelector('.question-required')
+        answerType: card.querySelector('.answer-type')
     };
 
-    // Add null check before setting required property
-    if (fields.required) {
-        fields.required.addEventListener('input', () => {
-            if (fields.required.classList.contains('is-invalid')) {
-                clearFieldError(fields.required);
+    // Handle required checkbox separately to avoid null issues
+    const requiredCheckbox = card.querySelector('.question-required');
+    if (requiredCheckbox) {
+        requiredCheckbox.addEventListener('input', () => {
+            if (requiredCheckbox.classList.contains('is-invalid')) {
+                clearFieldError(requiredCheckbox);
             }
         });
     }
 
-    // Validate reference and content fields
+    // Validate other fields
     Object.entries(fields).forEach(([key, field]) => {
-        if (field && key !== 'required') {
+        if (field) {
             field.addEventListener('input', () => {
                 if (field.classList.contains('is-invalid')) {
                     clearFieldError(field);
@@ -180,20 +180,31 @@ function setupListOptions(card) {
         return;
     }
     
-    // Create modal instance
-    const modal = new bootstrap.Modal(modalElement);
+    // Create modal instance with proper configuration
+    const modal = new bootstrap.Modal(modalElement, {
+        keyboard: true,
+        backdrop: true,
+        focus: true
+    });
     
-    // Focus and enable input when modal shows
-    modalElement.addEventListener('shown.bs.modal', () => {
+    // Enable input and set focus when modal opens
+    modalElement.addEventListener('show.bs.modal', () => {
+        setTimeout(() => {
+            optionsInput.disabled = false;
+            optionsInput.focus();
+        }, 100);
+    });
+    
+    // Ensure input stays enabled
+    optionsInput.addEventListener('focus', () => {
         optionsInput.disabled = false;
-        optionsInput.focus();
     });
     
     // Handle option addition via button click
     addButton.addEventListener('click', () => {
         const value = optionsInput.value.trim();
         if (value) {
-            addOptionToList(value, optionsList, optionsInput);
+            addOptionToList(value, optionsList);
             modal.hide();
         }
     });
@@ -204,7 +215,7 @@ function setupListOptions(card) {
             e.preventDefault();
             const value = optionsInput.value.trim();
             if (value) {
-                addOptionToList(value, optionsList, optionsInput);
+                addOptionToList(value, optionsList);
                 modal.hide();
             }
         }
@@ -214,11 +225,10 @@ function setupListOptions(card) {
     modalElement.addEventListener('hidden.bs.modal', () => {
         optionsInput.value = '';
         optionsInput.disabled = false;
-        clearFieldError(optionsInput);
     });
 }
 
-function addOptionToList(value, list, input) {
+function addOptionToList(value, list) {
     if (!list) {
         console.error('Options list element not found');
         return;
@@ -240,9 +250,6 @@ function addOptionToList(value, list, input) {
     `;
     
     list.appendChild(optionTag);
-    if (input) {
-        input.value = '';
-    }
 }
 
 // Add event delegation for remove option
