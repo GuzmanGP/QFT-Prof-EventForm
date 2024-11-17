@@ -2,12 +2,15 @@
 
 // Function to show field-specific error
 export function showFieldError(field, message) {
-    if (!field) return;
+    if (!field) {
+        console.warn('Attempted to show error on null field');
+        return;
+    }
     
     field.classList.add('is-invalid');
     
     // Remove existing error messages
-    const existingFeedback = field.parentNode.querySelector('.invalid-feedback');
+    const existingFeedback = field.parentNode?.querySelector('.invalid-feedback');
     if (existingFeedback) {
         existingFeedback.remove();
     }
@@ -22,7 +25,7 @@ export function showFieldError(field, message) {
     errorIcon.innerHTML = '⚠️';
     feedback.insertBefore(errorIcon, feedback.firstChild);
 
-    field.parentNode.insertBefore(feedback, field.nextSibling);
+    field.parentNode?.insertBefore(feedback, field.nextSibling);
     
     // Add error highlight animation
     field.classList.add('error-highlight');
@@ -31,7 +34,10 @@ export function showFieldError(field, message) {
 
 // Function to clear form field errors
 export function clearFieldError(field) {
-    if (!field) return;
+    if (!field) {
+        console.warn('Attempted to clear error on null field');
+        return;
+    }
     
     if (field.classList.contains('is-invalid')) {
         field.classList.remove('is-invalid', 'error-highlight');
@@ -44,6 +50,8 @@ export function clearFieldError(field) {
 
 // Function to show error summary
 export function showErrorSummary(errors) {
+    if (!Array.isArray(errors) || errors.length === 0) return;
+
     const summary = document.createElement('div');
     summary.className = 'error-summary alert alert-danger';
     summary.innerHTML = `
@@ -83,21 +91,25 @@ export function clearAllErrors() {
 
 // Function to validate a single question
 export function validateQuestion(card) {
-    if (!card) return { isValid: false, errors: ['Invalid question card'] };
+    if (!card) {
+        console.warn('Attempted to validate null question card');
+        return { isValid: false, errors: ['Invalid question card'] };
+    }
     
     const errors = [];
     let isValid = true;
-    const questionIndex = Array.from(card.parentElement.children).indexOf(card) + 1;
+    const questionIndex = Array.from(card.parentElement?.children || []).indexOf(card) + 1;
 
     const reference = card.querySelector('.question-title');
     const content = card.querySelector('.question-content');
     const answerType = card.querySelector('.answer-type');
     
     if (!reference || !content || !answerType) {
+        console.warn('Question elements not found in card');
         return { isValid: false, errors: ['Question elements not found'] };
     }
 
-    if (!reference.value.trim()) {
+    if (!reference.value?.trim()) {
         showFieldError(reference, 'Question reference is required');
         errors.push(`Question ${questionIndex}: Reference is required`);
         isValid = false;
@@ -107,7 +119,7 @@ export function validateQuestion(card) {
         isValid = false;
     }
 
-    if (!content.value.trim()) {
+    if (!content.value?.trim()) {
         showFieldError(content, 'Question content is required');
         errors.push(`Question ${questionIndex}: Content is required`);
         isValid = false;
@@ -119,9 +131,11 @@ export function validateQuestion(card) {
             const optionsCount = optionsList.querySelectorAll('.option-tag').length;
             if (optionsCount < 2) {
                 const optionsInput = card.querySelector('.options-input');
-                showFieldError(optionsInput || optionsList, 'Please add at least two options');
-                errors.push(`Question ${questionIndex}: At least two options are required`);
-                isValid = false;
+                if (optionsInput || optionsList) {
+                    showFieldError(optionsInput || optionsList, 'Please add at least two options');
+                    errors.push(`Question ${questionIndex}: At least two options are required`);
+                    isValid = false;
+                }
             }
         }
     }
