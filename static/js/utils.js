@@ -46,6 +46,10 @@ export function toggleLoadingOverlay(show = true, message = 'Loading...') {
     }
 }
 
+// Import dependencies after exports
+import { clearFieldError } from './validationUtils.js';
+import { addQuestion } from './question.js';
+
 export function updateQuestionsHeader() {
     const count = document.querySelectorAll('.question-card').length;
     const header = document.getElementById('questionsHeader');
@@ -257,10 +261,6 @@ export async function loadForm(formId) {
         return false;
     }
 }
-
-// Import dependencies after exports
-import { clearFieldError } from './validationUtils.js';
-import { addQuestion } from './question.js';
 
 export async function getQuestionsData(formId) {
     try {
