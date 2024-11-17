@@ -81,6 +81,7 @@ export function clearErrorState(container) {
 
 // Import dependencies after exports but before function implementations
 import { clearFieldError } from './validationUtils.js';
+import { addQuestion } from './question.js';
 
 export function toggleLoadingOverlay(show = true, message = 'Loading...') {
     const overlay = document.getElementById('loadingOverlay');
@@ -208,15 +209,7 @@ export async function loadForm(formId) {
 
                 for (const questionData of sortedQuestions) {
                     console.log('Adding question:', questionData); // Debug log
-                    const card = addQuestion();
-                    if (!card) {
-                        console.error('Failed to add question card');
-                        continue;
-                    }
-
-                    // Set question ID and data
-                    card.dataset.questionId = questionData.id;
-                    setQuestionFields(card, questionData);
+                    await addQuestion(questionData);
                 }
             }
 
