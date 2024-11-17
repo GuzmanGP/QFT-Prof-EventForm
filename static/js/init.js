@@ -153,31 +153,38 @@ function handleFormSubmit(e) {
     }
 
     const form = e.target;
-    
-    // Get form data
     const formData = new FormData(form);
     
-    // Get metadata values
-    const categoryMetadata = getMetadataValues('categoryMetadata');
-    const subcategoryMetadata = getMetadataValues('subcategoryMetadata');
-    
-    // Update hidden inputs with metadata
-    document.getElementById('categoryMetadataInput').value = JSON.stringify(categoryMetadata);
-    document.getElementById('subcategoryMetadataInput').value = JSON.stringify(subcategoryMetadata);
-    
-    // Get questions data
-    const questionsData = getQuestionsData();
-    document.getElementById('questionsInput').value = JSON.stringify(questionsData);
+    try {
+        // Get metadata values
+        const categoryMetadata = getMetadataValues('categoryMetadata');
+        const subcategoryMetadata = getMetadataValues('subcategoryMetadata');
+        
+        // Update hidden inputs with metadata
+        document.getElementById('categoryMetadataInput').value = JSON.stringify(categoryMetadata);
+        document.getElementById('subcategoryMetadataInput').value = JSON.stringify(subcategoryMetadata);
+        
+        // Get and validate questions data
+        const questionsData = getQuestionsData();
+        if (!questionsData.length) {
+            showAlert('danger', 'At least one question is required');
+            return;
+        }
+        document.getElementById('questionsInput').value = JSON.stringify(questionsData);
 
-    // Show loading state
-    const saveButton = form.querySelector('#saveButton');
-    if (saveButton) {
-        saveButton.disabled = true;
-        saveButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+        // Show loading state
+        const saveButton = form.querySelector('#saveButton');
+        if (saveButton) {
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+        }
+
+        // Submit form
+        form.submit();
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        showAlert('danger', `Error submitting form: ${error.message}`);
     }
-
-    // Submit form
-    form.submit();
 }
 
 function getMetadataValues(containerId) {
@@ -198,16 +205,36 @@ function getMetadataValues(containerId) {
 
 function getQuestionsData() {
     const questions = document.querySelectorAll('.question-card');
-    return Array.from(questions).map((card, index) => ({
-        id: card.dataset.questionId,
-        reference: card.querySelector('.question-title').value,
-        content: card.querySelector('.question-content').value,
-        answer_type: card.querySelector('.answer-type').value,
-        required: card.querySelector('.question-required').checked,
-        question_metadata: getQuestionMetadata(card),
-        order: index + 1,
-        ...getQuestionOptions(card)
-    }));
+    return Array.from(questions).map((card, index) => {
+        const questionData = {
+            id: card.dataset.questionId,
+            reference: card.querySelector('.question-title')?.value || '',
+            content: card.querySelector('.question-content')?.value || '',
+            answer_type: card.querySelector('.answer-type')?.value || 'text',
+            required: card.querySelector('.question-required')?.checked || false,
+            question_metadata: getQuestionMetadata(card),
+            order: index + 1
+        };
+
+        // Add options for list type questions
+        if (questionData.answer_type === 'list') {
+            const optionsList = card.querySelector('.options-list');
+            const optionTags = optionsList?.querySelectorAll('.option-tag');
+            if (optionTags?.length > 0) {
+                questionData.options = Array.from(optionTags).map(tag => 
+                    tag.querySelector('.option-text').textContent
+                );
+            }
+        }
+
+        // Add AI instructions if enabled
+        const aiEnabled = card.querySelector('.question-ai')?.checked;
+        if (aiEnabled) {
+            questionData.ai_instructions = card.querySelector('.question-ai-instructions')?.value;
+        }
+
+        return questionData;
+    });
 }
 
 function getQuestionMetadata(card) {
@@ -222,25 +249,4 @@ function getQuestionMetadata(card) {
         }
     }
     return metadata;
-}
-
-function getQuestionOptions(card) {
-    const options = {};
-    
-    if (card.querySelector('.answer-type').value === 'list') {
-        const optionsList = card.querySelector('.options-list');
-        const optionTags = optionsList?.querySelectorAll('.option-tag');
-        if (optionTags?.length > 0) {
-            options.options = Array.from(optionTags).map(tag => 
-                tag.querySelector('.option-text').textContent
-            );
-        }
-    }
-
-    const aiEnabled = card.querySelector('.question-ai')?.checked;
-    if (aiEnabled) {
-        options.ai_instructions = card.querySelector('.question-ai-instructions')?.value;
-    }
-
-    return options;
 }
