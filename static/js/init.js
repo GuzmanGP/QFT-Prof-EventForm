@@ -9,81 +9,92 @@ import {
     toggleLoadingOverlay,
     setMetadataFields,
     setQuestionFields,
-    showErrorState 
+    showErrorState,
+    loadForm 
 } from './utils.js';
 
-export function initializeForm() {
+export async function initializeForm() {
     const form = document.getElementById('formConfiguration');
     const addQuestionBtn = document.getElementById('addQuestion');
     const questionsList = document.getElementById('questions');
 
-    // Load initial form data if available
-    if (window.initialFormData) {
-        loadInitialFormData(window.initialFormData);
-    } else {
-        // Add initial question if none exists and no initial data
-        if (!questionsList.querySelector('.question-card')) {
-            setTimeout(() => {
-                addQuestion();
+    if (!form || !questionsList) {
+        throw new Error('Required form elements not found');
+    }
+
+    try {
+        // Load initial form data if available
+        if (window.initialFormData) {
+            await loadForm(window.initialFormData);
+        } else {
+            // Add initial question if none exists and no initial data
+            if (!questionsList.querySelector('.question-card')) {
+                await addQuestion();
                 updateQuestionCount();
                 updateQuestionsList();
-            }, 100);
+            }
         }
-    }
 
-    // Add question button handler
-    if (addQuestionBtn) {
-        addQuestionBtn.addEventListener('click', () => {
-            addQuestion();
-            updateQuestionCount();
-            updateQuestionsList();
-        });
-    }
-
-    // Setup back to menu button
-    document.querySelector('.back-to-menu')?.addEventListener('click', () => {
-        document.getElementById('questionsList').scrollIntoView({ behavior: 'smooth' });
-    });
-
-    // Setup metadata counters
-    const metadataSections = document.querySelectorAll('.metadata-section');
-    for (const section of metadataSections) {
-        const container = section.querySelector('.metadata-container');
-        const buttons = section.querySelectorAll('.counter-button');
-        const display = section.querySelector('.counter-display');
-        setupCounterButtons(buttons, container, display);
-    }
-
-    // Form submission handler
-    if (form) {
-        form.addEventListener('submit', handleFormSubmit);
-    }
-
-    // Add reset button handler
-    const resetButton = form?.querySelector('button[type="reset"]');
-    if (resetButton) {
-        resetButton.addEventListener('click', () => {
-            // Clear all option tags
-            document.querySelectorAll('.options-list').forEach(list => {
-                list.innerHTML = '';
-            });
-            
-            // Reset all answer type selects and hide list options
-            document.querySelectorAll('.answer-type').forEach(select => {
-                select.value = 'text';
-                const listOptions = select.closest('.card-body')?.querySelector('.list-options');
-                if (listOptions) {
-                    listOptions.classList.add('d-none');
-                    listOptions.classList.remove('animate__fadeIn');
-                }
-            });
-            
-            // Update questions menu references
-            setTimeout(() => {
-                updateQuestionsList();
+        // Add question button handler
+        if (addQuestionBtn) {
+            addQuestionBtn.addEventListener('click', async () => {
+                await addQuestion();
                 updateQuestionCount();
-            }, 100);
+                updateQuestionsList();
+            });
+        }
+
+        // Setup back to menu button
+        document.querySelector('.back-to-menu')?.addEventListener('click', () => {
+            document.getElementById('questionsList').scrollIntoView({ behavior: 'smooth' });
         });
+
+        // Setup metadata counters
+        const metadataSections = document.querySelectorAll('.metadata-section');
+        for (const section of metadataSections) {
+            const container = section.querySelector('.metadata-container');
+            const buttons = section.querySelectorAll('.counter-button');
+            const display = section.querySelector('.counter-display');
+            if (container && buttons && display) {
+                setupCounterButtons(buttons, container, display);
+            }
+        }
+
+        // Form submission handler
+        if (form) {
+            form.addEventListener('submit', handleFormSubmit);
+        }
+
+        // Add reset button handler
+        const resetButton = form?.querySelector('button[type="reset"]');
+        if (resetButton) {
+            resetButton.addEventListener('click', () => {
+                // Clear all option tags
+                document.querySelectorAll('.options-list').forEach(list => {
+                    list.innerHTML = '';
+                });
+                
+                // Reset all answer type selects and hide list options
+                document.querySelectorAll('.answer-type').forEach(select => {
+                    select.value = 'text';
+                    const listOptions = select.closest('.card-body')?.querySelector('.list-options');
+                    if (listOptions) {
+                        listOptions.classList.add('d-none');
+                        listOptions.classList.remove('animate__fadeIn');
+                    }
+                });
+                
+                // Update questions menu references
+                setTimeout(() => {
+                    updateQuestionsList();
+                    updateQuestionCount();
+                }, 100);
+            });
+        }
+    } catch (error) {
+        console.error('Error in initializeForm:', error);
+        showErrorState(questionsList, error.message);
+        throw error;
     }
 }
 

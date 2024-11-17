@@ -137,6 +137,15 @@ function setupListOptions(card) {
             e.preventDefault();
             const value = optionsInput.value.trim();
             
+            // Check for duplicates
+            const existingOptions = Array.from(optionsList.querySelectorAll('.option-text'))
+                .map(opt => opt.textContent.toLowerCase());
+            
+            if (existingOptions.includes(value.toLowerCase())) {
+                showFieldError(optionsInput, 'This option already exists');
+                return;
+            }
+            
             if (value) {
                 const optionTag = document.createElement('div');
                 optionTag.className = 'option-tag animate__animated animate__fadeIn';
@@ -145,13 +154,26 @@ function setupListOptions(card) {
                     <span class="remove-option">&times;</span>
                 `;
                 
+                // Add remove option handler
                 optionTag.querySelector('.remove-option').addEventListener('click', () => {
                     optionTag.classList.add('animate__fadeOut');
-                    setTimeout(() => optionTag.remove(), 300);
+                    setTimeout(() => {
+                        optionTag.remove();
+                        // Check if we now have less than 2 options
+                        const remainingOptions = optionsList.querySelectorAll('.option-tag').length;
+                        if (remainingOptions < 2) {
+                            showFieldError(optionsInput, 'At least two options are required');
+                        }
+                    }, 300);
                 });
                 
                 optionsList.appendChild(optionTag);
                 optionsInput.value = '';
+                
+                // Clear validation errors if we have 2+ options
+                if (optionsList.querySelectorAll('.option-tag').length >= 2) {
+                    clearFieldError(optionsInput);
+                }
             }
         }
     });

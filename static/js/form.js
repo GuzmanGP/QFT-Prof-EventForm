@@ -3,10 +3,23 @@ import {
     updateQuestionCount, 
     showAlert, 
     updateQuestionsList, 
-    toggleLoadingOverlay
+    toggleLoadingOverlay,
+    showErrorState
 } from './utils.js';
 import { validateForm } from './validation.js';
 import { addQuestion } from './question.js';
 import { updateMetadataFields } from './metadataFields.js';
 
-document.addEventListener('DOMContentLoaded', initializeForm);
+// Initialize form when DOM content is loaded
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        await initializeForm();
+    } catch (error) {
+        console.error('Error initializing form:', error);
+        const container = document.getElementById('questions');
+        if (container) {
+            showErrorState(container, 'Failed to initialize form. Please try refreshing the page.');
+        }
+        showAlert('danger', 'Failed to initialize form. Please try refreshing the page.');
+    }
+});
