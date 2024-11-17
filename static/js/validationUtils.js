@@ -106,8 +106,11 @@ export function validateQuestion(card) {
         const optionsCount = optionsList.querySelectorAll('.option-tag').length;
         const optionsInput = card.querySelector('.options-input');
         
+        // Set required attribute based on options count
+        optionsInput.required = optionsCount < 2;
+        
         if (optionsCount >= 2) {
-            // If we have enough options, clear any error regardless of input state
+            // If we have enough options, clear any error and remove required
             clearFieldError(optionsInput);
         } else {
             // Only show error if we don't have enough options

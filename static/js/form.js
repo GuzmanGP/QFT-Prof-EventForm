@@ -3,7 +3,7 @@ import { initializeForm } from './init.js';
 import { 
     updateQuestionCount, 
     showAlert, 
-    updateQuestionsList, 
+    updateQuestionsList,
     toggleLoadingOverlay,
     showErrorState
 } from './utils.js';
@@ -14,22 +14,13 @@ import { updateMetadataFields } from './metadataFields.js';
 // Initialize form when DOM content is loaded with error recovery
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Ensure all modules are loaded before initializing
-        await Promise.all([
-            import('./init.js'),
-            import('./utils.js'),
-            import('./validation.js'),
-            import('./question.js'),
-            import('./metadataFields.js')
-        ]);
-        
         await initializeForm();
     } catch (error) {
         console.error('Error initializing form:', error);
         const container = document.getElementById('questions');
         if (container) {
             showErrorState(container, error.message || 'Failed to initialize form');
+            showAlert('danger', 'Failed to initialize form. Please try refreshing the page.');
         }
-        showAlert('danger', 'Failed to initialize form. Please try refreshing the page.');
     }
 });
