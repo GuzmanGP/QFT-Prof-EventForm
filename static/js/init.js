@@ -3,7 +3,6 @@ import { addQuestion } from './question.js';
 import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
 import { 
-    updateQuestionsHeader, 
     updateQuestionCount, 
     showAlert, 
     updateQuestionsList, 
@@ -109,20 +108,19 @@ export async function loadInitialFormData(formData) {
         }
         questionsContainer.innerHTML = '';
 
-        // Add questions
+        // Add questions with error handling
         if (formData.questions && Array.isArray(formData.questions)) {
-            console.log('Processing questions:', formData.questions); // Debug log
             for (const questionData of formData.questions) {
-                console.log('Adding question:', questionData); // Debug log
-                const card = addQuestion();
-                if (!card) {
-                    console.error('Failed to add question card');
-                    continue;
+                try {
+                    const card = await addQuestion(questionData);
+                    if (!card) {
+                        console.error('Failed to add question card');
+                        showAlert('warning', 'Failed to add a question');
+                    }
+                } catch (questionError) {
+                    console.error('Error adding question:', questionError);
+                    showAlert('warning', `Error adding question: ${questionError.message}`);
                 }
-
-                // Set question ID and data
-                card.dataset.questionId = questionData.id;
-                setQuestionFields(card, questionData);
             }
         }
 

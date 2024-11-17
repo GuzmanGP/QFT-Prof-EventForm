@@ -40,7 +40,7 @@ def load_form_index(form_id=None):
     return render_template('form.html', form_data=form_data)
 
 
-@app.route('/save_form', methods=['POST'])
+@app.route('/form/save', methods=['POST'])
 def save_form():
     try:
         # Get form data
@@ -52,10 +52,8 @@ def save_form():
         subcategory = form_data.get('subcategory')
 
         # Parse JSON data from hidden inputs
-        category_metadata = json.loads(form_data.get('category_metadata',
-                                                     '{}'))
-        subcategory_metadata = json.loads(
-            form_data.get('subcategory_metadata', '{}'))
+        category_metadata = json.loads(form_data.get('category_metadata', '{}'))
+        subcategory_metadata = json.loads(form_data.get('subcategory_metadata', '{}'))
         questions_data = json.loads(form_data.get('questions', '[]'))
 
         # Create or update form configuration
