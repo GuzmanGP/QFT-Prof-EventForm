@@ -87,7 +87,7 @@ export function initializeForm() {
     }
 }
 
-async function loadInitialFormData(formData) {
+export async function loadInitialFormData(formData) {
     try {
         console.log('Loading initial form data:', formData); // Debug log
         toggleLoadingOverlay(true, 'Loading form data...');
@@ -110,20 +110,15 @@ async function loadInitialFormData(formData) {
 
         // Set metadata
         if (formData.category_metadata) {
-            toggleLoadingOverlay(true, 'Loading category metadata...');
             setMetadataFields('categoryMetadata', formData.category_metadata);
         }
-        
         if (formData.subcategory_metadata) {
-            toggleLoadingOverlay(true, 'Loading subcategory metadata...');
             setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
         }
 
         // Add questions
         if (formData.questions && Array.isArray(formData.questions)) {
             console.log('Processing questions:', formData.questions); // Debug log
-            toggleLoadingOverlay(true, 'Loading questions...');
-            
             for (const questionData of formData.questions) {
                 const card = addQuestion();
                 if (!card) {
@@ -134,13 +129,6 @@ async function loadInitialFormData(formData) {
                 // Set question data
                 card.dataset.questionId = questionData.id;
                 setQuestionFields(card, questionData);
-                
-                // Add animation class
-                card.classList.add('animate__animated', 'animate__fadeInUp');
-                await new Promise(resolve => setTimeout(() => {
-                    card.classList.remove('animate__animated', 'animate__fadeInUp');
-                    resolve();
-                }, 300));
             }
         }
 
@@ -149,8 +137,6 @@ async function loadInitialFormData(formData) {
         updateQuestionCount();
 
         toggleLoadingOverlay(false);
-        showAlert('success', 'Form loaded successfully');
-
     } catch (error) {
         console.error('Error loading form data:', error);
         showAlert('danger', `Error loading form: ${error.message}`);

@@ -1,4 +1,4 @@
-// utils.js - Export functions first
+// utils.js - Move showAlert to top and ensure it's exported first
 export function showAlert(type, message) {
     const alertContainer = document.querySelector('.alert-container');
     if (!alertContainer) return;
@@ -27,12 +27,11 @@ export function toggleLoadingOverlay(show = true, message = 'Loading...') {
         overlay.style.display = 'flex';
         overlay.classList.remove('d-none');
         loadingText.textContent = message;
-        // Force reflow
-        overlay.offsetHeight;
-        overlay.style.opacity = '1';
+        overlay.classList.add('animate__animated', 'animate__fadeIn');
     } else {
-        overlay.style.opacity = '0';
+        overlay.classList.add('animate__animated', 'animate__fadeOut');
         setTimeout(() => {
+            overlay.classList.remove('animate__animated', 'animate__fadeIn', 'animate__fadeOut');
             overlay.classList.add('d-none');
             overlay.style.display = 'none';
         }, 300);
@@ -167,6 +166,14 @@ export function setQuestionFields(card, questionData) {
             });
         }
     }
+}
+
+export function smoothTransition(element, animationClass, duration = 300) {
+    element.classList.add('animate__animated', animationClass);
+    return new Promise(resolve => setTimeout(() => {
+        element.classList.remove('animate__animated', animationClass);
+        resolve();
+    }, duration));
 }
 
 // Import dependencies after exports
