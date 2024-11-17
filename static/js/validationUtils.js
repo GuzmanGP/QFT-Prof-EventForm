@@ -106,11 +106,15 @@ export function validateQuestion(card) {
         const optionsCount = optionsList.querySelectorAll('.option-tag').length;
         const optionsInput = card.querySelector('.options-input');
         
-        if (optionsCount < 2 && optionsInput.value.trim() === '') {
-            showFieldError(optionsInput, 'At least two options are required');
-            errors.push(`Question ${questionIndex}: At least two options are required`);
-            isValid = false;
+        if (optionsCount < 2) {
+            // Only show error if there aren't enough options and no input
+            if (!optionsInput.value.trim()) {
+                showFieldError(optionsInput, 'At least two options are required or add more options.');
+                errors.push(`Question ${questionIndex}: At least two options are required`);
+                isValid = false;
+            }
         } else {
+            // Clear error if enough options exist
             clearFieldError(optionsInput);
         }
     }

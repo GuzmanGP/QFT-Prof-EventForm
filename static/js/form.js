@@ -1,4 +1,5 @@
 // form.js
+// Import required functions from modules
 import { initializeForm } from './init.js';
 import { 
     updateQuestionCount, 
