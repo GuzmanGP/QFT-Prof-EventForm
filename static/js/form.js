@@ -1,5 +1,4 @@
 // form.js
-// Import required functions from modules
 import { initializeForm } from './init.js';
 import { 
     updateQuestionCount, 
@@ -20,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Error initializing form:', error);
         const container = document.getElementById('questions');
         if (container) {
-            showErrorState(container, error.message || 'Failed to initialize form. Please try refreshing the page.');
+            showErrorState(container, error.message || 'Failed to initialize form');
         }
         showAlert('danger', 'Failed to initialize form. Please try refreshing the page or create a new one.');
     }
