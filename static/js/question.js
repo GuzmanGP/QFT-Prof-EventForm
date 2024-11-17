@@ -20,6 +20,11 @@ function configureAIProcessing(card) {
     const aiCheckbox = card.querySelector('.question-ai');
     const aiInstructions = card.querySelector('.ai-instructions');
     
+    if (!aiCheckbox || !aiInstructions) {
+        console.warn('AI processing elements not found');
+        return;
+    }
+    
     aiCheckbox.addEventListener('change', function() {
         if (this.checked) {
             aiInstructions.style.display = 'block';
@@ -34,12 +39,39 @@ function configureAIProcessing(card) {
     });
 }
 
+// Function to safely set field value
+function safeSetField(element, value, isCheckbox = false) {
+    if (!element) return false;
+    
+    try {
+        if (isCheckbox) {
+            element.checked = Boolean(value);
+        } else {
+            element.value = value || '';
+        }
+        return true;
+    } catch (error) {
+        console.warn('Error setting field value:', error);
+        return false;
+    }
+}
+
 // Function to initialize metadata counter
 function initializeMetadataCounter(card) {
     const metadataSection = card.querySelector('.metadata-section');
+    if (!metadataSection) {
+        console.warn('Metadata section not found');
+        return;
+    }
+
     const container = metadataSection.querySelector('.question-metadata');
     const buttons = metadataSection.querySelectorAll('.counter-button');
     const display = metadataSection.querySelector('.counter-display');
+    
+    if (!container || !display) {
+        console.warn('Required metadata elements not found');
+        return;
+    }
     
     buttons.forEach(button => {
         button.replaceWith(button.cloneNode(true));
@@ -78,6 +110,11 @@ function configureAnswerTypeChange(card) {
     const typeSelect = card.querySelector('.answer-type');
     const listOptions = card.querySelector('.list-options');
     
+    if (!typeSelect || !listOptions) {
+        console.warn('Answer type elements not found');
+        return;
+    }
+    
     typeSelect.addEventListener('change', function() {
         const isListType = this.value === 'list';
         
@@ -101,15 +138,23 @@ function setupQuestionValidation(card) {
         answerType: card.querySelector('.answer-type')
     };
 
+    // Check if all required fields exist
+    const missingFields = Object.entries(fields)
+        .filter(([key, element]) => !element)
+        .map(([key]) => key);
+    
+    if (missingFields.length > 0) {
+        console.warn('Missing required fields:', missingFields);
+        return;
+    }
+
     for (const key in fields) {
         const field = fields[key];
-        if (field) {
-            field.addEventListener('input', () => {
-                if (field.classList.contains('is-invalid')) {
-                    clearFieldError(field);
-                }
-            });
-        }
+        field.addEventListener('input', () => {
+            if (field.classList.contains('is-invalid')) {
+                clearFieldError(field);
+            }
+        });
     }
 
     fields.reference.addEventListener('input', () => {
@@ -134,7 +179,7 @@ function setupListOptions(card) {
     // Focus and enable input when modal opens
     modalElement.addEventListener('show.bs.modal', () => {
         optionsInput.disabled = false;
-        optionsInput.focus();
+        setTimeout(() => optionsInput.focus(), 500);
     });
     
     // Handle option addition via button click
@@ -166,6 +211,11 @@ function setupListOptions(card) {
 }
 
 function addOptionToList(value, list, input) {
+    if (!list) {
+        console.error('Options list element not found');
+        return;
+    }
+
     const existingOptions = Array.from(list.querySelectorAll('.option-text'))
         .map(opt => opt.textContent.toLowerCase());
     
@@ -211,12 +261,19 @@ export function addQuestion(questionData = null) {
         const contentDiv = card.querySelector('[id^="questionContent"]');
         const header = card.querySelector('.card-header');
         
+        if (!contentDiv || !header) {
+            throw new Error('Required card elements not found');
+        }
+
         contentDiv.id = uniqueId;
         header.setAttribute('data-bs-target', '#' + uniqueId);
 
         // Update question number
         const questionNumber = updateQuestionCount() + 1;
-        card.querySelector('.question-number').textContent = `Question ${questionNumber}`;
+        const numberElement = card.querySelector('.question-number');
+        if (numberElement) {
+            numberElement.textContent = `Question ${questionNumber}`;
+        }
 
         // Initialize all functionality
         initializeMetadataCounter(card);
@@ -229,32 +286,39 @@ export function addQuestion(questionData = null) {
         if (questionData) {
             try {
                 setTimeout(() => {
-                    const titleInput = card.querySelector('.question-title');
-                    const contentInput = card.querySelector('.question-content');
-                    const answerTypeSelect = card.querySelector('.answer-type');
-                    const requiredCheckbox = card.querySelector('.question-required');
-                    
-                    if (titleInput) titleInput.value = questionData.reference || '';
-                    if (contentInput) contentInput.value = questionData.content || '';
-                    if (answerTypeSelect) answerTypeSelect.value = questionData.answer_type || 'text';
-                    if (requiredCheckbox) requiredCheckbox.checked = questionData.required || false;
+                    const fields = {
+                        title: card.querySelector('.question-title'),
+                        content: card.querySelector('.question-content'),
+                        answerType: card.querySelector('.answer-type'),
+                        required: card.querySelector('.question-required')
+                    };
+
+                    // Verify all required elements exist
+                    const missingFields = Object.entries(fields)
+                        .filter(([key, element]) => !element)
+                        .map(([key]) => key);
+
+                    if (missingFields.length > 0) {
+                        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+                    }
+
+                    // Safely set field values
+                    safeSetField(fields.title, questionData.reference);
+                    safeSetField(fields.content, questionData.content);
+                    safeSetField(fields.answerType, questionData.answer_type || 'text');
+                    safeSetField(fields.required, questionData.required, true);
                     
                     if (questionData.answer_type === 'list' && questionData.options) {
                         const listOptions = card.querySelector('.list-options');
                         if (listOptions) {
                             listOptions.classList.remove('d-none');
                             
-                            // Add options as tags
                             const optionsList = listOptions.querySelector('.options-list');
-                            if (optionsList) {
+                            if (optionsList && Array.isArray(questionData.options)) {
                                 questionData.options.forEach(opt => {
-                                    const optionTag = document.createElement('div');
-                                    optionTag.className = 'option-tag';
-                                    optionTag.innerHTML = `
-                                        <span class="option-text">${opt}</span>
-                                        <span class="remove-option">&times;</span>
-                                    `;
-                                    optionsList.appendChild(optionTag);
+                                    if (opt && typeof opt === 'string') {
+                                        addOptionToList(opt, optionsList);
+                                    }
                                 });
                             }
                         }
@@ -263,13 +327,12 @@ export function addQuestion(questionData = null) {
                     if (questionData.ai_instructions) {
                         const aiCheckbox = card.querySelector('.question-ai');
                         const aiInstructions = card.querySelector('.ai-instructions');
-                        if (aiCheckbox && aiInstructions) {
-                            aiCheckbox.checked = true;
+                        const aiTextarea = aiInstructions?.querySelector('textarea');
+
+                        if (aiCheckbox && aiInstructions && aiTextarea) {
+                            safeSetField(aiCheckbox, true, true);
                             aiInstructions.style.display = 'block';
-                            const aiTextarea = aiInstructions.querySelector('textarea');
-                            if (aiTextarea) {
-                                aiTextarea.value = questionData.ai_instructions;
-                            }
+                            safeSetField(aiTextarea, questionData.ai_instructions);
                         }
                     }
                     
@@ -277,22 +340,26 @@ export function addQuestion(questionData = null) {
                     if (questionData.question_metadata) {
                         const container = card.querySelector('.question-metadata');
                         const display = card.querySelector('.question-meta-count');
+                        
                         if (container && display) {
-                            const count = Object.keys(questionData.question_metadata).length;
-                            display.textContent = count.toString();
-                            
-                            Object.entries(questionData.question_metadata).forEach(([key, value], index) => {
-                                setTimeout(() => {
-                                    const field = document.createElement('div');
-                                    field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
-                                    field.innerHTML = `
-                                        <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
-                                        <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
-                                        <button type="button" class="btn btn-outline-danger remove-field">×</button>
-                                    `;
-                                    container.appendChild(field);
-                                }, index * 100);
-                            });
+                            const metadata = questionData.question_metadata;
+                            if (typeof metadata === 'object' && metadata !== null) {
+                                const count = Object.keys(metadata).length;
+                                display.textContent = count.toString();
+                                
+                                Object.entries(metadata).forEach(([key, value], index) => {
+                                    setTimeout(() => {
+                                        const field = document.createElement('div');
+                                        field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+                                        field.innerHTML = `
+                                            <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
+                                            <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
+                                            <button type="button" class="btn btn-outline-danger remove-field">×</button>
+                                        `;
+                                        container.appendChild(field);
+                                    }, index * 100);
+                                });
+                            }
                         }
                     }
                 }, 300);
@@ -323,16 +390,14 @@ export function addQuestion(questionData = null) {
 
         // Add toggle icon rotation
         if (header) {
-            header.addEventListener('click', () => {
-                const icon = header.querySelector('.toggle-icon');
-                if (icon && contentDiv) {
-                    icon.style.transform = contentDiv.classList.contains('show') ? 'rotate(0deg)' : 'rotate(180deg)';
-                }
-            });
-
-            // Set initial rotation state
             const icon = header.querySelector('.toggle-icon');
-            if (icon) {
+            
+            if (icon && contentDiv) {
+                header.addEventListener('click', () => {
+                    icon.style.transform = contentDiv.classList.contains('show') ? 'rotate(0deg)' : 'rotate(180deg)';
+                });
+                
+                // Set initial rotation state
                 icon.style.transform = 'rotate(180deg)';
             }
         }
