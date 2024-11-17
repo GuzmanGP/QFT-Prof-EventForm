@@ -285,7 +285,15 @@ export function addQuestion(questionData = null) {
         // If question data is provided, populate the fields
         if (questionData) {
             try {
-                setTimeout(() => {
+                // Add the card to the DOM first
+                const questionsContainer = document.getElementById('questions');
+                if (!questionsContainer) {
+                    throw new Error('Questions container not found');
+                }
+                questionsContainer.appendChild(card);
+
+                // Wait for the next frame to ensure elements are properly rendered
+                requestAnimationFrame(() => {
                     const fields = {
                         title: card.querySelector('.question-title'),
                         content: card.querySelector('.question-content'),
@@ -303,69 +311,82 @@ export function addQuestion(questionData = null) {
                     }
 
                     // Safely set field values
-                    safeSetField(fields.title, questionData.reference);
-                    safeSetField(fields.content, questionData.content);
-                    safeSetField(fields.answerType, questionData.answer_type || 'text');
-                    safeSetField(fields.required, questionData.required, true);
-                    
-                    if (questionData.answer_type === 'list' && questionData.options) {
-                        const listOptions = card.querySelector('.list-options');
-                        if (listOptions) {
-                            listOptions.classList.remove('d-none');
+                    Object.entries(fields).forEach(([key, element]) => {
+                        if (element) {
+                            const value = key === 'required' ? questionData.required :
+                                        key === 'answerType' ? questionData.answer_type || 'text' :
+                                        questionData[key === 'title' ? 'reference' : 'content'];
                             
-                            const optionsList = listOptions.querySelector('.options-list');
-                            if (optionsList && Array.isArray(questionData.options)) {
-                                questionData.options.forEach(opt => {
-                                    if (opt && typeof opt === 'string') {
-                                        addOptionToList(opt, optionsList);
-                                    }
-                                });
+                            if (element.type === 'checkbox') {
+                                element.checked = Boolean(value);
+                            } else {
+                                element.value = value || '';
                             }
+                        }
+                    });
+                    
+                    // Handle list type questions
+                    if (questionData.answer_type === 'list' && Array.isArray(questionData.options)) {
+                        const listOptions = card.querySelector('.list-options');
+                        const optionsList = listOptions?.querySelector('.options-list');
+                        
+                        if (listOptions && optionsList) {
+                            listOptions.classList.remove('d-none');
+                            questionData.options.forEach(opt => {
+                                if (opt && typeof opt === 'string') {
+                                    addOptionToList(opt, optionsList);
+                                }
+                            });
                         }
                     }
                     
+                    // Handle AI instructions
                     if (questionData.ai_instructions) {
                         const aiCheckbox = card.querySelector('.question-ai');
                         const aiInstructions = card.querySelector('.ai-instructions');
                         const aiTextarea = aiInstructions?.querySelector('textarea');
 
                         if (aiCheckbox && aiInstructions && aiTextarea) {
-                            safeSetField(aiCheckbox, true, true);
+                            aiCheckbox.checked = true;
                             aiInstructions.style.display = 'block';
-                            safeSetField(aiTextarea, questionData.ai_instructions);
+                            aiTextarea.value = questionData.ai_instructions;
                         }
                     }
                     
-                    // Set metadata
-                    if (questionData.question_metadata) {
+                    // Handle metadata
+                    if (questionData.question_metadata && typeof questionData.question_metadata === 'object') {
                         const container = card.querySelector('.question-metadata');
                         const display = card.querySelector('.question-meta-count');
                         
                         if (container && display) {
                             const metadata = questionData.question_metadata;
-                            if (typeof metadata === 'object' && metadata !== null) {
-                                const count = Object.keys(metadata).length;
-                                display.textContent = count.toString();
-                                
-                                Object.entries(metadata).forEach(([key, value], index) => {
-                                    setTimeout(() => {
-                                        const field = document.createElement('div');
-                                        field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
-                                        field.innerHTML = `
-                                            <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
-                                            <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
-                                            <button type="button" class="btn btn-outline-danger remove-field">×</button>
-                                        `;
-                                        container.appendChild(field);
-                                    }, index * 100);
-                                });
-                            }
+                            const count = Object.keys(metadata).length;
+                            display.textContent = count.toString();
+                            
+                            Object.entries(metadata).forEach(([key, value], index) => {
+                                setTimeout(() => {
+                                    const field = document.createElement('div');
+                                    field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+                                    field.innerHTML = `
+                                        <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
+                                        <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
+                                        <button type="button" class="btn btn-outline-danger remove-field">×</button>
+                                    `;
+                                    container.appendChild(field);
+                                }, index * 100);
+                            });
                         }
                     }
-                }, 300);
+                });
             } catch (populateError) {
                 console.error('Error populating question data:', populateError);
                 showAlert('warning', `Error populating question data: ${populateError.message}`);
+            }
+        } else {
+            // If no question data, just append the empty card
+            const questionsContainer = document.getElementById('questions');
+            if (questionsContainer) {
+                questionsContainer.appendChild(card);
             }
         }
 
@@ -402,12 +423,8 @@ export function addQuestion(questionData = null) {
             }
         }
 
-        const questionsContainer = document.getElementById('questions');
-        if (questionsContainer) {
-            questionsContainer.appendChild(card);
-            updateQuestionsList();
-            updateQuestionCount();
-        }
+        updateQuestionsList();
+        updateQuestionCount();
 
         return card;
     } catch (error) {
