@@ -389,7 +389,7 @@ function addQuestion(questionData = null) {
     }
 }
 
-// Function to validate questions
+// Function to validate questions (removed export keyword)
 function validateQuestions() {
     const questions = document.querySelectorAll('.question-card');
     const errors = [];
