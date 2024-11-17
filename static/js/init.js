@@ -89,7 +89,7 @@ export function initializeForm() {
 
 export async function loadInitialFormData(formData) {
     try {
-        console.log('Loading initial form data:', formData); // Debug log
+        console.log('Loading initial form data:', formData);
         toggleLoadingOverlay(true, 'Loading form data...');
         
         // Set basic fields
@@ -103,23 +103,22 @@ export async function loadInitialFormData(formData) {
         // Clear and prepare questions container
         const questionsContainer = document.getElementById('questions');
         if (!questionsContainer) {
-            console.error('Questions container not found');
-            return;
+            throw new Error('Questions container not found');
         }
         questionsContainer.innerHTML = '';
 
-        // Add questions with error handling
+        // Add questions with improved error handling
         if (formData.questions && Array.isArray(formData.questions)) {
+            console.log('Processing questions:', formData.questions);
             for (const questionData of formData.questions) {
                 try {
                     const card = await addQuestion(questionData);
                     if (!card) {
-                        console.error('Failed to add question card');
-                        showAlert('warning', 'Failed to add a question');
+                        throw new Error('Failed to create question card');
                     }
-                } catch (questionError) {
-                    console.error('Error adding question:', questionError);
-                    showAlert('warning', `Error adding question: ${questionError.message}`);
+                } catch (error) {
+                    console.error('Error adding question:', error);
+                    showAlert('danger', `Failed to load question: ${error.message}`);
                 }
             }
         }
