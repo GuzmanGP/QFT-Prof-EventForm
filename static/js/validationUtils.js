@@ -103,12 +103,15 @@ export function validateQuestion(card) {
 
     if (answerType.value === 'list') {
         const optionsList = card.querySelector('.options-list');
-        const optionTags = optionsList.querySelectorAll('.option-tag');
-        if (optionTags.length < 2) {
-            const optionsInput = card.querySelector('.options-input');
+        const optionsCount = optionsList.querySelectorAll('.option-tag').length;
+        const optionsInput = card.querySelector('.options-input');
+        
+        if (optionsCount < 2) {
             showFieldError(optionsInput, 'At least two options are required');
-            errors.push(`Question ${questionIndex}: List must have at least two options`);
+            errors.push(`Question ${questionIndex}: At least two options are required`);
             isValid = false;
+        } else {
+            clearFieldError(optionsInput);
         }
     }
 

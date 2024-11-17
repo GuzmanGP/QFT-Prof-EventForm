@@ -154,26 +154,32 @@ function setupListOptions(card) {
                     <span class="remove-option">&times;</span>
                 `;
                 
-                // Add remove option handler
-                optionTag.querySelector('.remove-option').addEventListener('click', () => {
-                    optionTag.classList.add('animate__fadeOut');
-                    setTimeout(() => {
-                        optionTag.remove();
-                        // Check if we now have less than 2 options
-                        const remainingOptions = optionsList.querySelectorAll('.option-tag').length;
-                        if (remainingOptions < 2) {
-                            showFieldError(optionsInput, 'At least two options are required');
-                        }
-                    }, 300);
-                });
-                
                 optionsList.appendChild(optionTag);
                 optionsInput.value = '';
                 
                 // Clear validation errors if we have 2+ options
-                if (optionsList.querySelectorAll('.option-tag').length >= 2) {
+                const optionsCount = optionsList.querySelectorAll('.option-tag').length;
+                if (optionsCount >= 2) {
                     clearFieldError(optionsInput);
                 }
+            }
+        }
+    });
+    
+    // Add event delegation for remove option
+    optionsList.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-option')) {
+            const optionTag = e.target.closest('.option-tag');
+            if (optionTag) {
+                optionTag.classList.add('animate__fadeOut');
+                setTimeout(() => {
+                    optionTag.remove();
+                    // Check remaining options count
+                    const remainingCount = optionsList.querySelectorAll('.option-tag').length;
+                    if (remainingCount < 2) {
+                        showFieldError(optionsInput, 'At least two options are required');
+                    }
+                }, 300);
             }
         }
     });

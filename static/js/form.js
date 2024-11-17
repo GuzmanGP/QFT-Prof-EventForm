@@ -1,3 +1,4 @@
+// form.js
 import { initializeForm } from './init.js';
 import { 
     updateQuestionCount, 
@@ -10,7 +11,7 @@ import { validateForm } from './validation.js';
 import { addQuestion } from './question.js';
 import { updateMetadataFields } from './metadataFields.js';
 
-// Initialize form when DOM content is loaded
+// Initialize form when DOM content is loaded with error recovery
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await initializeForm();
@@ -18,8 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Error initializing form:', error);
         const container = document.getElementById('questions');
         if (container) {
-            showErrorState(container, 'Failed to initialize form. Please try refreshing the page.');
+            showErrorState(container, error.message || 'Failed to initialize form. Please try refreshing the page.');
         }
-        showAlert('danger', 'Failed to initialize form. Please try refreshing the page.');
+        showAlert('danger', 'Failed to initialize form. Please try refreshing the page or create a new one.');
     }
 });
