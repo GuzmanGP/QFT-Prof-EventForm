@@ -180,34 +180,21 @@ export function setupCounterButtons(buttons, container, display) {
 
     buttons.forEach(button => {
         button.addEventListener('click', () => {
-            try {
-                const currentCount = parseInt(display.textContent);
-                const actualChildren = container.children.length;
-
-                // Validate counter state
-                if (currentCount !== actualChildren) {
-                    console.warn('Counter state mismatch, synchronizing...');
-                    updateCounterDisplay(container.id);
-                }
-
-                const isIncrease = button.classList.contains('increase-count');
-                console.log('Button clicked:', { 
-                    isIncrease, 
-                    currentCount,
-                    containerId: container.id
-                });
-
-                if (isIncrease && currentCount < 20) {
-                    addMetadataField(container);
-                } else if (!isIncrease && currentCount > 0) {
-                    removeLastField(container);
-                } else if (isIncrease && currentCount >= 20) {
-                    console.warn('Maximum field limit (20) reached');
-                    showAlert('warning', 'Maximum number of fields reached (20)');
-                }
-            } catch (error) {
-                console.error('Error handling counter button click:', error);
-                showAlert('danger', 'Error updating metadata fields');
+            const currentCount = parseInt(display.textContent) || 0;
+            const isIncrease = button.classList.contains('increase-count');
+            
+            console.log('Button clicked:', {
+                isIncrease,
+                currentCount,
+                containerId: container.id
+            });
+            
+            if (isIncrease && currentCount < MAX_FIELDS) {
+                addMetadataField(container);
+                display.textContent = (currentCount + 1).toString();
+            } else if (!isIncrease && currentCount > 0) {
+                removeLastField(container);
+                display.textContent = (currentCount - 1).toString();
             }
         });
     });

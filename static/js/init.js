@@ -51,41 +51,25 @@ export async function initializeForm() {
             return;
         }
         
-        // Initialize all metadata sections with standardized validation
+        // Initialize all metadata sections with improved validation
         for (const section of metadataSections) {
-            try {
-                const containerId = section.querySelector('.metadata-container')?.id;
-                if (!containerId) {
-                    console.error('Container ID not found in metadata section');
-                    continue;
-                }
-
-                // Standard validation for container elements
-                const container = document.getElementById(containerId);
-                const buttons = document.querySelectorAll(`.counter-button[data-target="${containerId}"]`);
-                const display = document.querySelector(`#${containerId}Count`);
-
-                if (!container || !buttons.length || !display) {
-                    console.error('Required elements not found:', {
-                        container: !!container,
-                        buttons: buttons.length,
-                        display: !!display
-                    });
-                    continue;
-                }
-
-                console.debug('Found elements for container:', {
-                    containerId,
-                    buttonCount: buttons.length,
-                    currentCount: display.textContent
-                });
-
-                console.log('Setting up counter for container:', containerId);
-                setupCounterButtons(Array.from(buttons), container, display);
-                console.log(`Successfully initialized counter for ${containerId}`);
-            } catch (error) {
-                console.error('Error initializing metadata section:', error);
+            const container = section.querySelector('.metadata-container');
+            const buttons = section.querySelectorAll('.counter-button');
+            const display = section.querySelector('.counter-display');
+            
+            if (!container || !buttons.length || !display) {
+                console.error('Required elements not found for section:', section);
+                continue;
             }
+            
+            // Add debug logging
+            console.log('Setting up counter for:', {
+                container: container.id,
+                buttonCount: buttons.length,
+                displayId: display.id
+            });
+            
+            setupCounterButtons(Array.from(buttons), container, display);
         }
 
         // Form submission handler
