@@ -44,33 +44,70 @@ export function setupCounterButtons(buttons, container, display) {
         return;
     }
 
-    console.log('Initializing counter buttons for:', container.id);
-    console.log('Found elements:', {
-        container: !!container,
-        display: !!display,
-        buttons: buttons.length
+    console.debug('Container children count:', container.children.length);
+    console.log('Setting up counter for container:', container.id);
+
+    // Log initial state
+    console.log('Initial state:', {
+        containerChildren: container.children.length,
+        displayValue: display.textContent,
+        buttonsCount: buttons.length
     });
-    
+
+    // Ensure counter display matches actual children count
+    const actualCount = container.children.length;
+    display.textContent = actualCount.toString();
+
     buttons.forEach(button => {
         button.addEventListener('click', () => {
-            const currentCount = parseInt(display.textContent);
-            const isIncrease = button.classList.contains('increase-count');
-            
-            console.log('Button clicked:', { isIncrease, currentCount });
-            
-            if (isIncrease && currentCount < 20) {
-                addMetadataField(container);
-                display.textContent = (currentCount + 1).toString();
-            } else if (!isIncrease && currentCount > 0) {
-                removeLastField(container);
-                display.textContent = (currentCount - 1).toString();
-            } else if (isIncrease && currentCount >= 20) {
-                console.warn('Maximum field limit (20) reached');
-                showAlert('warning', 'Maximum number of fields reached (20)');
+            try {
+                const currentCount = parseInt(display.textContent);
+                const actualChildren = container.children.length;
+                console.debug('Current container children:', actualChildren);
+
+                // Validate counter state
+                if (currentCount !== actualChildren) {
+                    console.warn('Counter state mismatch:', {
+                        displayCount: currentCount,
+                        actualChildren: actualChildren
+                    });
+                    display.textContent = actualChildren.toString();
+                }
+
+                const isIncrease = button.classList.contains('increase-count');
+                console.log('Button clicked:', { 
+                    isIncrease, 
+                    currentCount,
+                    containerId: container.id
+                });
+
+                if (isIncrease && currentCount < 20) {
+                    addMetadataField(container);
+                    const newCount = container.children.length;
+                    display.textContent = newCount.toString();
+                    console.debug('Field added:', { 
+                        previousCount: currentCount,
+                        newCount: newCount
+                    });
+                } else if (!isIncrease && currentCount > 0) {
+                    removeLastField(container);
+                    const newCount = container.children.length;
+                    display.textContent = newCount.toString();
+                    console.debug('Field removed:', {
+                        previousCount: currentCount,
+                        newCount: newCount
+                    });
+                } else if (isIncrease && currentCount >= 20) {
+                    console.warn('Maximum field limit (20) reached');
+                    showAlert('warning', 'Maximum number of fields reached (20)');
+                }
+            } catch (error) {
+                console.error('Error handling counter button click:', error);
+                showAlert('danger', 'Error updating metadata fields');
             }
         });
     });
-    
+
     console.log('Counter buttons setup completed successfully');
 }
 export function validateMetadataContainer(container, errors) {
