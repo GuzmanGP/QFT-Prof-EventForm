@@ -167,12 +167,6 @@ export async function loadForm(formData) {
     
     try {
         const result = await attemptLoad(url);
-        
-        // Load form history after successful form load
-        const { fetchFormLoadHistory, displayLoadHistory } = await import('./loadHistory.js');
-        const historyData = await fetchFormLoadHistory(formId);
-        displayLoadHistory('loadHistory', historyData);
-        
         return result;
     } catch (error) {
         console.error('Error loading form:', error);

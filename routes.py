@@ -1,6 +1,6 @@
 from flask import render_template, request, jsonify, flash, redirect, url_for, json
 from app import app, db
-from models import FormConfiguration, Question, FormLoadHistory
+from models import FormConfiguration, Question
 
 
 @app.route('/')
@@ -146,33 +146,7 @@ def save_form():
         flash(f'Error saving form: {str(e)}', 'danger')
         return redirect(url_for('new_form_index'))
 
-@app.route('/api/form/<int:form_id>/load-history')
-def get_form_load_history(form_id):
-    try:
-        # Get form load history with pagination
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
-        
-        history = FormLoadHistory.query.filter_by(form_id=form_id)\
-            .order_by(FormLoadHistory.loaded_at.desc())\
-            .paginate(page=page, per_page=per_page)
-        
-        return jsonify({
-            'total': history.total,
-            'pages': history.pages,
-            'current_page': history.page,
-            'per_page': per_page,
-            'history': [{
-                'id': h.id,
-                'loaded_at': h.loaded_at.isoformat(),
-                'ip_address': h.ip_address,
-                'user_agent': h.user_agent,
-                'success': h.success,
-                'error_message': h.error_message
-            } for h in history.items]
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+
 
 @app.errorhandler(404)
 def not_found_error(error):
