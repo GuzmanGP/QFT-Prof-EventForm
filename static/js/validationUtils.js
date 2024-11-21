@@ -142,3 +142,54 @@ export function validateQuestion(card) {
 
     return { isValid, errors };
 }
+// Function to validate form data on load
+export function validateFormData(formData) {
+    const errors = [];
+    
+    // Validate basic form fields
+    if (!formData.title?.trim()) {
+        errors.push('Form title is required');
+    } else if (formData.title.length > 200) {
+        errors.push('Form title must be less than 200 characters');
+    }
+    
+    if (!formData.category?.trim()) {
+        errors.push('Form category is required');
+    } else if (formData.category.length > 100) {
+        errors.push('Category must be less than 100 characters');
+    }
+    
+    // Validate metadata
+    if (formData.category_metadata && typeof formData.category_metadata !== 'object') {
+        errors.push('Invalid category metadata format');
+    }
+    
+    if (formData.subcategory_metadata && typeof formData.subcategory_metadata !== 'object') {
+        errors.push('Invalid subcategory metadata format');
+    }
+    
+    // Validate questions
+    if (!Array.isArray(formData.questions)) {
+        errors.push('Invalid questions format');
+    } else {
+        formData.questions.forEach((question, index) => {
+            if (!question.reference?.trim()) {
+                errors.push(`Question ${index + 1}: Reference is required`);
+            }
+            if (!question.content?.trim()) {
+                errors.push(`Question ${index + 1}: Content is required`);
+            }
+            if (!['text', 'num', 'date', 'list'].includes(question.answer_type)) {
+                errors.push(`Question ${index + 1}: Invalid answer type`);
+            }
+            if (question.answer_type === 'list' && (!Array.isArray(question.options) || question.options.length < 2)) {
+                errors.push(`Question ${index + 1}: List type questions require at least two options`);
+            }
+        });
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors
+    };
+}

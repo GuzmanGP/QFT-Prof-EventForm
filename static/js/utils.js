@@ -80,7 +80,7 @@ export function clearErrorState(container) {
 }
 
 // Import dependencies
-import { clearFieldError } from './validationUtils.js';
+import { clearFieldError, validateFormData } from './validationUtils.js';
 import { addQuestion } from './question.js';
 
 export function toggleLoadingOverlay(show = true, message = 'Loading...') {
@@ -193,6 +193,12 @@ async function attemptLoad(url, attempts = 3) {
             }
             
             const formData = JSON.parse(data);
+            
+            // Validate form data
+            const validation = validateFormData(formData);
+            if (!validation.isValid) {
+                throw new Error('Invalid form data: ' + validation.errors.join(', '));
+            }
             
             // Clear existing questions
             questionsContainer.innerHTML = '';
