@@ -12,7 +12,6 @@ import {
     showErrorState,
     loadForm 
 } from './utils.js';
-import { recordLoadAttempt, getLoadHistory } from './loadHistory.js';
 
 export async function initializeForm() {
     const form = document.getElementById('formConfiguration');

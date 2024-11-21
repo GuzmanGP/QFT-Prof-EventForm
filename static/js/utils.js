@@ -167,13 +167,9 @@ export async function loadForm(formData) {
     
     try {
         const result = await attemptLoad(url);
-        // Record successful load
-        recordLoadAttempt(formId, true);
         return result;
     } catch (error) {
         console.error('Error loading form:', error);
-        // Record failed load
-        recordLoadAttempt(formId, false, error.message);
         throw error;
     }
 }

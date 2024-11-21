@@ -27,11 +27,3 @@ class Question(db.Model):
     ai_instructions = db.Column(db.Text)
 
 
-class FormLoadHistory(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    form_id = db.Column(db.Integer, db.ForeignKey('form_configuration.id'), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    success = db.Column(db.Boolean, nullable=False)
-    error_message = db.Column(db.Text)
-    
-    form = db.relationship('FormConfiguration', backref='load_history')

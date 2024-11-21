@@ -126,25 +126,6 @@ def save_form():
 
 
 
-@app.route('/api/form-load-history', methods=['POST'])
-def record_form_load():
-    try:
-        data = request.get_json()
-        if not data or 'formId' not in data:
-            return jsonify({'error': 'Invalid request data'}), 400
-            
-        history = FormLoadHistory(
-            form_id=data['formId'],
-            success=data['success'],
-            error_message=data.get('errorMessage')
-        )
-        
-        db.session.add(history)
-        db.session.commit()
-        return jsonify({'status': 'success'}), 200
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('error.html', error="Page not found"), 404
