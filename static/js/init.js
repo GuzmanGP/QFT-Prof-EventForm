@@ -11,9 +11,10 @@ import {
 
 export async function initializeForm() {
     const form = document.getElementById('formConfiguration');
-    const questionsContainer = document.getElementById('questions');
+    const eventDatesContainer = document.getElementById('eventDates');
+    const addDateButton = document.getElementById('addEventDate');
 
-    if (!form || !questionsContainer) {
+    if (!form || !eventDatesContainer || !addDateButton) {
         throw new Error('Required form elements not found');
     }
 

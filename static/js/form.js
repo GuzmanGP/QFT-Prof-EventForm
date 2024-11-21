@@ -12,8 +12,9 @@ import { initializeEventDates, loadEventDates } from './eventDates.js';
 // Initialize form when DOM content is loaded with error recovery
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Initialize form
+        // Initialize form and event dates
         await initializeForm();
+        await initializeEventDates();
     } catch (error) {
         console.error('Error initializing form:', error);
         const container = document.getElementById('questions');

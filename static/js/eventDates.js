@@ -6,9 +6,14 @@ export function initializeEventDates() {
     const eventDatesInput = document.getElementById('eventDatesInput');
 
     if (!addDateButton || !eventDatesContainer || !eventDatesInput) {
-        console.error('Required elements not found');
-        return;
+        throw new Error('Required event date elements not found. Please check if all elements are present in the DOM.');
     }
+
+    try {
+        // Initialize hidden input with empty dates array if not already set
+        if (!eventDatesInput.value) {
+            eventDatesInput.value = JSON.stringify({ dates: [] });
+        }
 
     // Initialize hidden input
     updateEventDatesInput();
