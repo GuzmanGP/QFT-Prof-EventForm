@@ -1,6 +1,13 @@
 // metadataFields.js
 import { showAlert } from './utils.js';
 import { showFieldError, clearFieldError } from './validationUtils.js';
+export function updateCounterDisplay(containerId) {
+    const count = document.querySelectorAll(`#${containerId} .input-group`).length;
+    const countDisplay = document.getElementById(`${containerId}Count`);
+    if (countDisplay) {
+        countDisplay.textContent = count.toString();
+    }
+}
 
 export function addMetadataField(container) {
     console.log('Adding new metadata field');
@@ -15,17 +22,15 @@ export function addMetadataField(container) {
     // Add remove button handler
     const removeButton = field.querySelector('.remove-field');
     removeButton.addEventListener('click', () => {
-        const display = container.closest('.metadata-section').querySelector('.counter-display');
-        const currentCount = parseInt(display.textContent);
-        
         field.classList.add('animate__fadeOutRight');
         setTimeout(() => {
             field.remove();
-            display.textContent = (currentCount - 1).toString();
+            updateCounterDisplay(container.id);
         }, 300);
     });
     
     container.appendChild(field);
+    updateCounterDisplay(container.id);
 }
 
 function removeLastField(container) {
@@ -47,31 +52,19 @@ export function setupCounterButtons(buttons, container, display) {
     console.debug('Container children count:', container.children.length);
     console.log('Setting up counter for container:', container.id);
 
-    // Log initial state
-    console.log('Initial state:', {
-        containerChildren: container.children.length,
-        displayValue: display.textContent,
-        buttonsCount: buttons.length
-    });
-
-    // Ensure counter display matches actual children count
-    const actualCount = container.children.length;
-    display.textContent = actualCount.toString();
+    // Initial counter synchronization
+    updateCounterDisplay(container.id);
 
     buttons.forEach(button => {
         button.addEventListener('click', () => {
             try {
                 const currentCount = parseInt(display.textContent);
                 const actualChildren = container.children.length;
-                console.debug('Current container children:', actualChildren);
 
                 // Validate counter state
                 if (currentCount !== actualChildren) {
-                    console.warn('Counter state mismatch:', {
-                        displayCount: currentCount,
-                        actualChildren: actualChildren
-                    });
-                    display.textContent = actualChildren.toString();
+                    console.warn('Counter state mismatch, synchronizing...');
+                    updateCounterDisplay(container.id);
                 }
 
                 const isIncrease = button.classList.contains('increase-count');
@@ -83,20 +76,8 @@ export function setupCounterButtons(buttons, container, display) {
 
                 if (isIncrease && currentCount < 20) {
                     addMetadataField(container);
-                    const newCount = container.children.length;
-                    display.textContent = newCount.toString();
-                    console.debug('Field added:', { 
-                        previousCount: currentCount,
-                        newCount: newCount
-                    });
                 } else if (!isIncrease && currentCount > 0) {
                     removeLastField(container);
-                    const newCount = container.children.length;
-                    display.textContent = newCount.toString();
-                    console.debug('Field removed:', {
-                        previousCount: currentCount,
-                        newCount: newCount
-                    });
                 } else if (isIncrease && currentCount >= 20) {
                     console.warn('Maximum field limit (20) reached');
                     showAlert('warning', 'Maximum number of fields reached (20)');
@@ -108,7 +89,13 @@ export function setupCounterButtons(buttons, container, display) {
         });
     });
 
-    console.log('Counter buttons setup completed successfully');
+    // Add mutation observer for DOM changes
+    const observer = new MutationObserver(() => {
+        updateCounterDisplay(container.id);
+    });
+
+    observer.observe(container, { childList: true, subtree: true });
+    console.log('Counter buttons and observer setup completed successfully');
 }
 export function validateMetadataContainer(container, errors) {
     const keys = new Set();
