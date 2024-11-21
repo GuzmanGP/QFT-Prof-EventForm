@@ -338,7 +338,7 @@ textarea.form-control:focus {
     color: #fff;
     cursor: pointer;
     transition: background-color 0.15s ease-in-out;
-    user-select: none;
+    pointer-events: auto;  /* Ensure clicks are not blocked */
 }
 
 /* Question card mobile adjustments */
@@ -440,12 +440,17 @@ textarea.form-control:focus {
 }
 
 /* Keep existing animations and other styles */
-.counter-button:hover {
+.counter-button:not(:disabled):hover {
     background-color: var(--spinner-button-hover-bg);
 }
 
-.counter-button:active {
+.counter-button:not(:disabled):active {
     background-color: var(--input-border);
+}
+
+.counter-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .counter-display {
