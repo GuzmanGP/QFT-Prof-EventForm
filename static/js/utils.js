@@ -152,6 +152,19 @@ export async function loadForm(formData) {
         throw new Error('Invalid form data');
     }
     
+    // Show load history if available
+    try {
+        const formId = formData.id || formData;
+        if (formId) {
+            const { fetchFormLoadHistory, displayLoadHistory } = await import('./loadHistory.js');
+            const historyData = await fetchFormLoadHistory(formId);
+            displayLoadHistory('loadHistory', historyData);
+        }
+    } catch (error) {
+        console.error('Error loading form history:', error);
+        showAlert('warning', 'Failed to load form history');
+    }
+    
     // Extract formId properly whether it's a string/number or an object
     const formId = formData.id || formData;
     if (!formId) {
@@ -221,12 +234,35 @@ async function attemptLoad(url, attempts = 3) {
                 }
             }
 
-            // Set metadata fields
-            if (formData.category_metadata) {
-                setMetadataFields('categoryMetadata', formData.category_metadata);
+            // Validate and set metadata fields
+            console.debug('Validating metadata fields...');
+            
+            // Validate category metadata
+            if (formData.category_metadata !== undefined) {
+                if (typeof formData.category_metadata === 'object' && !Array.isArray(formData.category_metadata)) {
+                    console.debug('Setting category metadata:', formData.category_metadata);
+                    setMetadataFields('categoryMetadata', formData.category_metadata);
+                } else {
+                    console.error('Invalid category metadata format:', formData.category_metadata);
+                    showAlert('warning', 'Invalid category metadata format');
+                }
+            } else {
+                console.debug('No category metadata found');
+                setMetadataFields('categoryMetadata', {});
             }
-            if (formData.subcategory_metadata) {
-                setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
+
+            // Validate subcategory metadata
+            if (formData.subcategory_metadata !== undefined) {
+                if (typeof formData.subcategory_metadata === 'object' && !Array.isArray(formData.subcategory_metadata)) {
+                    console.debug('Setting subcategory metadata:', formData.subcategory_metadata);
+                    setMetadataFields('subcategoryMetadata', formData.subcategory_metadata);
+                } else {
+                    console.error('Invalid subcategory metadata format:', formData.subcategory_metadata);
+                    showAlert('warning', 'Invalid subcategory metadata format');
+                }
+            } else {
+                console.debug('No subcategory metadata found');
+                setMetadataFields('subcategoryMetadata', {});
             }
 
             // Add questions with animation
@@ -267,6 +303,8 @@ async function attemptLoad(url, attempts = 3) {
 }
 
 export function setMetadataFields(containerId, metadata = {}) {
+    console.debug(`Setting metadata fields for ${containerId}:`, metadata);
+    
     const container = document.getElementById(containerId);
     const countDisplay = document.getElementById(`${containerId}Count`);
     
@@ -275,20 +313,66 @@ export function setMetadataFields(containerId, metadata = {}) {
         return;
     }
 
-    const count = Object.keys(metadata).length;
-    countDisplay.textContent = count.toString();
-    container.innerHTML = '';
-    
-    Object.entries(metadata).forEach(([key, value]) => {
-        const field = document.createElement('div');
-        field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
-        field.innerHTML = `
-            <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
-            <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
-            <button type="button" class="btn btn-outline-danger remove-field">×</button>
-        `;
-        container.appendChild(field);
-    });
+    // Type check and validate metadata
+    if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+        console.error(`Invalid metadata format for ${containerId}:`, metadata);
+        showAlert('danger', `Invalid metadata format for ${containerId}`);
+        return;
+    }
+
+    try {
+        // Clear container
+        container.innerHTML = '';
+        let validEntries = 0;
+
+        // Process each metadata entry with validation
+        Object.entries(metadata).forEach(([key, value]) => {
+            // Validate key and value
+            if (!key || typeof key !== 'string') {
+                console.warn(`Invalid metadata key in ${containerId}:`, key);
+                return;
+            }
+
+            if (value === undefined || value === null) {
+                console.warn(`Invalid metadata value for key "${key}" in ${containerId}`);
+                return;
+            }
+
+            try {
+                // Create field with sanitized values
+                const field = document.createElement('div');
+                field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+                field.innerHTML = `
+                    <input type="text" class="form-control metadata-key" value="${escapeHtml(key)}" placeholder="Key">
+                    <input type="text" class="form-control metadata-value" value="${escapeHtml(String(value))}" placeholder="Value">
+                    <button type="button" class="btn btn-outline-danger remove-field">×</button>
+                `;
+                container.appendChild(field);
+                validEntries++;
+                console.debug(`Added metadata field: ${key} = ${value}`);
+            } catch (fieldError) {
+                console.error(`Error creating metadata field for ${key}:`, fieldError);
+            }
+        });
+
+        // Update counter with valid entries
+        countDisplay.textContent = validEntries.toString();
+        console.debug(`Successfully set ${validEntries} metadata fields for ${containerId}`);
+
+    } catch (error) {
+        console.error(`Error setting metadata fields for ${containerId}:`, error);
+        showAlert('danger', `Error setting metadata fields: ${error.message}`);
+    }
+}
+
+// Helper function to escape HTML special characters
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 export function setQuestionFields(card, questionData) {
