@@ -147,13 +147,6 @@ export function setupCounterButtons(buttons, container, display) {
     console.group('Setting up Counter Buttons');
     console.log('Initializing for container:', container?.id);
 
-    // Add debug logging
-    console.log('Setting up counter buttons for:', {
-        container: container?.id,
-        buttonCount: buttons?.length,
-        displayId: display?.id
-    });
-
     // Enhanced validation for required elements
     if (!container?.id || !display || !buttons?.length) {
         const error = new Error('Invalid counter setup parameters');
@@ -175,44 +168,82 @@ export function setupCounterButtons(buttons, container, display) {
         showAlert('warning', 'Error synchronizing metadata counter');
     }
 
-    // Validate container state
-    console.log('Initial state:', {
-        containerChildren: container.children.length,
-        displayValue: display.textContent,
-        buttonsCount: buttons.length
-    });
-
-    // Initial counter synchronization
-    updateCounterDisplay(container.id);
-
     buttons.forEach(button => {
         button.addEventListener('click', () => {
-            const currentCount = parseInt(display.textContent) || 0;
-            const isIncrease = button.classList.contains('increase-count');
-            
-            console.log('Button clicked:', {
-                isIncrease,
-                currentCount,
-                containerId: container.id
-            });
-            
-            if (isIncrease && currentCount < MAX_FIELDS) {
-                addMetadataField(container);
-                display.textContent = (currentCount + 1).toString();
-            } else if (!isIncrease && currentCount > 0) {
-                removeLastField(container);
-                display.textContent = (currentCount - 1).toString();
+            try {
+                const isIncrease = button.classList.contains('increase-count');
+                const currentCount = parseInt(display.textContent) || 0;
+                const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
+
+                console.log('Button clicked:', { 
+                    isIncrease, 
+                    currentCount, 
+                    newCount,
+                    containerId: container.id 
+                });
+
+                if (isIncrease && currentCount < MAX_FIELDS) {
+                    addMetadataField(container);
+                    display.textContent = (currentCount + 1).toString();
+                } else if (!isIncrease && currentCount > 0) {
+                    removeLastField(container);
+                    display.textContent = (currentCount - 1).toString();
+                }
+
+                // Add validation for maximum fields
+                if (currentCount >= MAX_FIELDS) {
+                    button.classList.add('disabled');
+                    showAlert('warning', `Maximum number of fields (${MAX_FIELDS}) reached`);
+                }
+
+                // Update counter display after operation
+                updateCounterDisplay(container.id);
+
+            } catch (error) {
+                console.error('Error handling button click:', error);
+                showAlert('danger', 'Error updating metadata fields');
             }
         });
     });
 
     // Add mutation observer for DOM changes
     const observer = new MutationObserver(() => {
-        updateCounterDisplay(container.id);
+        try {
+            updateCounterDisplay(container.id);
+        } catch (error) {
+            console.error('Error in mutation observer:', error);
+        }
     });
 
     observer.observe(container, { childList: true, subtree: true });
     console.log('Counter buttons and observer setup completed successfully');
+    console.groupEnd();
+}
+
+function removeLastField(container) {
+    console.log('Removing last metadata field from:', container.id);
+    const lastField = container.querySelector('.input-group:last-child');
+    
+    if (!lastField) {
+        console.warn('No field to remove');
+        return;
+    }
+
+    try {
+        // Add animation class
+        lastField.classList.add('animate__animated', 'animate__fadeOutRight');
+        
+        // Remove after animation
+        setTimeout(() => {
+            lastField.remove();
+            updateCounterDisplay(container.id);
+            console.log('Field removed successfully');
+        }, 300);
+    } catch (error) {
+        console.error('Error removing field:', error);
+        lastField.remove(); // Fallback removal without animation
+        updateCounterDisplay(container.id);
+    }
 }
 export function validateMetadataContainer(container, errors) {
     const keys = new Set();
