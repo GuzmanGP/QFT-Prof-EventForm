@@ -38,13 +38,16 @@
                     <label class="form-label">Event Type<span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="event_type" name="event_type" required>
                     
-                    <div class="metadata-section">
-                        <div class="metadata-container" id="eventTypeMetadata"></div>
-                        <div class="counter-group">
-                            <button type="button" class="counter-button decrease-count" data-target="eventTypeMetadata">-</button>
-                            <span class="counter-display" id="eventTypeMetadataCount">0</span>
-                            <button type="button" class="counter-button increase-count" data-target="eventTypeMetadata">+</button>
+                    <div class="metadata-section mt-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6>Event Type Metadata</h6>
+                            <div class="counter-group">
+                                <button type="button" class="counter-button decrease-count" data-target="eventTypeMetadata">-</button>
+                                <span class="counter-display" id="eventTypeMetadataCount">0</span>
+                                <button type="button" class="counter-button increase-count" data-target="eventTypeMetadata">+</button>
+                            </div>
                         </div>
+                        <div id="eventTypeMetadata" class="metadata-container"></div>
                     </div>
                 </div>
 
@@ -52,13 +55,16 @@
                     <label class="form-label">Event Description</label>
                     <textarea class="form-control" id="event_description" name="event_description" rows="3"></textarea>
                     
-                    <div class="metadata-section">
-                        <div class="metadata-container" id="eventMetadata"></div>
-                        <div class="counter-group">
-                            <button type="button" class="counter-button decrease-count" data-target="eventMetadata">-</button>
-                            <span class="counter-display" id="eventMetadataCount">0</span>
-                            <button type="button" class="counter-button increase-count" data-target="eventMetadata">+</button>
+                    <div class="metadata-section mt-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6>Event Metadata</h6>
+                            <div class="counter-group">
+                                <button type="button" class="counter-button decrease-count" data-target="eventMetadata">-</button>
+                                <span class="counter-display" id="eventMetadataCount">0</span>
+                                <button type="button" class="counter-button increase-count" data-target="eventMetadata">+</button>
+                            </div>
                         </div>
+                        <div id="eventMetadata" class="metadata-container"></div>
                     </div>
                 </div>
 

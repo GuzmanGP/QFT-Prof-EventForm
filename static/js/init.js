@@ -52,25 +52,20 @@ export async function initializeForm() {
         }
         
         // Initialize all metadata sections
-        metadataSections.forEach(section => {
+        for (const section of metadataSections) {
             try {
                 const container = section.querySelector('.metadata-container');
                 const buttons = section.querySelectorAll('.counter-button');
                 const display = section.querySelector('.counter-display');
                 
-                if (!container) {
-                    console.error('Missing metadata container for section');
-                    return;
+                if (!container || !buttons || !display) {
+                    console.error('Missing required elements for metadata section');
+                    continue;
                 }
                 
-                if (!buttons.length) {
-                    console.error('No counter buttons found for section:', container.id);
-                    return;
-                }
-                
-                if (!display) {
-                    console.error('Missing counter display for section:', container.id);
-                    return;
+                if (!container || !buttons || !display) {
+                    console.error('Missing required elements for counter initialization');
+                    continue;
                 }
 
                 console.log('Setting up counter for container:', container.id);
@@ -78,9 +73,8 @@ export async function initializeForm() {
                 console.log(`Successfully initialized counter for ${container.id}`);
             } catch (error) {
                 console.error('Error initializing metadata section:', error);
-                showAlert('danger', `Failed to initialize counter for metadata section: ${error.message}`);
             }
-        });
+        }
 
         // Form submission handler
         if (form) {
