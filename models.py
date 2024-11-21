@@ -35,6 +35,7 @@ class EventConfiguration(db.Model):
     event_description = db.Column(db.Text)
     event_metadata = db.Column(JSONB, default=dict)
     event_type_metadata = db.Column(JSONB, default=dict)
+    questions = db.Column(JSONB, default=lambda: {"questions": []})
     registration_date = db.Column(db.DateTime, default=datetime.utcnow)
     last_update_date = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

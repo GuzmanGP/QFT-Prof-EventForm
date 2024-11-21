@@ -25,6 +25,7 @@ def load_event_index(event_id=None):
                 'event_description': event_config.event_description,
                 'event_metadata': event_config.event_metadata,
                 'event_type_metadata': event_config.event_type_metadata,
+                'questions': event_config.questions.get('questions', []),
                 'registration_date': event_config.registration_date.isoformat(),
                 'last_update_date': event_config.last_update_date.isoformat()
             }
@@ -66,7 +67,8 @@ def save_event():
             'event_type': event_data.get('event_type'),
             'event_description': event_data.get('event_description'),
             'event_metadata': json.loads(event_data.get('event_metadata', '{}')),
-            'event_type_metadata': json.loads(event_data.get('event_type_metadata', '{}'))
+            'event_type_metadata': json.loads(event_data.get('event_type_metadata', '{}')),
+            'questions': json.loads(event_data.get('questions', '{"questions": []}'))
         }
 
         # Create event configuration
