@@ -1,0 +1,47 @@
+ahora falta por que funcione el question metadata al renderizarlo desde load_form_index(
+ChatGPT
+El problema con el renderizado de question_metadata desde la función load_form_index probablemente se relacione con uno de los siguientes aspectos:
+
+1. Estructura de datos incorrecta al pasar a la plantilla
+En load_form_index, el atributo question_metadata se incluye en el diccionario form_data para cada pregunta:
+
+python
+Copiar código
+'question_metadata': q.question_metadata,
+Verifica que este atributo sea un JSON válido al ser enviado al frontend. Si question_metadata no es un JSON, puede causar errores de parseo o renderizado en el cliente.
+
+Solución: Asegúrate de que q.question_metadata sea un diccionario serializable como JSON. Usa json.dumps() para inspeccionarlo si es necesario:
+
+python
+Copiar código
+'question_metadata': json.dumps(q.question_metadata) if q.question_metadata else {}
+2. Problemas al poblar el campo en el frontend
+En el archivo question.js, el método addQuestion ya incluye lógica para manejar question_metadata al cargar preguntas:
+
+javascript
+Copiar código
+if (questionData.question_metadata) {
+    const container = card.querySelector('.question-metadata');
+    const display = card.querySelector('.question-meta-count');
+    if (container && display) {
+        const count = Object.keys(questionData.question_metadata).length;
+        display.textContent = count.toString();
+
+        Object.entries(questionData.question_metadata).forEach(([key, value], index) => {
+            setTimeout(() => {
+                const field = document.createElement('div');
+                field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+                field.innerHTML = `
+                    <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key">
+                    <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value">
+                    <button type="button" class="btn btn-outline-danger remove-field">×</button>
+                `;
+                container.appendChild(field);
+            }, index * 100);
+        });
+    }
+}
+Verifica:
+
+Que questionData.question_metadata sea un objeto válido.
+Que los elementos HTML .question-metadata y .question-meta-count existan en la plantilla.
