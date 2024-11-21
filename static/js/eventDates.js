@@ -1,4 +1,5 @@
 // eventDates.js
+import { showAlert } from './utils.js';
 
 export function initializeEventDates() {
     console.log('Initializing event dates functionality...');
@@ -27,9 +28,28 @@ export function initializeEventDates() {
     });
 
     try {
-        // Initialize handlers for counter buttons
-        initializeCounterButtons(decreaseButton, increaseButton);
-        
+        // Initialize counter buttons
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                const currentCount = parseInt(display.textContent);
+                const isIncrease = button.classList.contains('increase-count');
+                
+                console.log('Button clicked:', { isIncrease, currentCount });
+                
+                if (isIncrease && currentCount < 20) {
+                    addEventDate();
+                } else if (!isIncrease && currentCount > 0) {
+                    const lastDate = container.querySelector('.input-group:last-child');
+                    if (lastDate) {
+                        removeEventDate(lastDate);
+                    }
+                } else if (isIncrease && currentCount >= 20) {
+                    console.warn('Maximum event dates limit (20) reached');
+                    showAlert('warning', 'Maximum number of event dates reached (20)');
+                }
+            });
+        });
+
         // Initialize hidden input and counter display
         updateEventDatesInput();
         updateCounterDisplay();
@@ -93,55 +113,66 @@ function initializeCounterButtons(decreaseButton, increaseButton) {
 function addEventDate(initialValue = '') {
     const eventDatesContainer = document.getElementById('eventDates');
     if (!eventDatesContainer) {
-        throw new Error('Event dates container not found');
+        console.error('Event dates container not found');
+        return;
     }
 
-    try {
-        // Create date input group with animation
-        const dateGroup = document.createElement('div');
-        dateGroup.className = 'input-group mb-2';
-        dateGroup.innerHTML = `
-            <input type="datetime-local" 
-                   class="form-control event-date" 
-                   value="${initialValue}"
-                   required>
-        `;
+    const dateGroup = document.createElement('div');
+    dateGroup.className = 'input-group mb-2 animate__animated animate__fadeIn';
+    dateGroup.innerHTML = `
+        <input type="datetime-local" 
+               class="form-control event-date" 
+               value="${initialValue}"
+               required>
+        <button type="button" class="btn btn-outline-danger remove-field">×</button>
+    `;
 
-        // Add animation classes
-        dateGroup.classList.add('animate__animated', 'animate__fadeIn');
-
-        // Add change event listener
-        const dateInput = dateGroup.querySelector('.event-date');
-        if (dateInput) {
-            dateInput.addEventListener('change', () => {
-                if (!dateInput.value) {
-                    showAlert('warning', 'Please select a valid date and time');
-                    return;
-                }
-                updateEventDatesInput();
-            });
-        }
-
-        // Add to container and update state
-        eventDatesContainer.appendChild(dateGroup);
-        updateEventDatesInput();
-        console.log('Event date added successfully');
-    } catch (error) {
-        console.error('Error in addEventDate:', error);
-        throw error;
+    // Add change event listener for validation
+    const dateInput = dateGroup.querySelector('.event-date');
+    if (dateInput) {
+        dateInput.addEventListener('change', () => {
+            if (!dateInput.value) {
+                showAlert('warning', 'Please select a valid date and time');
+                return;
+            }
+            updateEventDatesInput();
+        });
     }
+
+    // Add remove button handler
+    const removeButton = dateGroup.querySelector('.remove-field');
+    if (removeButton) {
+        removeButton.addEventListener('click', () => {
+            removeEventDate(dateGroup);
+        });
+    }
+
+    eventDatesContainer.appendChild(dateGroup);
+    
+    // Add validation and update counter
+    const display = document.querySelector('#eventDatesCount');
+    if (display) {
+        const currentCount = parseInt(display.textContent);
+        display.textContent = (currentCount + 1).toString();
+    }
+
+    updateEventDatesInput();
+    console.log('Event date added successfully');
 }
 
 function removeEventDate(dateElement) {
-    // Add fade out animation
     dateElement.classList.remove('animate__fadeIn');
     dateElement.classList.add('animate__fadeOut');
 
-    // Remove after animation
     setTimeout(() => {
         dateElement.remove();
+        // Update counter display
+        const display = document.querySelector('#eventDatesCount');
+        if (display) {
+            const currentCount = parseInt(display.textContent);
+            display.textContent = Math.max(0, currentCount - 1).toString();
+        }
         updateEventDatesInput();
-        updateCounterDisplay();
     }, 300);
 }
 
