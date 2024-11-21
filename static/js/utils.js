@@ -164,7 +164,20 @@ export async function loadForm(formData) {
     // Ensure proper URL construction
     const url = `/api/form/${formId}`;
     console.debug('Constructed URL:', url);
-    return attemptLoad(url);
+    
+    try {
+        const result = await attemptLoad(url);
+        
+        // Load form history after successful form load
+        const { fetchFormLoadHistory, displayLoadHistory } = await import('./loadHistory.js');
+        const historyData = await fetchFormLoadHistory(formId);
+        displayLoadHistory('loadHistory', historyData);
+        
+        return result;
+    } catch (error) {
+        console.error('Error loading form:', error);
+        throw error;
+    }
 }
 
 async function attemptLoad(url, attempts = 3) {
@@ -417,6 +430,33 @@ export function setQuestionFields(card, questionData) {
         '.question-required': questionData.required,
         '.question-ai-instructions': questionData.ai_instructions
     };
+    
+    // Add proper question metadata handling
+    if (questionData.question_metadata && typeof questionData.question_metadata === 'object') {
+        const container = card.querySelector('.question-metadata');
+        const display = card.querySelector('.question-meta-count');
+        
+        if (container && display) {
+            const metadata = questionData.question_metadata;
+            const count = Object.keys(metadata).length;
+            display.textContent = count.toString();
+            
+            // Clear existing metadata
+            container.innerHTML = '';
+            
+            // Add metadata fields
+            Object.entries(metadata).forEach(([key, value]) => {
+                const field = document.createElement('div');
+                field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+                field.innerHTML = `
+                    <input type="text" class="form-control metadata-key" value="${key}" placeholder="Key" required>
+                    <input type="text" class="form-control metadata-value" value="${value}" placeholder="Value" required>
+                    <button type="button" class="btn btn-outline-danger remove-field">×</button>
+                `;
+                container.appendChild(field);
+            });
+        }
+    }
 
     Object.entries(fields).forEach(([selector, value]) => {
         const element = card.querySelector(selector);
