@@ -25,46 +25,46 @@
             {% endif %}
         {% endwith %}
         
-        <form id="formConfiguration" method="POST" action="{{ url_for('save_form') }}" class="d-flex flex-column h-100">
+        <form id="formConfiguration" method="POST" action="{{ url_for('save_event') }}" class="d-flex flex-column h-100">
             <!-- Basic form fields -->
             <div class="form-content">
-                <!-- Title, category, subcategory sections -->
+                <!-- Event fields -->
                 <div class="mb-3">
-                    <label class="form-label">Form Title<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="title" name="title" required>
+                    <label class="form-label">Event Reference<span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="event_reference" name="event_reference" required>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Category<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="category" name="category" required>
+                    <label class="form-label">Event Type<span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="event_type" name="event_type" required>
                     
                     <div class="metadata-section mt-2">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h6>Category Metadata</h6>
+                            <h6>Event Type Metadata</h6>
                             <div class="counter-group">
-                                <button type="button" class="counter-button decrease-count" data-target="categoryMetadata">-</button>
-                                <span class="counter-display" id="categoryMetadataCount">0</span>
-                                <button type="button" class="counter-button increase-count" data-target="categoryMetadata">+</button>
+                                <button type="button" class="counter-button decrease-count" data-target="eventTypeMetadata">-</button>
+                                <span class="counter-display" id="eventTypeMetadataCount">0</span>
+                                <button type="button" class="counter-button increase-count" data-target="eventTypeMetadata">+</button>
                             </div>
                         </div>
-                        <div id="categoryMetadata" class="metadata-container"></div>
+                        <div id="eventTypeMetadata" class="metadata-container"></div>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Subcategory</label>
-                    <input type="text" class="form-control" id="subcategory" name="subcategory">
+                    <label class="form-label">Event Description</label>
+                    <textarea class="form-control" id="event_description" name="event_description" rows="3"></textarea>
                     
                     <div class="metadata-section mt-2">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h6>Subcategory Metadata</h6>
+                            <h6>Event Metadata</h6>
                             <div class="counter-group">
-                                <button type="button" class="counter-button decrease-count" data-target="subcategoryMetadata">-</button>
-                                <span class="counter-display" id="subcategoryMetadataCount">0</span>
-                                <button type="button" class="counter-button increase-count" data-target="subcategoryMetadata">+</button>
+                                <button type="button" class="counter-button decrease-count" data-target="eventMetadata">-</button>
+                                <span class="counter-display" id="eventMetadataCount">0</span>
+                                <button type="button" class="counter-button increase-count" data-target="eventMetadata">+</button>
                             </div>
                         </div>
-                        <div id="subcategoryMetadata" class="metadata-container"></div>
+                        <div id="eventMetadata" class="metadata-container"></div>
                     </div>
                 </div>
 
@@ -101,9 +101,8 @@
             </div>
             
             <!-- Hidden inputs -->
-            <input type="hidden" name="category_metadata" id="categoryMetadataInput">
-            <input type="hidden" name="subcategory_metadata" id="subcategoryMetadataInput">
-            <input type="hidden" name="questions" id="questionsInput">
+            <input type="hidden" name="event_metadata" id="eventMetadataInput">
+            <input type="hidden" name="event_type_metadata" id="eventTypeMetadataInput">
         </form>
     </div>
 </div>

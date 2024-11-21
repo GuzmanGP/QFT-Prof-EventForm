@@ -1,171 +1,140 @@
 from flask import render_template, request, jsonify, flash, redirect, url_for, json
 from app import app, db
-from models import FormConfiguration, Question, Event, EventType
+from models import EventConfiguration, Event, EventType
 from event_handler import EventHandler
 
 
 @app.route('/')
-def new_form_index():
+def new_event_index():
     return render_template('form.html')
 
 
-@app.route('/<int:form_id>')
-def load_form_index(form_id=None):
-    form_data = None
-    if form_id:
+@app.route('/<int:event_id>')
+def load_event_index(event_id=None):
+    event_data = None
+    if event_id:
         try:
-            # Get form with 404 handling
-            form = FormConfiguration.query.get_or_404(form_id)
+            # Get event with 404 handling
+            event_config = EventConfiguration.query.get_or_404(event_id)
             
-            # Create form_data dictionary with all fields including questions
-            form_data = {
-                'id': form.id,
-                'title': form.title,
-                'category': form.category,
-                'subcategory': form.subcategory,
-                'category_metadata': form.category_metadata,
-                'subcategory_metadata': form.subcategory_metadata,
-                'questions': [{
-                    'id': q.id,
-                    'reference': q.reference,
-                    'content': q.content,
-                    'answer_type': q.answer_type,
-                    'options': q.options,
-                    'question_metadata': q.question_metadata,
-                    'required': q.required,
-                    'order': q.order,
-                    'ai_instructions': q.ai_instructions
-                } for q in sorted(form.questions, key=lambda x: x.order or 0)]
+            # Create event_data dictionary with all fields
+            event_data = {
+                'id': event_config.id,
+                'event_reference': event_config.event_reference,
+                'event_type': event_config.event_type,
+                'event_description': event_config.event_description,
+                'event_metadata': event_config.event_metadata,
+                'event_type_metadata': event_config.event_type_metadata,
+                'registration_date': event_config.registration_date.isoformat(),
+                'last_update_date': event_config.last_update_date.isoformat()
             }
         except Exception as e:
             raise
     
-    # Only pass form_data to template
-    return render_template('form.html', form_data=form_data)
+    # Only pass event_data to template
+    return render_template('form.html', event_data=event_data)
 
 
-@app.route('/api/form/<int:form_id>')
-def get_form(form_id):
+@app.route('/api/event/<int:event_id>')
+def get_event(event_id):
     try:
-        form = FormConfiguration.query.get_or_404(form_id)
-        form_data = {
-            'id': form.id,
-            'title': form.title,
-            'category': form.category,
-            'subcategory': form.subcategory,
-            'category_metadata': form.category_metadata,
-            'subcategory_metadata': form.subcategory_metadata,
-            'questions': [{
-                'id': q.id,
-                'reference': q.reference,
-                'content': q.content,
-                'answer_type': q.answer_type,
-                'options': q.options,
-                'question_metadata': q.question_metadata,
-                'required': q.required,
-                'order': q.order,
-                'ai_instructions': q.ai_instructions
-            } for q in sorted(form.questions, key=lambda x: x.order or 0)]
+        event_config = EventConfiguration.query.get_or_404(event_id)
+        event_data = {
+            'id': event_config.id,
+            'event_reference': event_config.event_reference,
+            'event_type': event_config.event_type,
+            'event_description': event_config.event_description,
+            'event_metadata': event_config.event_metadata,
+            'event_type_metadata': event_config.event_type_metadata,
+            'registration_date': event_config.registration_date.isoformat(),
+            'last_update_date': event_config.last_update_date.isoformat()
         }
-        return jsonify(form_data)
+        return jsonify(event_data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/form/save', methods=['POST'])
-def save_form():
+@app.route('/event/save', methods=['POST'])
+def save_event():
     try:
-        # Get form data
-        form_data = request.form
+        # Get event data
+        event_data = request.form
 
-        # Extract and parse form data
-        form_dict = {
-            'title': form_data.get('title'),
-            'category': form_data.get('category'),
-            'subcategory': form_data.get('subcategory'),
-            'category_metadata': json.loads(form_data.get('category_metadata', '{}')),
-            'subcategory_metadata': json.loads(form_data.get('subcategory_metadata', '{}')),
-            'questions': json.loads(form_data.get('questions', '[]'))
+        # Extract and parse event data
+        event_dict = {
+            'event_reference': event_data.get('event_reference'),
+            'event_type': event_data.get('event_type'),
+            'event_description': event_data.get('event_description'),
+            'event_metadata': json.loads(event_data.get('event_metadata', '{}')),
+            'event_type_metadata': json.loads(event_data.get('event_type_metadata', '{}'))
         }
 
-        # Create form configuration
-        form = FormConfiguration()
-        db.session.add(form)
-        db.session.flush()  # Get form ID
+        # Create event configuration
+        event_config = EventConfiguration(
+            event_reference=event_dict['event_reference'],
+            event_type=event_dict['event_type'],
+            event_description=event_dict['event_description'],
+            event_metadata=event_dict['event_metadata'],
+            event_type_metadata=event_dict['event_type_metadata']
+        )
+        db.session.add(event_config)
+        db.session.flush()  # Get event ID
 
-        # Create form creation event
+        # Create event creation event
         event = Event(
-            type=EventType.FORM_CREATED.value,
-            data=form_dict,
-            form_id=form.id
+            type=EventType.EVENT_CREATED.value,
+            data=event_dict,
+            event_config_id=event_config.id
         )
         db.session.add(event)
         db.session.commit()
 
-        # Process the event
-        success = EventHandler.handle_event(event)
-        if success:
-            db.session.commit()
-            flash('Form saved successfully', 'success')
-        else:
-            db.session.rollback()
-            flash(f'Error saving form: {event.error}', 'danger')
-
-        return redirect(url_for('new_form_index'))
+        flash('Event saved successfully', 'success')
+        return redirect(url_for('new_event_index'))
 
     except Exception as e:
         db.session.rollback()
-        flash(f'Error saving form: {str(e)}', 'danger')
-        return redirect(url_for('new_form_index'))
+        flash(f'Error saving event: {str(e)}', 'danger')
+        return redirect(url_for('new_event_index'))
 
 
-@app.route('/form/<int:form_id>/update', methods=['POST'])
-def update_form(form_id):
+@app.route('/event/<int:event_id>/update', methods=['POST'])
+def update_event(event_id):
     try:
-        form = FormConfiguration.query.get_or_404(form_id)
-        form_data = request.get_json()
+        event_config = EventConfiguration.query.get_or_404(event_id)
+        event_data = request.get_json()
 
-        # Create form update event
-        event = form.create_event(
-            EventType.FORM_UPDATED,
-            data=form_data
+        # Create event update event
+        event = event_config.create_event(
+            EventType.EVENT_UPDATED,
+            data=event_data
         )
         db.session.commit()
 
-        # Process the event
-        success = EventHandler.handle_event(event)
-        if success:
-            db.session.commit()
-            return jsonify({'message': 'Form updated successfully'})
-        else:
-            db.session.rollback()
-            return jsonify({'error': event.error}), 500
+        return jsonify({'message': 'Event updated successfully'})
 
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/form/<int:form_id>/delete', methods=['POST'])
-def delete_form(form_id):
+@app.route('/event/<int:event_id>/delete', methods=['POST'])
+def delete_event(event_id):
     try:
-        form = FormConfiguration.query.get_or_404(form_id)
+        event_config = EventConfiguration.query.get_or_404(event_id)
         
-        # Create form deletion event
-        event = form.create_event(
-            EventType.FORM_DELETED,
-            data={'form_id': form_id}
+        # Create event deletion event
+        event = event_config.create_event(
+            EventType.EVENT_DELETED,
+            data={'event_id': event_id}
         )
         db.session.commit()
 
-        # Process the event
-        success = EventHandler.handle_event(event)
-        if success:
-            db.session.commit()
-            return jsonify({'message': 'Form deleted successfully'})
-        else:
-            db.session.rollback()
-            return jsonify({'error': event.error}), 500
+        # Delete the event configuration
+        db.session.delete(event_config)
+        db.session.commit()
+
+        return jsonify({'message': 'Event deleted successfully'})
 
     except Exception as e:
         db.session.rollback()
