@@ -3,11 +3,13 @@
 export function initializeEventDates() {
     console.log('Initializing event dates functionality...');
     
-    const addDateButton = document.getElementById('addEventDate');
     const eventDatesContainer = document.getElementById('eventDates');
     const eventDatesInput = document.getElementById('eventDatesInput');
+    const eventDatesCount = document.getElementById('eventDatesCount');
+    const decreaseButton = document.querySelector('.decrease-count[data-target="eventDates"]');
+    const increaseButton = document.querySelector('.increase-count[data-target="eventDates"]');
 
-    if (!addDateButton || !eventDatesContainer || !eventDatesInput) {
+    if (!eventDatesContainer || !eventDatesInput || !eventDatesCount || !decreaseButton || !increaseButton) {
         const error = 'Required event date elements not found. Please check if all elements are present in the DOM.';
         console.error(error);
         throw new Error(error);
@@ -22,17 +24,37 @@ export function initializeEventDates() {
             console.log('Initialized empty dates array');
         }
 
-        // Initialize hidden input
+        // Initialize hidden input and counter display
         updateEventDatesInput();
+        updateCounterDisplay();
 
-        // Add date button click handler with error handling
-        addDateButton.addEventListener('click', () => {
-            console.log('Add date button clicked');
+        // Add counter button click handlers with error handling
+        increaseButton.addEventListener('click', () => {
+            console.log('Increase button clicked');
             try {
                 addEventDate();
+                updateCounterDisplay();
             } catch (error) {
                 console.error('Error adding event date:', error);
                 showAlert('danger', 'Failed to add event date. Please try again.');
+            }
+        });
+
+        decreaseButton.addEventListener('click', () => {
+            console.log('Decrease button clicked');
+            try {
+                const lastDate = eventDatesContainer.lastElementChild;
+                if (lastDate) {
+                    lastDate.classList.add('animate__fadeOut');
+                    setTimeout(() => {
+                        lastDate.remove();
+                        updateEventDatesInput();
+                        updateCounterDisplay();
+                    }, 300);
+                }
+            } catch (error) {
+                console.error('Error removing event date:', error);
+                showAlert('danger', 'Failed to remove date. Please try again.');
             }
         });
 
@@ -106,6 +128,13 @@ function addEventDate(dateValue = '') {
         const dateInput = dateGroup.querySelector('.event-date');
         if (dateInput) {
             dateInput.addEventListener('change', () => {
+function updateCounterDisplay() {
+    const count = document.querySelectorAll('.event-date').length;
+    const countDisplay = document.getElementById('eventDatesCount');
+    if (countDisplay) {
+        countDisplay.textContent = count.toString();
+    }
+}
                 try {
                     if (!dateInput.value) {
                         showAlert('warning', 'Please select a valid date and time');
