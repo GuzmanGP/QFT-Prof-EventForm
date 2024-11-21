@@ -213,20 +213,30 @@ function addQuestion(questionData = null) {
                         }
 
                         // Handle metadata
-                        if (questionData.question_metadata && typeof questionData.question_metadata === 'object') {
+                        if (questionData?.question_metadata && typeof questionData.question_metadata === 'object') {
                             const container = card.querySelector('.question-metadata');
                             const display = card.querySelector('.question-meta-count');
                             
                             if (container && display) {
+                                // Clear existing metadata fields first
+                                container.innerHTML = '';
+                                
                                 const metadata = questionData.question_metadata;
                                 const count = Object.keys(metadata).length;
                                 display.textContent = count.toString();
                                 
+                                // Add metadata fields with delay
                                 Object.entries(metadata).forEach(([key, value], index) => {
                                     setTimeout(() => {
                                         addMetadataField(container, key, value);
                                     }, index * 100);
                                 });
+                            }
+                        } else {
+                            // Initialize with empty container, but don't add fields
+                            const display = card.querySelector('.question-meta-count');
+                            if (display) {
+                                display.textContent = '0';
                             }
                         }
                     } catch (fieldError) {
