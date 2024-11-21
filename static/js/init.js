@@ -51,26 +51,38 @@ export async function initializeForm() {
             return;
         }
         
-        // Initialize all metadata sections
+        // Initialize all metadata sections with standardized validation
         for (const section of metadataSections) {
             try {
-                const container = section.querySelector('.metadata-container');
-                const buttons = section.querySelectorAll('.counter-button');
-                const display = section.querySelector('.counter-display');
-                
-                if (!container || !buttons || !display) {
-                    console.error('Missing required elements for metadata section');
-                    continue;
-                }
-                
-                if (!container || !buttons || !display) {
-                    console.error('Missing required elements for counter initialization');
+                const containerId = section.querySelector('.metadata-container')?.id;
+                if (!containerId) {
+                    console.error('Container ID not found in metadata section');
                     continue;
                 }
 
-                console.log('Setting up counter for container:', container.id);
+                // Standard validation for container elements
+                const container = document.getElementById(containerId);
+                const buttons = document.querySelectorAll(`.counter-button[data-target="${containerId}"]`);
+                const display = document.querySelector(`#${containerId}Count`);
+
+                if (!container || !buttons.length || !display) {
+                    console.error('Required elements not found:', {
+                        container: !!container,
+                        buttons: buttons.length,
+                        display: !!display
+                    });
+                    continue;
+                }
+
+                console.debug('Found elements for container:', {
+                    containerId,
+                    buttonCount: buttons.length,
+                    currentCount: display.textContent
+                });
+
+                console.log('Setting up counter for container:', containerId);
                 setupCounterButtons(Array.from(buttons), container, display);
-                console.log(`Successfully initialized counter for ${container.id}`);
+                console.log(`Successfully initialized counter for ${containerId}`);
             } catch (error) {
                 console.error('Error initializing metadata section:', error);
             }

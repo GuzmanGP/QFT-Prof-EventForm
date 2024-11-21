@@ -2,18 +2,29 @@
 
 export function initializeEventDates() {
     console.log('Initializing event dates functionality...');
+    const containerId = 'eventDates';
     
-    const eventDatesContainer = document.getElementById('eventDates');
-    const eventDatesInput = document.getElementById('eventDatesInput');
-    const countDisplay = document.getElementById('eventDatesCount');
-    const decreaseButton = document.querySelector('.decrease-count[data-target="eventDates"]');
-    const increaseButton = document.querySelector('.increase-count[data-target="eventDates"]');
+    // Standard validation for container elements
+    const container = document.getElementById(containerId);
+    const buttons = document.querySelectorAll(`.counter-button[data-target="${containerId}"]`);
+    const display = document.querySelector(`#${containerId}Count`);
+    const hiddenInput = document.getElementById(`${containerId}Input`);
 
-    if (!eventDatesContainer || !eventDatesInput || !countDisplay || !decreaseButton || !increaseButton) {
-        const error = 'Required event date elements not found';
-        console.error(error);
-        throw new Error(error);
+    if (!container || !buttons.length || !display || !hiddenInput) {
+        console.error('Required elements not found:', {
+            container: !!container,
+            buttons: buttons.length,
+            display: !!display,
+            hiddenInput: !!hiddenInput
+        });
+        return;
     }
+
+    console.debug('Found elements:', {
+        containerId,
+        buttonCount: buttons.length,
+        currentCount: display.textContent
+    });
 
     try {
         // Initialize handlers for counter buttons
