@@ -1,27 +1,40 @@
 // eventDates.js
 
 export function initializeEventDates() {
+    console.log('Initializing event dates functionality...');
+    
     const addDateButton = document.getElementById('addEventDate');
     const eventDatesContainer = document.getElementById('eventDates');
     const eventDatesInput = document.getElementById('eventDatesInput');
 
     if (!addDateButton || !eventDatesContainer || !eventDatesInput) {
-        throw new Error('Required event date elements not found. Please check if all elements are present in the DOM.');
+        const error = 'Required event date elements not found. Please check if all elements are present in the DOM.';
+        console.error(error);
+        throw new Error(error);
     }
 
     try {
+        console.log('Setting up event dates...');
+        
         // Initialize hidden input with empty dates array if not already set
         if (!eventDatesInput.value) {
             eventDatesInput.value = JSON.stringify({ dates: [] });
+            console.log('Initialized empty dates array');
         }
 
-    // Initialize hidden input
-    updateEventDatesInput();
+        // Initialize hidden input
+        updateEventDatesInput();
 
-    // Add date button click handler
-    addDateButton.addEventListener('click', () => {
-        addEventDate();
-    });
+        // Add date button click handler with error handling
+        addDateButton.addEventListener('click', () => {
+            console.log('Add date button clicked');
+            try {
+                addEventDate();
+            } catch (error) {
+                console.error('Error adding event date:', error);
+                showAlert('danger', 'Failed to add event date. Please try again.');
+            }
+        });
 
     // Initialize validity date change handlers
     const validityStartDate = document.getElementById('validity_start_date');

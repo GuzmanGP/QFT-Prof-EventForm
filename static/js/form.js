@@ -9,6 +9,9 @@ import { validateForm } from './validation.js';
 import { updateMetadataFields } from './metadataFields.js';
 import { initializeEventDates, loadEventDates } from './eventDates.js';
 
+// Initialize showAlert in eventDates.js context
+window.showAlert = showAlert;
+
 // Initialize form when DOM content is loaded with error recovery
 document.addEventListener('DOMContentLoaded', async () => {
     try {
