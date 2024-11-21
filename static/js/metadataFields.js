@@ -10,14 +10,33 @@ export function updateCounterDisplay(containerId) {
 }
 
 export function addMetadataField(container) {
-    console.log('Adding new metadata field');
-    const field = document.createElement('div');
-    field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
-    field.innerHTML = `
-        <input type="text" class="form-control metadata-key" placeholder="Key">
-        <input type="text" class="form-control metadata-value" placeholder="Value">
-        <button type="button" class="btn btn-outline-danger remove-field">×</button>
-    `;
+    console.group('Adding Metadata Field');
+    
+    try {
+        if (!container?.id) {
+            throw new Error('Invalid container for metadata field');
+        }
+
+        console.log('Adding to container:', container.id);
+        
+        const field = document.createElement('div');
+        field.className = 'input-group mb-2';
+        field.classList.add('animate__animated', 'animate__fadeInRight');
+        
+        field.innerHTML = `
+            <input type="text" class="form-control metadata-key" placeholder="Key" required>
+            <input type="text" class="form-control metadata-value" placeholder="Value" required>
+            <button type="button" class="btn btn-outline-danger remove-field">×</button>
+        `;
+
+        // Add validation handlers
+        const keyInput = field.querySelector('.metadata-key');
+        const valueInput = field.querySelector('.metadata-value');
+        
+        [keyInput, valueInput].forEach(input => {
+            input.addEventListener('input', () => validateMetadataField(field));
+            input.addEventListener('blur', () => validateMetadataField(field));
+        });
     
     // Add remove button handler
     const removeButton = field.querySelector('.remove-field');
@@ -43,14 +62,27 @@ function removeLastField(container) {
 }
 
 export function setupCounterButtons(buttons, container, display) {
-    // Add validation and debug logging
-    if (!container || !display || !buttons || buttons.length === 0) {
-        console.error('Required elements not found:', { container, display, buttons });
-        return;
+    console.group('Setting up Counter Buttons');
+    console.log('Initializing for container:', container?.id);
+
+    // Enhanced validation for required elements
+    if (!container?.id || !display || !buttons?.length) {
+        const error = new Error('Invalid counter setup parameters');
+        console.error('Setup failed:', {
+            container: container?.id || 'Missing',
+            display: display?.id || 'Missing',
+            buttons: buttons?.length || 0
+        });
+        console.groupEnd();
+        throw error;
     }
 
-    console.debug('Container children count:', container.children.length);
-    console.log('Setting up counter for container:', container.id);
+    // Validate container state
+    console.log('Initial state:', {
+        containerChildren: container.children.length,
+        displayValue: display.textContent,
+        buttonsCount: buttons.length
+    });
 
     // Initial counter synchronization
     updateCounterDisplay(container.id);

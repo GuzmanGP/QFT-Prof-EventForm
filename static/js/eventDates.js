@@ -2,23 +2,28 @@
 import { showAlert } from './utils.js';
 
 export function initializeEventDates() {
-    console.log('Initializing event dates functionality...');
-    const containerId = 'eventDates';
+    console.group('Event Dates Initialization');
+    console.log('Starting event dates initialization...');
     
-    // Standard validation for container elements
+    const containerId = 'eventDates';
     const container = document.getElementById(containerId);
     const buttons = document.querySelectorAll(`.counter-button[data-target="${containerId}"]`);
     const display = document.querySelector(`#${containerId}Count`);
     const hiddenInput = document.getElementById(`${containerId}Input`);
 
+    console.log('DOM Elements:', {
+        container: container?.id || 'Not found',
+        buttonCount: buttons?.length || 0,
+        display: display?.id || 'Not found',
+        hiddenInput: hiddenInput?.id || 'Not found'
+    });
+
+    // Validate required elements
     if (!container || !buttons.length || !display || !hiddenInput) {
-        console.error('Required elements not found:', {
-            container: !!container,
-            buttons: buttons.length,
-            display: !!display,
-            hiddenInput: !!hiddenInput
-        });
-        return;
+        const error = new Error('Required event date elements not found');
+        console.error('Initialization failed:', error);
+        console.groupEnd();
+        throw error;
     }
 
     console.debug('Found elements:', {
@@ -111,23 +116,33 @@ function initializeCounterButtons(decreaseButton, increaseButton) {
 }
 
 function addEventDate(initialValue = '') {
+    console.group('Adding Event Date');
+    console.log('Initial value:', initialValue);
+    
     const eventDatesContainer = document.getElementById('eventDates');
     if (!eventDatesContainer) {
-        console.error('Event dates container not found');
-        return;
+        const error = new Error('Event dates container not found');
+        console.error('Failed to add event date:', error);
+        console.groupEnd();
+        throw error;
     }
 
-    const dateGroup = document.createElement('div');
-    dateGroup.className = 'input-group mb-2';
-    // Add animation classes properly
-    dateGroup.classList.add('animate__animated', 'animate__fadeIn');
-    dateGroup.innerHTML = `
-        <input type="datetime-local" 
-               class="form-control event-date" 
-               value="${initialValue}"
-               required>
-        <button type="button" class="btn btn-outline-danger remove-field">×</button>
-    `;
+    try {
+        // Create date group with proper animation classes
+        const dateGroup = document.createElement('div');
+        dateGroup.className = 'input-group mb-2';
+        dateGroup.classList.add('animate__animated', 'animate__fadeIn');
+        
+        // Validate initial value if provided
+        const validatedValue = initialValue ? new Date(initialValue).toISOString().slice(0, 16) : '';
+        
+        dateGroup.innerHTML = `
+            <input type="datetime-local" 
+                   class="form-control event-date" 
+                   value="${validatedValue}"
+                   required>
+            <button type="button" class="btn btn-outline-danger remove-field">×</button>
+        `;
 
     // Add change event listener for validation
     const dateInput = dateGroup.querySelector('.event-date');
@@ -179,18 +194,49 @@ function removeEventDate(dateElement) {
 }
 
 function updateEventDatesInput() {
+    console.group('Updating Event Dates Input');
     try {
-        const dates = Array.from(document.querySelectorAll('.event-date'))
-            .map(input => input.value)
-            .filter(date => date);
+        // Get all date inputs and validate them
+        const dateInputs = document.querySelectorAll('.event-date');
+        console.log('Found date inputs:', dateInputs.length);
 
+        const dates = Array.from(dateInputs)
+            .map(input => {
+                const value = input.value.trim();
+                if (value) {
+                    try {
+                        // Validate date format
+                        const date = new Date(value);
+                        if (isNaN(date.getTime())) {
+                            throw new Error('Invalid date format');
+                        }
+                        return value;
+                    } catch (err) {
+                        console.warn('Invalid date value:', value);
+                        return null;
+                    }
+                }
+                return null;
+            })
+            .filter(date => date !== null);
+
+        console.log('Valid dates:', dates.length);
+
+        // Update hidden input
         const eventDatesInput = document.getElementById('eventDatesInput');
         if (eventDatesInput) {
             eventDatesInput.value = JSON.stringify({ dates });
+            console.log('Updated hidden input with dates');
+        } else {
+            throw new Error('Event dates hidden input not found');
         }
+
+        return dates.length > 0;
     } catch (error) {
-        console.error('Error updating event dates input:', error);
+        console.error('Failed to update event dates input:', error);
         throw error;
+    } finally {
+        console.groupEnd();
     }
 }
 

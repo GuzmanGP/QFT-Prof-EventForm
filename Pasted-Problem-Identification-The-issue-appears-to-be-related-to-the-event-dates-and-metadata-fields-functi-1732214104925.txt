@@ -1,0 +1,127 @@
+Problem Identification
+The issue appears to be related to the event dates and metadata fields functionality when clicking +. Specifically:
+
+Event Dates (eventDates.js)
+
+The function addEventDate is responsible for adding a new date input to the eventDatesContainer. However, it might not be executing correctly due to:
+Missing references to DOM elements (eventDatesContainer, eventDatesInput, countDisplay, etc.).
+Errors in the initializeEventDates function or incorrect bindings for increase and decrease buttons.
+Logic in updateCounterDisplay or updateEventDatesInput not properly reflecting the changes in the DOM.
+Metadata Fields (metadataFields.js)
+
+The setupCounterButtons function may not be properly attaching click event listeners to the + and - buttons.
+The addMetadataField function might not be creating the DOM elements as expected or attaching animations correctly.
+Steps to Fix
+1. Debug eventDates.js
+Add logging to confirm that all required DOM elements are being found:
+
+javascript
+Copiar código
+console.log('Event Dates Initialization:');
+console.log('Container:', eventDatesContainer);
+console.log('Input:', eventDatesInput);
+console.log('Count Display:', countDisplay);
+console.log('Buttons:', decreaseButton, increaseButton);
+Ensure addEventDate properly appends a new input:
+
+javascript
+Copiar código
+function addEventDate(initialValue = '') {
+    const eventDatesContainer = document.getElementById('eventDates');
+    if (!eventDatesContainer) {
+        throw new Error('Event dates container not found');
+    }
+
+    console.log('Adding new event date...');
+    const dateGroup = document.createElement('div');
+    dateGroup.className = 'input-group mb-2 animate__animated animate__fadeIn';
+    dateGroup.innerHTML = `
+        <input type="datetime-local" 
+               class="form-control event-date" 
+               value="${initialValue}"
+               required>
+    `;
+    eventDatesContainer.appendChild(dateGroup);
+
+    updateEventDatesInput(); // Ensure this reflects changes
+    console.log('Event date added successfully');
+}
+Verify that updateEventDatesInput correctly sets the hidden input value:
+
+javascript
+Copiar código
+function updateEventDatesInput() {
+    const dates = Array.from(document.querySelectorAll('.event-date'))
+        .map(input => input.value)
+        .filter(date => date); // Ignore empty inputs
+
+    console.log('Updating event dates input:', dates);
+    const eventDatesInput = document.getElementById('eventDatesInput');
+    if (eventDatesInput) {
+        eventDatesInput.value = JSON.stringify({ dates });
+    }
+}
+2. Debug metadataFields.js
+Ensure setupCounterButtons correctly handles button clicks:
+
+javascript
+Copiar código
+function setupCounterButtons(buttons, container, display) {
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            const currentCount = parseInt(display.textContent) || 0;
+            const isIncrease = button.classList.contains('increase-count');
+            const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
+
+            if (isIncrease) {
+                console.log('Increasing metadata count:', newCount);
+                addMetadataField(container);
+            } else {
+                console.log('Decreasing metadata count:', newCount);
+                const lastField = container.lastChild;
+                if (lastField) lastField.remove();
+            }
+
+            display.textContent = newCount.toString();
+        });
+    });
+}
+Validate that addMetadataField appends fields correctly:
+
+javascript
+Copiar código
+function addMetadataField(container) {
+    console.log('Adding new metadata field...');
+    const field = document.createElement('div');
+    field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+    field.innerHTML = `
+        <input type="text" class="form-control metadata-key" placeholder="Key">
+        <input type="text" class="form-control metadata-value" placeholder="Value">
+        <button type="button" class="btn btn-outline-danger remove-field">×</button>
+    `;
+    container.appendChild(field);
+    console.log('Metadata field added successfully');
+}
+3. Check form.js Initialization
+Ensure the initializeEventDates and setupCounterButtons functions are correctly called during form initialization:
+
+javascript
+Copiar código
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Initializing form...');
+    try {
+        initializeEventDates(); // Initialize event dates
+        console.log('Event dates initialized successfully');
+        
+        const metadataSections = document.querySelectorAll('.metadata-section');
+        metadataSections.forEach(section => {
+            const container = section.querySelector('.metadata-container');
+            const buttons = section.querySelectorAll('.counter-button');
+            const display = section.querySelector('.counter-display');
+            setupCounterButtons(Array.from(buttons), container, display);
+        });
+        console.log('Metadata fields initialized successfully');
+    } catch (error) {
+        console.error('Error initializing form:', error);
+    }
+});
