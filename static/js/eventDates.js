@@ -118,7 +118,9 @@ function addEventDate(initialValue = '') {
     }
 
     const dateGroup = document.createElement('div');
-    dateGroup.className = 'input-group mb-2 animate__animated animate__fadeIn';
+    dateGroup.className = 'input-group mb-2';
+    // Add animation classes properly
+    dateGroup.classList.add('animate__animated', 'animate__fadeIn');
     dateGroup.innerHTML = `
         <input type="datetime-local" 
                class="form-control event-date" 
@@ -162,7 +164,7 @@ function addEventDate(initialValue = '') {
 
 function removeEventDate(dateElement) {
     dateElement.classList.remove('animate__fadeIn');
-    dateElement.classList.add('animate__fadeOut');
+    dateElement.classList.add('animate__animated', 'animate__fadeOut');
 
     setTimeout(() => {
         dateElement.remove();
