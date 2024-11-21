@@ -12,18 +12,32 @@ import { initializeEventDates, loadEventDates } from './eventDates.js';
 // Initialize showAlert in eventDates.js context
 window.showAlert = showAlert;
 
-// Initialize form when DOM content is loaded with error recovery
+// Initialize form when DOM content is loaded with improved error recovery
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('DOM content loaded, initializing form and event dates...');
+    console.log('DOM content loaded, starting initialization sequence...');
+    
     try {
-        // Initialize form first
-        console.log('Initializing form...');
+        // Initialize form components in sequence
+        console.log('Step 1: Initializing form components...');
         await initializeForm();
+        console.log('Form components initialized successfully');
         
-        // Initialize event dates after form
-        console.log('Initializing event dates...');
+        console.log('Step 2: Initializing event dates functionality...');
         await initializeEventDates();
-        console.log('Form and event dates initialized successfully');
+        console.log('Event dates initialized successfully');
+        
+        // Verify counter initialization
+        console.log('Step 3: Verifying counter functionality...');
+        const counters = document.querySelectorAll('.counter-group');
+        console.log(`Found ${counters.length} counter groups`);
+        
+        counters.forEach((counter, index) => {
+            const display = counter.querySelector('.counter-display');
+            const count = display ? display.textContent : 'N/A';
+            console.log(`Counter ${index + 1} initialized with count: ${count}`);
+        });
+        
+        console.log('All components initialized successfully');
     } catch (error) {
         console.error('Error initializing form:', error);
         const container = document.getElementById('questions');

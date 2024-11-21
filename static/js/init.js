@@ -31,14 +31,33 @@ export async function initializeForm() {
         
         
 
-        // Setup metadata counters
+        // Setup metadata counters with improved initialization
+        console.log('Setting up metadata counters...');
         const metadataSections = document.querySelectorAll('.metadata-section');
+        console.log(`Found ${metadataSections.length} metadata sections`);
+        
         for (const section of metadataSections) {
             const container = section.querySelector('.metadata-container');
             const buttons = section.querySelectorAll('.counter-button');
             const display = section.querySelector('.counter-display');
+            const containerId = container?.id;
+            
+            console.log(`Initializing counter for container: ${containerId}`);
+            
             if (container && buttons && display) {
-                setupCounterButtons(buttons, container, display);
+                try {
+                    setupCounterButtons(buttons, container, display);
+                    console.log(`Successfully initialized counter for ${containerId}`);
+                } catch (error) {
+                    console.error(`Failed to initialize counter for ${containerId}:`, error);
+                    showAlert('danger', `Failed to initialize counter for ${containerId}`);
+                }
+            } else {
+                console.warn(`Missing required elements for ${containerId}:`, {
+                    hasContainer: !!container,
+                    hasButtons: !!buttons,
+                    hasDisplay: !!display
+                });
             }
         }
 

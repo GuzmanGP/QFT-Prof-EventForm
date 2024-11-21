@@ -31,31 +31,52 @@ export function initializeEventDates() {
 }
 
 function initializeCounterButtons(decreaseButton, increaseButton) {
-    // Increase counter handler
+    if (!decreaseButton || !increaseButton) {
+        throw new Error('Counter buttons not provided');
+    }
+
+    console.log('Initializing event date counter buttons');
+
+    // Increase counter handler with improved error handling
     increaseButton.addEventListener('click', () => {
-        console.log('Adding new event date');
+        console.log('Increase button clicked - adding new event date');
         try {
+            const currentCount = document.querySelectorAll('.event-date').length;
+            console.log(`Current event dates count: ${currentCount}`);
+            
             addEventDate();
             updateCounterDisplay();
+            
+            console.log('Successfully added new event date');
         } catch (error) {
             console.error('Error adding event date:', error);
-            showAlert('danger', 'Failed to add event date');
+            showAlert('danger', `Failed to add event date: ${error.message}`);
         }
     });
 
-    // Decrease counter handler
+    // Decrease counter handler with improved validation
     decreaseButton.addEventListener('click', () => {
-        console.log('Removing last event date');
+        console.log('Decrease button clicked - removing last event date');
         try {
             const lastDate = document.querySelector('#eventDates .input-group:last-child');
+            const currentCount = document.querySelectorAll('.event-date').length;
+            
+            console.log(`Current event dates count: ${currentCount}`);
+            
             if (lastDate) {
                 removeEventDate(lastDate);
+                console.log('Successfully removed last event date');
+            } else {
+                console.warn('No event dates to remove');
+                showAlert('warning', 'No event dates to remove');
             }
         } catch (error) {
             console.error('Error removing event date:', error);
-            showAlert('danger', 'Failed to remove event date');
+            showAlert('danger', `Failed to remove event date: ${error.message}`);
         }
     });
+
+    console.log('Successfully initialized event date counter buttons');
 }
 
 function addEventDate(initialValue = '') {
