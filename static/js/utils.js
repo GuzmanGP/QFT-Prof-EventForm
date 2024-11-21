@@ -311,21 +311,26 @@ export function setMetadataFields(containerId, metadata = {}) {
         return;
     }
 
+    // Handle null metadata
+    if (metadata === null) {
+        metadata = {};
+    }
+
     // Parse metadata if it's a string
     let parsedMetadata;
     try {
         parsedMetadata = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
     } catch (parseError) {
         console.error(`Invalid metadata JSON format for ${containerId}:`, parseError);
-        showAlert('danger', `Invalid metadata format: ${parseError.message}`);
-        return;
+        console.debug('Defaulting to empty object due to parse error');
+        parsedMetadata = {};
     }
 
     // Validate metadata structure
-    if (!parsedMetadata || typeof parsedMetadata !== 'object' || Array.isArray(parsedMetadata)) {
+    if (typeof parsedMetadata !== 'object' || Array.isArray(parsedMetadata)) {
         console.error(`Invalid metadata structure for ${containerId}:`, parsedMetadata);
-        showAlert('danger', `Invalid metadata structure for ${containerId}`);
-        return;
+        console.debug('Defaulting to empty object due to invalid structure');
+        parsedMetadata = {};
     }
 
     try {

@@ -212,32 +212,44 @@ function addQuestion(questionData = null) {
                             fields.aiTextarea.value = questionData.ai_instructions;
                         }
 
-                        // Handle metadata
-                        if (questionData?.question_metadata && typeof questionData.question_metadata === 'object') {
-                            const container = card.querySelector('.question-metadata');
-                            const display = card.querySelector('.question-meta-count');
+                        // Handle metadata with improved validation
+                        const container = card.querySelector('.question-metadata');
+                        const display = card.querySelector('.question-meta-count');
+                        
+                        if (container && display) {
+                            // Clear existing metadata fields first
+                            container.innerHTML = '';
                             
-                            if (container && display) {
-                                // Clear existing metadata fields first
-                                container.innerHTML = '';
-                                
-                                const metadata = questionData.question_metadata;
-                                const count = Object.keys(metadata).length;
-                                display.textContent = count.toString();
-                                
-                                // Add metadata fields with delay
-                                Object.entries(metadata).forEach(([key, value], index) => {
+                            let metadata = {};
+                            
+                            // Validate and parse metadata
+                            if (questionData?.question_metadata) {
+                                try {
+                                    metadata = typeof questionData.question_metadata === 'string' 
+                                        ? JSON.parse(questionData.question_metadata) 
+                                        : questionData.question_metadata;
+                                        
+                                    if (typeof metadata !== 'object' || Array.isArray(metadata)) {
+                                        console.warn('Invalid metadata format, defaulting to empty object');
+                                        metadata = {};
+                                    }
+                                } catch (error) {
+                                    console.warn('Error parsing metadata:', error);
+                                    metadata = {};
+                                }
+                            }
+                            
+                            const count = Object.keys(metadata).length;
+                            display.textContent = count.toString();
+                            
+                            // Add metadata fields with delay and validation
+                            Object.entries(metadata).forEach(([key, value], index) => {
+                                if (key && value !== undefined && value !== null) {
                                     setTimeout(() => {
-                                        addMetadataField(container, key, value);
+                                        addMetadataField(container, key.toString(), value.toString());
                                     }, index * 100);
-                                });
-                            }
-                        } else {
-                            // Initialize with empty container, but don't add fields
-                            const display = card.querySelector('.question-meta-count');
-                            if (display) {
-                                display.textContent = '0';
-                            }
+                                }
+                            });
                         }
                     } catch (fieldError) {
                         console.error('Error setting field values:', fieldError);
