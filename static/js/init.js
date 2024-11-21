@@ -63,6 +63,12 @@ export async function initializeForm() {
                     continue;
                 }
                 
+                if (!container || !buttons || !display) {
+                    console.error('Missing required elements for counter initialization');
+                    continue;
+                }
+
+                console.log('Setting up counter for container:', container.id);
                 setupCounterButtons(Array.from(buttons), container, display);
                 console.log(`Successfully initialized counter for ${container.id}`);
             } catch (error) {

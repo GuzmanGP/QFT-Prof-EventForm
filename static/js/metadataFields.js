@@ -38,14 +38,19 @@ function removeLastField(container) {
 }
 
 export function setupCounterButtons(buttons, container, display) {
-    console.log('Setting up counter buttons:', { buttonsCount: buttons?.length, containerId: container?.id });
-    
-    if (!buttons || !container || !display) {
-        const error = 'Missing required elements for counter setup';
-        console.error(error, { hasButtons: !!buttons, hasContainer: !!container, hasDisplay: !!display });
-        throw new Error(error);
+    // Add validation and debug logging
+    if (!container || !display || !buttons || buttons.length === 0) {
+        console.error('Required elements not found:', { container, display, buttons });
+        return;
     }
 
+    console.log('Initializing counter buttons for:', container.id);
+    console.log('Found elements:', {
+        container: !!container,
+        display: !!display,
+        buttons: buttons.length
+    });
+    
     buttons.forEach(button => {
         button.addEventListener('click', () => {
             const currentCount = parseInt(display.textContent);
