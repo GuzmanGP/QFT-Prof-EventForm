@@ -161,34 +161,10 @@ export async function loadForm(formData) {
         throw new Error('Invalid form ID');
     }
     
-    try {
-        // Ensure proper URL construction for form data
-        const formUrl = `/api/form/${formId}`;
-        console.debug('Constructed URL:', formUrl);
-        
-        // Load form history first
-        const historyUrl = `/api/form/${formId}/load-history`;
-        const [formResult, historyResult] = await Promise.allSettled([
-            attemptLoad(formUrl),
-            fetch(historyUrl).then(res => res.json())
-        ]);
-
-        // Display load history if available
-        if (historyResult.status === 'fulfilled' && historyResult.value) {
-            const { fetchFormLoadHistory, displayLoadHistory } = await import('./loadHistory.js');
-            displayLoadHistory('loadHistory', historyResult.value);
-        }
-
-        // Handle form loading result
-        if (formResult.status === 'fulfilled') {
-            return formResult.value;
-        } else {
-            throw formResult.reason;
-        }
-    } catch (error) {
-        console.error('Error loading form:', error);
-        throw error;
-    }
+    // Ensure proper URL construction
+    const url = `/api/form/${formId}`;
+    console.debug('Constructed URL:', url);
+    return attemptLoad(url);
 }
 
 async function attemptLoad(url, attempts = 3) {
