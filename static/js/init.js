@@ -1,14 +1,10 @@
 // init.js
-import { addQuestion } from './question.js';
 import { validateForm } from './validation.js';
 import { setupCounterButtons } from './metadataFields.js';
 import { 
-    updateQuestionCount, 
     showAlert, 
-    updateQuestionsList, 
     toggleLoadingOverlay,
     setMetadataFields,
-    setQuestionFields,
     showErrorState,
     loadForm 
 } from './utils.js';
@@ -32,15 +28,7 @@ export async function initializeForm() {
             initializeEventDates();
         }
         
-        // Add question button handler
-        const addQuestionBtn = document.getElementById('addQuestion');
-        if (addQuestionBtn) {
-            addQuestionBtn.addEventListener('click', async () => {
-                await addQuestion();
-                updateQuestionCount();
-                updateQuestionsList();
-            });
-        }
+        
 
         // Setup metadata counters
         const metadataSections = document.querySelectorAll('.metadata-section');
