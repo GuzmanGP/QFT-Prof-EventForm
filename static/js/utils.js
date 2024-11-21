@@ -81,7 +81,6 @@ export function clearErrorState(container) {
 
 // Import dependencies
 import { clearFieldError, validateFormData } from './validationUtils.js';
-import { addQuestion } from './question.js';
 
 export function toggleLoadingOverlay(show = true, message = 'Loading...') {
     const overlay = document.getElementById('loadingOverlay');
@@ -107,45 +106,7 @@ export function toggleLoadingOverlay(show = true, message = 'Loading...') {
     }
 }
 
-export function updateQuestionsList() {
-    const navList = document.getElementById('questionNavList');
-    if (!navList) {
-        console.error('Question navigation list not found');
-        return;
-    }
-    
-    const questions = document.querySelectorAll('.question-card');
-    navList.innerHTML = '';
-    
-    questions.forEach((card, index) => {
-        const reference = card.querySelector('.question-title')?.value || 'Undefined reference';
-        const listItem = document.createElement('div');
-        listItem.className = 'question-menu-item animate__animated animate__fadeInLeft';
-        
-        listItem.innerHTML = `
-            <a href="#" class="question-menu-link">
-                <i class="fas fa-chevron-right me-2"></i>
-                <span>Question ${index + 1}: ${reference}</span>
-            </a>
-        `;
-        
-        listItem.querySelector('a').addEventListener('click', (e) => {
-            e.preventDefault();
-            card.scrollIntoView({ behavior: 'smooth' });
-        });
-        
-        navList.appendChild(listItem);
-    });
-}
-
-export function updateQuestionCount() {
-    const count = document.querySelectorAll('.question-card').length;
-    const countDisplay = document.getElementById('questionCount');
-    if (countDisplay) {
-        countDisplay.textContent = count.toString();
-    }
-    return count;
-}
+// Removed question-related functions
 
 export async function loadForm(formData) {
     if (!formData) {

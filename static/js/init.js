@@ -24,12 +24,9 @@ export async function initializeForm() {
             console.debug('Initial form data found:', window.initialFormData);
             await loadForm(window.initialFormData);
         } else {
-            console.debug('No initial form data, adding empty question');
-            // Initialize event dates functionality
+            console.debug('Initializing new event form');
             initializeEventDates();
         }
-        
-        
 
         // Setup metadata counters with improved initialization and validation
         console.log('Starting metadata counters initialization...');
@@ -82,43 +79,20 @@ export async function initializeForm() {
         if (resetButton) {
             resetButton.addEventListener('click', () => {
                 console.debug('Form reset initiated');
-                // Clear all option tags
-                document.querySelectorAll('.options-list').forEach(list => {
-                    list.innerHTML = '';
+                form.reset();
+                // Reset all metadata fields
+                document.querySelectorAll('.metadata-container').forEach(container => {
+                    container.innerHTML = '';
                 });
-                
-                // Reset all answer type selects and hide list options
-                document.querySelectorAll('.answer-type').forEach(select => {
-                    select.value = 'text';
-                    const listOptions = select.closest('.card-body')?.querySelector('.list-options');
-                    if (listOptions) {
-                        listOptions.classList.add('d-none');
-                        listOptions.classList.remove('animate__fadeIn');
-                    }
+                // Reset all counters
+                document.querySelectorAll('.counter-display').forEach(display => {
+                    display.textContent = '0';
                 });
-                
-                // Update questions menu references
-                setTimeout(() => {
-                    updateQuestionsList();
-                    updateQuestionCount();
-                }, 100);
             });
         }
     } catch (error) {
         console.error('Error in initializeForm:', error);
-        const errorMessage = error.message.includes('Form not found') ?
-            'The requested form could not be found. Creating a new form instead.' :
-            error.message;
-        
-        showErrorState(questionsContainer, errorMessage);
-        
-        // If form not found, create a new form
-        if (error.message.includes('Form not found')) {
-            await addQuestion();
-            updateQuestionCount();
-            updateQuestionsList();
-        }
-        
+        showAlert('danger', `Error initializing form: ${error.message}`);
         throw error;
     }
 }
