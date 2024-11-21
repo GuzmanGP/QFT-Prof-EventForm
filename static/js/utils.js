@@ -311,55 +311,68 @@ export function setMetadataFields(containerId, metadata = {}) {
         return;
     }
 
-    // Handle null metadata
-    if (metadata === null) {
-        metadata = {};
-    }
-
-    // Parse metadata if it's a string
-    let parsedMetadata;
+    // Normalize metadata input
+    let parsedMetadata = {};
+    
     try {
-        parsedMetadata = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
-    } catch (parseError) {
-        console.error(`Invalid metadata JSON format for ${containerId}:`, parseError);
-        console.debug('Defaulting to empty object due to parse error');
+        // Handle null, undefined, or empty cases
+        if (metadata === null || metadata === undefined) {
+            console.debug(`Null or undefined metadata for ${containerId}, using empty object`);
+        } else {
+            // Parse string metadata or use as-is if object
+            parsedMetadata = typeof metadata === 'string' ? 
+                JSON.parse(metadata) : 
+                metadata;
+                
+            // Validate object structure
+            if (typeof parsedMetadata !== 'object' || Array.isArray(parsedMetadata)) {
+                console.warn(`Invalid metadata structure for ${containerId}, using empty object`);
+                parsedMetadata = {};
+            }
+        }
+    } catch (error) {
+        console.warn(`Error processing metadata for ${containerId}:`, error);
         parsedMetadata = {};
     }
 
-    // Validate metadata structure
-    if (typeof parsedMetadata !== 'object' || Array.isArray(parsedMetadata)) {
-        console.error(`Invalid metadata structure for ${containerId}:`, parsedMetadata);
-        console.debug('Defaulting to empty object due to invalid structure');
-        parsedMetadata = {};
-    }
-
     try {
-        // Clear container
+        // Clear container and initialize counters
         container.innerHTML = '';
         let validEntries = 0;
         const validatedMetadata = {};
 
-        // Process each metadata entry with strict validation
-        for (const [key, value] of Object.entries(parsedMetadata)) {
-            // Strict key validation
-            if (!key || typeof key !== 'string' || key.trim() === '') {
-                console.warn(`Invalid metadata key in ${containerId}:`, key);
-                continue;
+        // Process each metadata entry with enhanced validation
+        Object.entries(parsedMetadata).forEach(([key, value], index) => {
+            // Enhanced key validation
+            const processedKey = key?.toString().trim();
+            if (!processedKey) {
+                console.warn(`Skipping empty metadata key in ${containerId}`);
+                return;
             }
 
-            // Strict value validation
-            if (value === undefined || value === null || value.toString().trim() === '') {
-                console.warn(`Invalid metadata value for key "${key}" in ${containerId}`);
-                continue;
+            // Enhanced value validation with type coercion
+            let processedValue = '';
+            try {
+                if (value !== null && value !== undefined) {
+                    processedValue = value.toString().trim();
+                }
+            } catch (valueError) {
+                console.warn(`Error processing value for key "${processedKey}":`, valueError);
+                return;
             }
 
             try {
-                // Create field with sanitized values and proper type handling
+                // Create field with strict sanitization
                 const field = document.createElement('div');
-                field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+                field.className = 'input-group mb-2';
                 
-                const sanitizedKey = escapeHtml(key.trim());
-                const sanitizedValue = escapeHtml(String(value).trim());
+                const sanitizedKey = escapeHtml(processedKey);
+                const sanitizedValue = escapeHtml(processedValue);
+                
+                // Add animation with delay based on index
+                setTimeout(() => {
+                    field.classList.add('animate__animated', 'animate__fadeInRight');
+                }, index * 50);
                 
                 field.innerHTML = `
                     <input type="text" class="form-control metadata-key" value="${sanitizedKey}" placeholder="Key" required>
@@ -367,34 +380,69 @@ export function setMetadataFields(containerId, metadata = {}) {
                     <button type="button" class="btn btn-outline-danger remove-field">×</button>
                 `;
 
-                // Add input validation handlers
+                // Enhanced validation handlers
                 const keyInput = field.querySelector('.metadata-key');
                 const valueInput = field.querySelector('.metadata-value');
                 
                 [keyInput, valueInput].forEach(input => {
+                    // Add immediate validation
                     input.addEventListener('input', () => validateMetadataField(field));
+                    // Add blur validation
+                    input.addEventListener('blur', () => validateMetadataField(field));
+                });
+
+                // Add remove button handler
+                const removeButton = field.querySelector('.remove-field');
+                removeButton.addEventListener('click', () => {
+                    field.classList.add('animate__fadeOutRight');
+                    setTimeout(() => {
+                        field.remove();
+                        validEntries--;
+                        countDisplay.textContent = validEntries.toString();
+                        updateHiddenInput();
+                    }, 300);
                 });
 
                 container.appendChild(field);
                 validatedMetadata[sanitizedKey] = sanitizedValue;
                 validEntries++;
-                console.debug(`Added validated metadata field: ${sanitizedKey} = ${sanitizedValue}`);
             } catch (fieldError) {
-                console.error(`Error creating metadata field for ${key}:`, fieldError);
+                console.error(`Error creating metadata field for ${processedKey}:`, fieldError);
+            }
+        });
+
+        // Update display counter
+        countDisplay.textContent = validEntries.toString();
+        
+        // Update hidden input with validated data
+        function updateHiddenInput() {
+            if (hiddenInput) {
+                const currentMetadata = {};
+                container.querySelectorAll('.input-group').forEach(group => {
+                    const key = group.querySelector('.metadata-key')?.value?.trim();
+                    const value = group.querySelector('.metadata-value')?.value?.trim();
+                    if (key && value) {
+                        currentMetadata[key] = value;
+                    }
+                });
+                hiddenInput.value = JSON.stringify(currentMetadata);
             }
         }
-
-        // Update counter and hidden input
-        countDisplay.textContent = validEntries.toString();
-        if (hiddenInput) {
-            hiddenInput.value = JSON.stringify(validatedMetadata);
-        }
         
-        console.debug(`Successfully set ${validEntries} validated metadata fields for ${containerId}`);
+        updateHiddenInput();
+        
+        console.debug(`Successfully initialized ${validEntries} metadata fields for ${containerId}`);
 
     } catch (error) {
         console.error(`Error setting metadata fields for ${containerId}:`, error);
-        showAlert('danger', `Error setting metadata fields: ${error.message}`);
+        showAlert('warning', `Error initializing metadata fields. Default values will be used.`);
+        
+        // Ensure clean state even after error
+        container.innerHTML = '';
+        countDisplay.textContent = '0';
+        if (hiddenInput) {
+            hiddenInput.value = '{}';
+        }
     }
 }
 
