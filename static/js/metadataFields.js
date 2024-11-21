@@ -40,8 +40,15 @@ function removeLastField(container) {
 export function setupCounterButtons(buttons, container, display) {
     // Add validation and debug logging
     if (!container || !display || !buttons || buttons.length === 0) {
-        console.error('Required elements not found:', { container, display, buttons });
-        return;
+        const error = 'Required counter elements not found';
+        console.error(error, { container, display, buttons });
+        throw new Error(error);
+    }
+
+    if (!container.id) {
+        const error = 'Container must have an ID';
+        console.error(error);
+        throw new Error(error);
     }
 
     console.debug('Container children count:', container.children.length);
