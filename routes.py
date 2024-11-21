@@ -25,7 +25,9 @@ def load_event_index(event_id=None):
                 'event_description': event_config.event_description,
                 'event_metadata': event_config.event_metadata,
                 'event_type_metadata': event_config.event_type_metadata,
-                'questions': event_config.questions.get('questions', []),
+                'event_dates': event_config.event_dates.get('dates', []),
+            'validity_start_date': event_config.validity_start_date.isoformat() if event_config.validity_start_date else None,
+            'validity_end_date': event_config.validity_end_date.isoformat() if event_config.validity_end_date else None,
                 'registration_date': event_config.registration_date.isoformat(),
                 'last_update_date': event_config.last_update_date.isoformat()
             }
@@ -68,7 +70,9 @@ def save_event():
             'event_description': event_data.get('event_description'),
             'event_metadata': json.loads(event_data.get('event_metadata', '{}')),
             'event_type_metadata': json.loads(event_data.get('event_type_metadata', '{}')),
-            'questions': json.loads(event_data.get('questions', '{"questions": []}'))
+            'event_dates': json.loads(event_data.get('event_dates', '{"dates": []}')),
+            'validity_start_date': datetime.fromisoformat(event_data.get('validity_start_date')) if event_data.get('validity_start_date') else None,
+            'validity_end_date': datetime.fromisoformat(event_data.get('validity_end_date')) if event_data.get('validity_end_date') else None
         }
 
         # Create event configuration

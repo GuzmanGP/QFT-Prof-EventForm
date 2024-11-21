@@ -1,15 +1,13 @@
 // form.js
 import { initializeForm } from './init.js';
 import { 
-    updateQuestionCount, 
     showAlert, 
-    updateQuestionsList,
     toggleLoadingOverlay,
     showErrorState
 } from './utils.js';
 import { validateForm } from './validation.js';
-import { addQuestion } from './question.js';
 import { updateMetadataFields } from './metadataFields.js';
+import { initializeEventDates, loadEventDates } from './eventDates.js';
 
 // Initialize form when DOM content is loaded with error recovery
 document.addEventListener('DOMContentLoaded', async () => {

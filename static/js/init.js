@@ -28,12 +28,8 @@ export async function initializeForm() {
             await loadForm(window.initialFormData);
         } else {
             console.debug('No initial form data, adding empty question');
-            // Add initial question if none exists
-            if (!questionsContainer.querySelector('.question-card')) {
-                await addQuestion();
-                updateQuestionCount();
-                updateQuestionsList();
-            }
+            // Initialize event dates functionality
+            initializeEventDates();
         }
         
         // Add question button handler
