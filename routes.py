@@ -38,6 +38,8 @@ def load_form_index(form_id=None):
     
     # Only pass form_data to template
     return render_template('form.html', form_data=form_data)
+
+
 @app.route('/api/form/<int:form_id>')
 def get_form(form_id):
     try:
