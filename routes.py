@@ -1,6 +1,6 @@
 from flask import render_template, request, jsonify, flash, redirect, url_for, json
 from app import app, db
-from models import FormConfiguration, Question
+from models import FormConfiguration, Question, FormLoadHistory
 
 
 @app.route('/')
@@ -12,29 +12,54 @@ def new_form_index():
 def load_form_index(form_id=None):
     form_data = None
     if form_id:
-        # Get form with 404 handling
-        form = FormConfiguration.query.get_or_404(form_id)
-        
-        # Create form_data dictionary with all fields including questions
-        form_data = {
-            'id': form.id,
-            'title': form.title,
-            'category': form.category,
-            'subcategory': form.subcategory,
-            'category_metadata': form.category_metadata,
-            'subcategory_metadata': form.subcategory_metadata,
-            'questions': [{
-                'id': q.id,
-                'reference': q.reference,
-                'content': q.content,
-                'answer_type': q.answer_type,
-                'options': q.options,
-                'question_metadata': q.question_metadata,
-                'required': q.required,
-                'order': q.order,
-                'ai_instructions': q.ai_instructions
-            } for q in sorted(form.questions, key=lambda x: x.order or 0)]
-        }
+        try:
+            # Get form with 404 handling
+            form = FormConfiguration.query.get_or_404(form_id)
+            
+            # Create form_data dictionary with all fields including questions
+            form_data = {
+                'id': form.id,
+                'title': form.title,
+                'category': form.category,
+                'subcategory': form.subcategory,
+                'category_metadata': form.category_metadata,
+                'subcategory_metadata': form.subcategory_metadata,
+                'questions': [{
+                    'id': q.id,
+                    'reference': q.reference,
+                    'content': q.content,
+                    'answer_type': q.answer_type,
+                    'options': q.options,
+                    'question_metadata': q.question_metadata,
+                    'required': q.required,
+                    'order': q.order,
+                    'ai_instructions': q.ai_instructions
+                } for q in sorted(form.questions, key=lambda x: x.order or 0)]
+            }
+            
+            # Log successful form load
+            load_history = FormLoadHistory(
+                form_id=form.id,
+                ip_address=request.remote_addr,
+                user_agent=request.user_agent.string,
+                success=True
+            )
+            db.session.add(load_history)
+            db.session.commit()
+            
+        except Exception as e:
+            # Log failed form load
+            if form_id:
+                load_history = FormLoadHistory(
+                    form_id=form_id,
+                    ip_address=request.remote_addr,
+                    user_agent=request.user_agent.string,
+                    success=False,
+                    error_message=str(e)
+                )
+                db.session.add(load_history)
+                db.session.commit()
+            raise
     
     # Only pass form_data to template
     return render_template('form.html', form_data=form_data)
@@ -121,11 +146,37 @@ def save_form():
         flash(f'Error saving form: {str(e)}', 'danger')
         return redirect(url_for('new_form_index'))
 
+@app.route('/api/form/<int:form_id>/load-history')
+def get_form_load_history(form_id):
+    try:
+        # Get form load history with pagination
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        history = FormLoadHistory.query.filter_by(form_id=form_id)\
+            .order_by(FormLoadHistory.loaded_at.desc())\
+            .paginate(page=page, per_page=per_page)
+        
+        return jsonify({
+            'total': history.total,
+            'pages': history.pages,
+            'current_page': history.page,
+            'per_page': per_page,
+            'history': [{
+                'id': h.id,
+                'loaded_at': h.loaded_at.isoformat(),
+                'ip_address': h.ip_address,
+                'user_agent': h.user_agent,
+                'success': h.success,
+                'error_message': h.error_message
+            } for h in history.items]
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('error.html', error="Page not found"), 404
-
 
 @app.errorhandler(500)
 def internal_error(error):

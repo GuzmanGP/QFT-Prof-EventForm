@@ -13,6 +13,7 @@ class FormConfiguration(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     questions = db.relationship('Question', backref='form', cascade='all, delete-orphan')
+    load_history = db.relationship('FormLoadHistory', backref='form', lazy='dynamic')
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -25,3 +26,12 @@ class Question(db.Model):
     required = db.Column(db.Boolean, default=False)
     order = db.Column(db.Integer)
     ai_instructions = db.Column(db.Text)
+
+class FormLoadHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    form_id = db.Column(db.Integer, db.ForeignKey('form_configuration.id'), nullable=False)
+    loaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    ip_address = db.Column(db.String(45))  # IPv6 addresses can be up to 45 characters
+    user_agent = db.Column(db.String(255))
+    success = db.Column(db.Boolean, default=True)
+    error_message = db.Column(db.Text)
