@@ -296,7 +296,7 @@ export function setMetadataFields(containerId, metadata = {}) {
     console.debug(`Setting metadata fields for ${containerId}:`, metadata);
     
     const container = document.getElementById(containerId);
-    const countDisplay = document.getElementById(`${containerId}Count`);
+    const countDisplay = document.querySelector(`#${containerId}Count`);
     const hiddenInput = document.getElementById(`${containerId}Input`);
     
     if (!container || !countDisplay) {
