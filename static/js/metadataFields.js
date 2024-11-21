@@ -58,77 +58,64 @@ export function addMetadataField(container) {
 }
 
 export function setupCounterButtons(buttons, container, display) {
-    console.log('Configuring counter buttons:', buttons);
+    console.log('Setting up counter buttons:', { 
+        buttonsCount: buttons?.length, 
+        containerId: container?.id 
+    });
+    
     if (!buttons || !container || !display) {
-        console.error('Missing required elements for counter setup:', { 
+        const error = 'Missing required elements for counter setup';
+        console.error(error, { 
             hasButtons: !!buttons, 
             hasContainer: !!container, 
             hasDisplay: !!display 
         });
-        return;
+        throw new Error(error);
     }
 
     try {
-        // Remove existing listeners to prevent duplicates
-        buttons.forEach(button => {
-            console.log('Replacing button to prevent duplicate listeners:', button);
-            button.replaceWith(button.cloneNode(true));
-        });
-        
-        // Get fresh references
-        const metadataSection = container.closest('.metadata-section');
-        if (!metadataSection) {
-            throw new Error('Metadata section not found');
-        }
-        
-        const newButtons = metadataSection.querySelectorAll('.counter-button');
-        console.log('Found new counter buttons:', newButtons.length);
-        
-        newButtons.forEach((button, index) => {
-            console.log(`Setting up button ${index + 1} listener`);
+        buttons.forEach((button, index) => {
+            console.log(`Configuring button ${index + 1}`);
             button.addEventListener('click', () => {
                 const currentCount = parseInt(display.textContent);
                 const isIncrease = button.classList.contains('increase-count');
-                console.log('Counter click:', { 
-                    currentCount, 
-                    isIncrease, 
-                    containerChildren: container.children.length 
+                
+                console.log('Button clicked:', {
+                    isIncrease,
+                    currentCount,
+                    containerChildren: container.children.length
                 });
                 
-                const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
-                
-                if (newCount <= 20) {
-                    if (isIncrease && container.children.length < newCount) {
-                        console.log('Adding new metadata field');
-                        addMetadataField(container);
-                        display.textContent = newCount;
-                    } else if (!isIncrease && container.children.length > 0) {
-                        console.log('Removing last metadata field');
-                        const lastField = container.lastChild;
-                        if (lastField && lastField.parentNode === container) {
-                            lastField.classList.add('animate__fadeOutRight');
-                            setTimeout(() => {
-                                if (lastField && lastField.parentNode === container) {
-                                    lastField.remove();
-                                    display.textContent = newCount;
-                                    console.log('Field removed, new count:', newCount);
-                                }
-                            }, 500);
-                        }
+                if (isIncrease) {
+                    if (currentCount >= 20) {
+                        console.warn('Maximum field limit (20) reached');
+                        showAlert('warning', 'Maximum number of fields reached (20)');
+                        return;
                     }
-                } else {
-                    console.warn('Maximum field limit (20) reached');
+                    console.log('Adding new metadata field');
+                    addMetadataField(container);
+                    display.textContent = (currentCount + 1).toString();
+                } else if (currentCount > 0) {
+                    console.log('Removing last metadata field');
+                    const lastField = container.lastChild;
+                    if (lastField) {
+                        lastField.classList.add('animate__fadeOutRight');
+                        setTimeout(() => {
+                            lastField.remove();
+                            display.textContent = (currentCount - 1).toString();
+                            console.log('Field removed, new count:', currentCount - 1);
+                        }, 300);
+                    }
                 }
             });
         });
+        
         console.log('Counter buttons setup completed successfully');
     } catch (error) {
-        console.error('Error setting up counter buttons:', error);
+        console.error('Error in setupCounterButtons:', error);
         throw error;
     }
 }
-}
-
 export function validateMetadataContainer(container, errors) {
     const keys = new Set();
     const groups = container.querySelectorAll('.input-group');
