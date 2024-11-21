@@ -1,6 +1,7 @@
 from flask import render_template, request, jsonify, flash, redirect, url_for, json
 from app import app, db
-from models import FormConfiguration, Question
+from models import FormConfiguration, Question, Event, EventType
+from event_handler import EventHandler
 
 
 @app.route('/')
@@ -77,52 +78,98 @@ def save_form():
         # Get form data
         form_data = request.form
 
-        # Extract basic form fields
-        title = form_data.get('title')
-        category = form_data.get('category')
-        subcategory = form_data.get('subcategory')
+        # Extract and parse form data
+        form_dict = {
+            'title': form_data.get('title'),
+            'category': form_data.get('category'),
+            'subcategory': form_data.get('subcategory'),
+            'category_metadata': json.loads(form_data.get('category_metadata', '{}')),
+            'subcategory_metadata': json.loads(form_data.get('subcategory_metadata', '{}')),
+            'questions': json.loads(form_data.get('questions', '[]'))
+        }
 
-        # Parse JSON data from hidden inputs
-        category_metadata = json.loads(form_data.get('category_metadata', '{}'))
-        subcategory_metadata = json.loads(form_data.get('subcategory_metadata', '{}'))
-        questions_data = json.loads(form_data.get('questions', '[]'))
-
-        # Create or update form configuration
+        # Create form configuration
         form = FormConfiguration()
-        form.title = title
-        form.category = category
-        form.subcategory = subcategory
-        form.category_metadata = category_metadata
-        form.subcategory_metadata = subcategory_metadata
-
         db.session.add(form)
         db.session.flush()  # Get form ID
 
-        # Process questions
-        for q_data in questions_data:
-            # Create an instance of Question without arguments
-            question = Question()
-
-            # Set attributes manually
-            question.form_id = form.id
-            question.reference = q_data['reference']
-            question.content = q_data['content']
-            question.answer_type = q_data['answer_type']
-            question.options = q_data.get('options', [])
-            question.question_metadata = q_data.get('question_metadata', {})
-            question.required = q_data.get('required', False)
-            question.order = q_data.get('order', 0)
-            question.ai_instructions = q_data.get('ai_instructions')
-            db.session.add(question)
-
+        # Create form creation event
+        event = Event(
+            type=EventType.FORM_CREATED.value,
+            data=form_dict,
+            form_id=form.id
+        )
+        db.session.add(event)
         db.session.commit()
-        flash('Form saved successfully', 'success')
+
+        # Process the event
+        success = EventHandler.handle_event(event)
+        if success:
+            db.session.commit()
+            flash('Form saved successfully', 'success')
+        else:
+            db.session.rollback()
+            flash(f'Error saving form: {event.error}', 'danger')
+
         return redirect(url_for('new_form_index'))
 
     except Exception as e:
         db.session.rollback()
         flash(f'Error saving form: {str(e)}', 'danger')
         return redirect(url_for('new_form_index'))
+
+
+@app.route('/form/<int:form_id>/update', methods=['POST'])
+def update_form(form_id):
+    try:
+        form = FormConfiguration.query.get_or_404(form_id)
+        form_data = request.get_json()
+
+        # Create form update event
+        event = form.create_event(
+            EventType.FORM_UPDATED,
+            data=form_data
+        )
+        db.session.commit()
+
+        # Process the event
+        success = EventHandler.handle_event(event)
+        if success:
+            db.session.commit()
+            return jsonify({'message': 'Form updated successfully'})
+        else:
+            db.session.rollback()
+            return jsonify({'error': event.error}), 500
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/form/<int:form_id>/delete', methods=['POST'])
+def delete_form(form_id):
+    try:
+        form = FormConfiguration.query.get_or_404(form_id)
+        
+        # Create form deletion event
+        event = form.create_event(
+            EventType.FORM_DELETED,
+            data={'form_id': form_id}
+        )
+        db.session.commit()
+
+        # Process the event
+        success = EventHandler.handle_event(event)
+        if success:
+            db.session.commit()
+            return jsonify({'message': 'Form deleted successfully'})
+        else:
+            db.session.rollback()
+            return jsonify({'error': event.error}), 500
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 
 
