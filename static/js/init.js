@@ -167,13 +167,18 @@ function handleFormSubmit(e) {
     const form = e.target;
     
     try {
-        // Get metadata values
-        const categoryMetadata = getMetadataValues('categoryMetadata');
-        const subcategoryMetadata = getMetadataValues('subcategoryMetadata');
+        // Get and validate metadata values
+        const categoryMetadata = validateAndGetMetadata('categoryMetadata');
+        const subcategoryMetadata = validateAndGetMetadata('subcategoryMetadata');
         
-        // Update hidden inputs with metadata
-        document.getElementById('categoryMetadataInput').value = JSON.stringify(categoryMetadata);
-        document.getElementById('subcategoryMetadataInput').value = JSON.stringify(subcategoryMetadata);
+        if (!categoryMetadata.isValid || !subcategoryMetadata.isValid) {
+            showAlert('danger', 'Please fix metadata validation errors before submitting');
+            return false;
+        }
+        
+        // Update hidden inputs with validated metadata
+        document.getElementById('categoryMetadataInput').value = JSON.stringify(categoryMetadata.data);
+        document.getElementById('subcategoryMetadataInput').value = JSON.stringify(subcategoryMetadata.data);
         
         // Get and validate questions data
         const questionsData = getQuestionsData();
@@ -206,6 +211,46 @@ function handleFormSubmit(e) {
         const saveButton = form.querySelector('#saveButton');
         if (saveButton) {
             saveButton.disabled = false;
+function validateAndGetMetadata(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+        return { isValid: false, data: {}, errors: ['Container not found'] };
+    }
+
+    const metadata = {};
+    const errors = [];
+    let isValid = true;
+
+    const groups = container.querySelectorAll('.input-group');
+    for (const group of groups) {
+        const keyInput = group.querySelector('.metadata-key');
+        const valueInput = group.querySelector('.metadata-value');
+        
+        if (!keyInput || !valueInput) continue;
+
+        const key = keyInput.value.trim();
+        const value = valueInput.value.trim();
+
+        // Validate key and value
+        if (!key) {
+            keyInput.classList.add('is-invalid');
+            errors.push('Metadata key cannot be empty');
+            isValid = false;
+        }
+        
+        if (!value) {
+            valueInput.classList.add('is-invalid');
+            errors.push('Metadata value cannot be empty');
+            isValid = false;
+        }
+
+        if (key && value) {
+            metadata[key] = value;
+        }
+    }
+
+    return { isValid, data: metadata, errors };
+}
             saveButton.innerHTML = '<i class="fas fa-save me-2"></i>Save';
         }
     }

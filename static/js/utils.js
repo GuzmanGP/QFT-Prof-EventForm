@@ -152,18 +152,8 @@ export async function loadForm(formData) {
         throw new Error('Invalid form data');
     }
     
-    // Show load history if available
-    try {
-        const formId = formData.id || formData;
-        if (formId) {
-            const { fetchFormLoadHistory, displayLoadHistory } = await import('./loadHistory.js');
-            const historyData = await fetchFormLoadHistory(formId);
-            displayLoadHistory('loadHistory', historyData);
-        }
-    } catch (error) {
-        console.error('Error loading form history:', error);
-        showAlert('warning', 'Failed to load form history');
-    }
+    // Initialize form data
+    console.debug('Initializing form data');
     
     // Extract formId properly whether it's a string/number or an object
     const formId = formData.id || formData;
@@ -307,16 +297,27 @@ export function setMetadataFields(containerId, metadata = {}) {
     
     const container = document.getElementById(containerId);
     const countDisplay = document.getElementById(`${containerId}Count`);
+    const hiddenInput = document.getElementById(`${containerId}Input`);
     
     if (!container || !countDisplay) {
         console.error(`Metadata container or count display not found for ${containerId}`);
         return;
     }
 
-    // Type check and validate metadata
-    if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
-        console.error(`Invalid metadata format for ${containerId}:`, metadata);
-        showAlert('danger', `Invalid metadata format for ${containerId}`);
+    // Parse metadata if it's a string
+    let parsedMetadata;
+    try {
+        parsedMetadata = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
+    } catch (parseError) {
+        console.error(`Invalid metadata JSON format for ${containerId}:`, parseError);
+        showAlert('danger', `Invalid metadata format: ${parseError.message}`);
+        return;
+    }
+
+    // Validate metadata structure
+    if (!parsedMetadata || typeof parsedMetadata !== 'object' || Array.isArray(parsedMetadata)) {
+        console.error(`Invalid metadata structure for ${containerId}:`, parsedMetadata);
+        showAlert('danger', `Invalid metadata structure for ${containerId}`);
         return;
     }
 
@@ -324,45 +325,77 @@ export function setMetadataFields(containerId, metadata = {}) {
         // Clear container
         container.innerHTML = '';
         let validEntries = 0;
+        const validatedMetadata = {};
 
-        // Process each metadata entry with validation
-        Object.entries(metadata).forEach(([key, value]) => {
-            // Validate key and value
-            if (!key || typeof key !== 'string') {
+        // Process each metadata entry with strict validation
+        for (const [key, value] of Object.entries(parsedMetadata)) {
+            // Strict key validation
+            if (!key || typeof key !== 'string' || key.trim() === '') {
                 console.warn(`Invalid metadata key in ${containerId}:`, key);
-                return;
+                continue;
             }
 
-            if (value === undefined || value === null) {
+            // Strict value validation
+            if (value === undefined || value === null || value.toString().trim() === '') {
                 console.warn(`Invalid metadata value for key "${key}" in ${containerId}`);
-                return;
+                continue;
             }
 
             try {
-                // Create field with sanitized values
+                // Create field with sanitized values and proper type handling
                 const field = document.createElement('div');
                 field.className = 'input-group mb-2 animate__animated animate__fadeInRight';
+                
+                const sanitizedKey = escapeHtml(key.trim());
+                const sanitizedValue = escapeHtml(String(value).trim());
+                
                 field.innerHTML = `
-                    <input type="text" class="form-control metadata-key" value="${escapeHtml(key)}" placeholder="Key">
-                    <input type="text" class="form-control metadata-value" value="${escapeHtml(String(value))}" placeholder="Value">
+                    <input type="text" class="form-control metadata-key" value="${sanitizedKey}" placeholder="Key" required>
+                    <input type="text" class="form-control metadata-value" value="${sanitizedValue}" placeholder="Value" required>
                     <button type="button" class="btn btn-outline-danger remove-field">×</button>
                 `;
+
+                // Add input validation handlers
+                const keyInput = field.querySelector('.metadata-key');
+                const valueInput = field.querySelector('.metadata-value');
+                
+                [keyInput, valueInput].forEach(input => {
+                    input.addEventListener('input', () => validateMetadataField(field));
+                });
+
                 container.appendChild(field);
+                validatedMetadata[sanitizedKey] = sanitizedValue;
                 validEntries++;
-                console.debug(`Added metadata field: ${key} = ${value}`);
+                console.debug(`Added validated metadata field: ${sanitizedKey} = ${sanitizedValue}`);
             } catch (fieldError) {
                 console.error(`Error creating metadata field for ${key}:`, fieldError);
             }
-        });
+        }
 
-        // Update counter with valid entries
+        // Update counter and hidden input
         countDisplay.textContent = validEntries.toString();
-        console.debug(`Successfully set ${validEntries} metadata fields for ${containerId}`);
+        if (hiddenInput) {
+            hiddenInput.value = JSON.stringify(validatedMetadata);
+        }
+        
+        console.debug(`Successfully set ${validEntries} validated metadata fields for ${containerId}`);
 
     } catch (error) {
         console.error(`Error setting metadata fields for ${containerId}:`, error);
         showAlert('danger', `Error setting metadata fields: ${error.message}`);
     }
+}
+
+function validateMetadataField(field) {
+    const keyInput = field.querySelector('.metadata-key');
+    const valueInput = field.querySelector('.metadata-value');
+    const isValid = keyInput.value.trim() !== '' && valueInput.value.trim() !== '';
+    
+    [keyInput, valueInput].forEach(input => {
+        input.classList.toggle('is-invalid', !input.value.trim());
+    });
+    
+    return isValid;
 }
 
 // Helper function to escape HTML special characters
