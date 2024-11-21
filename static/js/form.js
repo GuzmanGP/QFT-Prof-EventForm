@@ -5,7 +5,6 @@ import {
     toggleLoadingOverlay 
 } from './utils.js';
 import { validateForm } from './validation.js';
-import { initializeEventDates } from './eventDates.js';
 
 // Initialize showAlert in eventDates.js context
 window.showAlert = showAlert;
@@ -20,20 +19,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         await initializeForm();
         console.log('Form components initialized successfully');
         
-        console.log('Step 2: Initializing event dates functionality...');
-        await initializeEventDates();
-        console.log('Event dates initialized successfully');
-        
         // Verify counter initialization
-        console.log('Step 3: Verifying metadata counters...');
-        const metadataCounters = document.querySelectorAll('.counter-group');
-        console.log(`Found ${metadataCounters.length} metadata counters`);
+        console.log('Step 2: Verifying event metadata counters...');
+        const metadataContainers = ['eventMetadata', 'eventTypeMetadata'];
         
-        metadataCounters.forEach((counter, index) => {
-            const display = counter.querySelector('.counter-display');
-            const count = display ? display.textContent : 'N/A';
-            console.log(`Metadata counter ${index + 1} initialized with count: ${count}`);
-        });
+        for (const containerId of metadataContainers) {
+            const container = document.getElementById(containerId);
+            const buttons = container?.parentElement.querySelectorAll('.counter-button');
+            const display = container?.parentElement.querySelector('.counter-display');
+            
+            console.log(`Checking ${containerId}:`, {
+                containerExists: !!container,
+                buttonCount: buttons?.length,
+                displayExists: !!display
+            });
+            
+            if (container && buttons?.length && display) {
+                console.log(`Initializing counter for ${containerId}`);
+            }
+        }
         
         console.log('All event components initialized successfully');
     } catch (error) {

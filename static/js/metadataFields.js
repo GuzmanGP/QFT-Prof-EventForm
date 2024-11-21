@@ -147,6 +147,13 @@ export function setupCounterButtons(buttons, container, display) {
     console.group('Setting up Counter Buttons');
     console.log('Initializing for container:', container?.id);
 
+    // Add debug logging
+    console.log('Setting up counter buttons for:', {
+        container: container?.id,
+        buttonCount: buttons?.length,
+        displayId: display?.id
+    });
+
     // Enhanced validation for required elements
     if (!container?.id || !display || !buttons?.length) {
         const error = new Error('Invalid counter setup parameters');

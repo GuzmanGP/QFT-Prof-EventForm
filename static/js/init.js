@@ -25,7 +25,18 @@ export async function initializeForm() {
             await loadForm(window.initialFormData);
         } else {
             console.debug('Initializing new event form');
-            initializeEventDates();
+            console.log('Setting up event dates section...');
+            const eventDatesSection = document.querySelector('#eventDates').parentElement;
+            const eventDatesButtons = eventDatesSection.querySelectorAll('.counter-button');
+            const eventDatesDisplay = eventDatesSection.querySelector('.counter-display');
+
+            if (eventDatesSection && eventDatesButtons && eventDatesDisplay) {
+                console.log('Found event dates elements:', {
+                    buttons: eventDatesButtons.length,
+                    display: eventDatesDisplay.id
+                });
+                setupCounterButtons(Array.from(eventDatesButtons), eventDatesSection, eventDatesDisplay);
+            }
         }
 
         // Setup metadata counters with improved initialization and validation
