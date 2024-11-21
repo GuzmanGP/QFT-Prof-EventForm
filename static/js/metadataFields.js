@@ -1,11 +1,51 @@
 // metadataFields.js
 import { showAlert } from './utils.js';
 import { showFieldError, clearFieldError } from './validationUtils.js';
+
+const MAX_FIELDS = 20;
+
 export function updateCounterDisplay(containerId) {
-    const count = document.querySelectorAll(`#${containerId} .input-group`).length;
-    const countDisplay = document.getElementById(`${containerId}Count`);
-    if (countDisplay) {
-        countDisplay.textContent = count.toString();
+    try {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.error(`Container not found: ${containerId}`);
+            return;
+        }
+
+        const count = container.querySelectorAll('.input-group').length;
+        const countDisplay = document.getElementById(`${containerId}Count`);
+        const increaseButton = document.querySelector(`.increase-count[data-target="${containerId}"]`);
+        
+        if (countDisplay) {
+            countDisplay.textContent = count.toString();
+        }
+        
+        // Disable/enable increase button based on count
+        if (increaseButton) {
+            increaseButton.disabled = count >= MAX_FIELDS;
+            if (count >= MAX_FIELDS) {
+                increaseButton.classList.add('disabled');
+            } else {
+                increaseButton.classList.remove('disabled');
+            }
+        }
+
+        // Update hidden input
+        const hiddenInput = document.getElementById(`${containerId}Input`);
+        if (hiddenInput) {
+            const metadata = {};
+            container.querySelectorAll('.input-group').forEach(group => {
+                const key = group.querySelector('.metadata-key')?.value?.trim();
+                const value = group.querySelector('.metadata-value')?.value?.trim();
+                if (key && value) {
+                    metadata[key] = value;
+                }
+            });
+            hiddenInput.value = JSON.stringify(metadata);
+        }
+    } catch (error) {
+        console.error('Error updating counter display:', error);
+        showAlert('danger', 'Error updating metadata counter');
     }
 }
 
@@ -15,6 +55,13 @@ export function addMetadataField(container) {
     try {
         if (!container?.id) {
             throw new Error('Invalid container for metadata field');
+        }
+
+        const currentCount = container.querySelectorAll('.input-group').length;
+        if (currentCount >= MAX_FIELDS) {
+            showAlert('warning', `Maximum number of fields (${MAX_FIELDS}) reached`);
+            console.groupEnd();
+            return;
         }
 
         console.log('Adding to container:', container.id);
@@ -27,15 +74,50 @@ export function addMetadataField(container) {
             <input type="text" class="form-control metadata-key" placeholder="Key" required>
             <input type="text" class="form-control metadata-value" placeholder="Value" required>
             <button type="button" class="btn btn-outline-danger remove-field">×</button>
+            <div class="invalid-feedback"></div>
         `;
 
-        // Add validation handlers
+        // Add validation handlers with improved error handling
         const keyInput = field.querySelector('.metadata-key');
         const valueInput = field.querySelector('.metadata-value');
         
+        const validateField = (input, otherInput) => {
+            const value = input.value.trim();
+            const otherValue = otherInput.value.trim();
+            
+            clearFieldError(input);
+            
+            if (!value && otherValue) {
+                showFieldError(input, `${input.classList.contains('metadata-key') ? 'Key' : 'Value'} is required`);
+                return false;
+            }
+            
+            if (input.classList.contains('metadata-key')) {
+                const existingKeys = Array.from(container.querySelectorAll('.metadata-key'))
+                    .filter(k => k !== input)
+                    .map(k => k.value.trim());
+                
+                if (existingKeys.includes(value)) {
+                    showFieldError(input, 'Duplicate key');
+                    return false;
+                }
+            }
+            
+            return true;
+        };
+
         [keyInput, valueInput].forEach(input => {
-            input.addEventListener('input', () => validateMetadataField(field));
-            input.addEventListener('blur', () => validateMetadataField(field));
+            const otherInput = input.classList.contains('metadata-key') ? valueInput : keyInput;
+            
+            input.addEventListener('input', () => {
+                validateField(input, otherInput);
+                updateCounterDisplay(container.id);
+            });
+            
+            input.addEventListener('blur', () => {
+                validateField(input, otherInput);
+                updateCounterDisplay(container.id);
+            });
         });
     
     // Add remove button handler
@@ -74,7 +156,16 @@ export function setupCounterButtons(buttons, container, display) {
             buttons: buttons?.length || 0
         });
         console.groupEnd();
+        showAlert('danger', 'Failed to setup metadata counter buttons');
         throw error;
+    }
+
+    // Sync initial state
+    try {
+        updateCounterDisplay(container.id);
+    } catch (error) {
+        console.error('Error syncing initial state:', error);
+        showAlert('warning', 'Error synchronizing metadata counter');
     }
 
     // Validate container state
