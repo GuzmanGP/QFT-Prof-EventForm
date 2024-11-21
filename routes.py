@@ -36,29 +36,7 @@ def load_form_index(form_id=None):
                     'ai_instructions': q.ai_instructions
                 } for q in sorted(form.questions, key=lambda x: x.order or 0)]
             }
-            
-            # Log successful form load
-            load_history = FormLoadHistory(
-                form_id=form.id,
-                ip_address=request.remote_addr,
-                user_agent=request.user_agent.string,
-                success=True
-            )
-            db.session.add(load_history)
-            db.session.commit()
-            
         except Exception as e:
-            # Log failed form load
-            if form_id:
-                load_history = FormLoadHistory(
-                    form_id=form_id,
-                    ip_address=request.remote_addr,
-                    user_agent=request.user_agent.string,
-                    success=False,
-                    error_message=str(e)
-                )
-                db.session.add(load_history)
-                db.session.commit()
             raise
     
     # Only pass form_data to template
