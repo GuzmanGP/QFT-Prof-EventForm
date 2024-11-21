@@ -14,10 +14,16 @@ window.showAlert = showAlert;
 
 // Initialize form when DOM content is loaded with error recovery
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOM content loaded, initializing form and event dates...');
     try {
-        // Initialize form and event dates
+        // Initialize form first
+        console.log('Initializing form...');
         await initializeForm();
+        
+        // Initialize event dates after form
+        console.log('Initializing event dates...');
         await initializeEventDates();
+        console.log('Form and event dates initialized successfully');
     } catch (error) {
         console.error('Error initializing form:', error);
         const container = document.getElementById('questions');
