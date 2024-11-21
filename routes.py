@@ -38,6 +38,32 @@ def load_form_index(form_id=None):
     
     # Only pass form_data to template
     return render_template('form.html', form_data=form_data)
+@app.route('/api/form/<int:form_id>')
+def get_form(form_id):
+    try:
+        form = FormConfiguration.query.get_or_404(form_id)
+        form_data = {
+            'id': form.id,
+            'title': form.title,
+            'category': form.category,
+            'subcategory': form.subcategory,
+            'category_metadata': form.category_metadata,
+            'subcategory_metadata': form.subcategory_metadata,
+            'questions': [{
+                'id': q.id,
+                'reference': q.reference,
+                'content': q.content,
+                'answer_type': q.answer_type,
+                'options': q.options,
+                'question_metadata': q.question_metadata,
+                'required': q.required,
+                'order': q.order,
+                'ai_instructions': q.ai_instructions
+            } for q in sorted(form.questions, key=lambda x: x.order or 0)]
+        }
+        return jsonify(form_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/form/save', methods=['POST'])
