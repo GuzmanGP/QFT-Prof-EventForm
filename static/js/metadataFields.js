@@ -58,39 +58,75 @@ export function addMetadataField(container) {
 }
 
 export function setupCounterButtons(buttons, container, display) {
-    // Remove existing listeners to prevent duplicates
-    buttons.forEach(button => {
-        button.replaceWith(button.cloneNode(true));
-    });
-    
-    // Get fresh references
-    const newButtons = container.closest('.metadata-section').querySelectorAll('.counter-button');
-    
-    newButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const currentCount = parseInt(display.textContent);
-            const isIncrease = button.classList.contains('increase-count');
-            const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
-            
-            if (newCount <= 20) {
-                if (isIncrease && container.children.length < newCount) {
-                    addMetadataField(container);
-                    display.textContent = newCount;
-                } else if (!isIncrease && container.children.length > 0) {
-                    const lastField = container.lastChild;
-                    if (lastField && lastField.parentNode === container) {
-                        lastField.classList.add('animate__fadeOutRight');
-                        setTimeout(() => {
-                            if (lastField && lastField.parentNode === container) {
-                                lastField.remove(); // Using remove() instead of removeChild
-                                display.textContent = newCount;
-                            }
-                        }, 500);
-                    }
-                }
-            }
+    console.log('Configuring counter buttons:', buttons);
+    if (!buttons || !container || !display) {
+        console.error('Missing required elements for counter setup:', { 
+            hasButtons: !!buttons, 
+            hasContainer: !!container, 
+            hasDisplay: !!display 
         });
-    });
+        return;
+    }
+
+    try {
+        // Remove existing listeners to prevent duplicates
+        buttons.forEach(button => {
+            console.log('Replacing button to prevent duplicate listeners:', button);
+            button.replaceWith(button.cloneNode(true));
+        });
+        
+        // Get fresh references
+        const metadataSection = container.closest('.metadata-section');
+        if (!metadataSection) {
+            throw new Error('Metadata section not found');
+        }
+        
+        const newButtons = metadataSection.querySelectorAll('.counter-button');
+        console.log('Found new counter buttons:', newButtons.length);
+        
+        newButtons.forEach((button, index) => {
+            console.log(`Setting up button ${index + 1} listener`);
+            button.addEventListener('click', () => {
+                const currentCount = parseInt(display.textContent);
+                const isIncrease = button.classList.contains('increase-count');
+                console.log('Counter click:', { 
+                    currentCount, 
+                    isIncrease, 
+                    containerChildren: container.children.length 
+                });
+                
+                const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
+                
+                if (newCount <= 20) {
+                    if (isIncrease && container.children.length < newCount) {
+                        console.log('Adding new metadata field');
+                        addMetadataField(container);
+                        display.textContent = newCount;
+                    } else if (!isIncrease && container.children.length > 0) {
+                        console.log('Removing last metadata field');
+                        const lastField = container.lastChild;
+                        if (lastField && lastField.parentNode === container) {
+                            lastField.classList.add('animate__fadeOutRight');
+                            setTimeout(() => {
+                                if (lastField && lastField.parentNode === container) {
+                                    lastField.remove();
+                                    display.textContent = newCount;
+                                    console.log('Field removed, new count:', newCount);
+                                }
+                            }, 500);
+                        }
+                    }
+                } else {
+                    console.warn('Maximum field limit (20) reached');
+                }
+            });
+        });
+        console.log('Counter buttons setup completed successfully');
+    } catch (error) {
+        console.error('Error setting up counter buttons:', error);
+        throw error;
+    }
+}
 }
 
 export function validateMetadataContainer(container, errors) {

@@ -31,33 +31,69 @@ export async function initializeForm() {
         
         
 
-        // Setup metadata counters with improved initialization
-        console.log('Setting up metadata counters...');
+        // Setup metadata counters with improved initialization and validation
+        console.log('Starting metadata counters initialization...');
+        
+        // Ensure DOM is fully loaded
+        if (document.readyState === 'loading') {
+            console.log('DOM not fully loaded, waiting...');
+            await new Promise(resolve => {
+                document.addEventListener('DOMContentLoaded', resolve);
+            });
+        }
+        
+        console.log('DOM ready, setting up metadata counters...');
         const metadataSections = document.querySelectorAll('.metadata-section');
         console.log(`Found ${metadataSections.length} metadata sections`);
         
-        for (const section of metadataSections) {
+        if (metadataSections.length === 0) {
+            console.warn('No metadata sections found in the document');
+            return;
+        }
+        
+        // Initialize counters with retry mechanism
+        const initializeCounter = async (section, retries = 3) => {
             const container = section.querySelector('.metadata-container');
             const buttons = section.querySelectorAll('.counter-button');
             const display = section.querySelector('.counter-display');
             const containerId = container?.id;
             
-            console.log(`Initializing counter for container: ${containerId}`);
+            console.log(`Attempting to initialize counter for container: ${containerId}`);
             
-            if (container && buttons && display) {
-                try {
-                    setupCounterButtons(buttons, container, display);
-                    console.log(`Successfully initialized counter for ${containerId}`);
-                } catch (error) {
-                    console.error(`Failed to initialize counter for ${containerId}:`, error);
-                    showAlert('danger', `Failed to initialize counter for ${containerId}`);
-                }
-            } else {
-                console.warn(`Missing required elements for ${containerId}:`, {
+            if (!container || !buttons || !display) {
+                const error = `Missing required elements for ${containerId}`;
+                console.error(error, {
                     hasContainer: !!container,
                     hasButtons: !!buttons,
                     hasDisplay: !!display
                 });
+                throw new Error(error);
+            }
+            
+            for (let attempt = 1; attempt <= retries; attempt++) {
+                try {
+                    await new Promise(resolve => setTimeout(resolve, attempt * 100));
+                    setupCounterButtons(buttons, container, display);
+                    console.log(`Successfully initialized counter for ${containerId} on attempt ${attempt}`);
+                    return true;
+                } catch (error) {
+                    console.error(`Attempt ${attempt}/${retries} failed for ${containerId}:`, error);
+                    if (attempt === retries) {
+                        showAlert('danger', `Failed to initialize counter for ${containerId}`);
+                        throw error;
+                    }
+                }
+            }
+        };
+        
+        // Initialize all counters
+        for (const section of metadataSections) {
+            try {
+                await initializeCounter(section);
+            } catch (error) {
+                console.error('Counter initialization failed:', error);
+                // Continue with other counters even if one fails
+                continue;
             }
         }
 
