@@ -318,6 +318,9 @@ function initializeMetadataCounter(card) {
     const buttons = metadataSection.querySelectorAll('.counter-button');
     const display = metadataSection.querySelector('.counter-display');
     
+    console.log('Metadata container:', container);
+    console.log('Display element:', display);
+    
     if (!container || !display) {
         console.warn('Required metadata elements not found');
         return;
