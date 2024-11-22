@@ -80,7 +80,7 @@ export function clearErrorState(container) {
 }
 
 // Import dependencies
-import { clearFieldError, validateFormData } from './validationUtils.js';
+import { clearFieldError } from './validationUtils.js';
 
 export function toggleLoadingOverlay(show = true, message = 'Loading...') {
     const overlay = document.getElementById('loadingOverlay');
@@ -408,9 +408,16 @@ export function setMetadataFields(containerId, metadata = {}) {
 }
 
 function validateMetadataField(field) {
-    const keyInput = field.querySelector('.metadata-key');
-    const valueInput = field.querySelector('.metadata-value');
-    const isValid = keyInput.value.trim() !== '' && valueInput.value.trim() !== '';
+    try {
+        const keyInput = field.querySelector('.metadata-key');
+        const valueInput = field.querySelector('.metadata-value');
+        const isValid = keyInput.value.trim() !== '' && valueInput.value.trim() !== '';
+        return isValid;
+    } catch (error) {
+        console.error('Error validating metadata field:', error);
+        return false;
+    }
+}
     
     [keyInput, valueInput].forEach(input => {
         input.classList.toggle('is-invalid', !input.value.trim());
