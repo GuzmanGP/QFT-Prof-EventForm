@@ -31,18 +31,30 @@ export async function initializeForm() {
         } else {
             console.debug('Initializing new event form');
             console.log('Setting up event dates section...');
-            const eventDatesSection = document.querySelector('#eventDates').parentElement;
+            const eventDatesSection = document.querySelector('#eventDates')?.parentElement;
+            
+            if (!eventDatesSection) {
+                throw new Error('No se encontró la sección de fechas del evento');
+            }
+            
             const eventDatesButtons = eventDatesSection.querySelectorAll('.counter-button');
             const eventDatesDisplay = eventDatesSection.querySelector('.counter-display');
 
-            if (eventDatesSection && eventDatesButtons && eventDatesDisplay) {
+            if (eventDatesButtons && eventDatesDisplay) {
                 console.log('Found event dates elements:', {
                     buttons: eventDatesButtons.length,
                     display: eventDatesDisplay.id
                 });
                 setupCounterButtons(Array.from(eventDatesButtons), eventDatesSection, eventDatesDisplay);
+            } else {
+                throw new Error('No se encontraron los elementos necesarios para las fechas del evento');
             }
         }
+    } catch (error) {
+        console.error('Error initializing form:', error);
+        showAlert('danger', `Error al inicializar el formulario: ${error.message}`);
+        throw error;
+    }
 
         // Setup metadata counters with improved initialization and validation
         console.log('Starting metadata counters initialization...');

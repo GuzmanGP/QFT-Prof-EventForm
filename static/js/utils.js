@@ -131,6 +131,7 @@ export async function loadForm(formData) {
         return result;
     } catch (error) {
         console.error('Error loading form:', error);
+        showAlert('danger', `Error al cargar el formulario: ${error.message}`);
         throw error;
     }
 }
@@ -413,6 +414,10 @@ function validateMetadataField(field) {
         const valueInput = field.querySelector('.metadata-value');
         const isValid = keyInput.value.trim() !== '' && valueInput.value.trim() !== '';
         return isValid;
+    } catch (error) {
+        console.error('Error validating metadata field:', error);
+        return false;
+    }
     } catch (error) {
         console.error('Error validating metadata field:', error);
         return false;
