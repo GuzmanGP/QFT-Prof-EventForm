@@ -46,7 +46,7 @@ class EventHandler:
             event_description=event_data.get('event_description'),
             event_metadata=event_data.get('event_metadata', {}),
             event_type_metadata=event_data.get('event_type_metadata', {}),
-            questions=event_data.get('questions', {"questions": []})
+            event_dates=event_data.get('event_dates', {"dates": []})
         )
         db.session.add(event_config)
 
@@ -63,7 +63,7 @@ class EventHandler:
         event_config.event_description = event_data.get('event_description')
         event_config.event_metadata = event_data.get('event_metadata', {})
         event_config.event_type_metadata = event_data.get('event_type_metadata', {})
-        event_config.questions = event_data.get('questions', {"questions": []})
+        event_config.event_dates = event_data.get('event_dates', {"dates": []})
         event_config.last_update_date = datetime.utcnow()
 
     @staticmethod
