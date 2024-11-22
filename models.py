@@ -1,7 +1,7 @@
+from app import db
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import JSONB
 from enum import Enum
-from database import db
 
 class EventType(Enum):
     EVENT_CREATED = "event_created"

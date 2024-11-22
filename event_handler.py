@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Any
-from database import db
 from models import Event, EventType, EventConfiguration
+from app import db
 from datetime import datetime
 import json
 
