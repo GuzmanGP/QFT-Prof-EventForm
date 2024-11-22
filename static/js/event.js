@@ -4,12 +4,12 @@ import {
     showAlert, 
     toggleLoadingOverlay 
 } from './utils.js';
-import { validateForm } from './validation.js';
+import { validateEvent } from './validation.js';
 
 // Initialize showAlert in eventDates.js context
 window.showAlert = showAlert;
 
-// Initialize form when DOM content is loaded with improved error recovery
+// Initialize event when DOM content is loaded with improved error recovery
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOM content loaded, starting initialization sequence...');
     
@@ -41,17 +41,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         console.log('All event components initialized successfully');
     } catch (error) {
-        console.error('Error initializing event form:', error);
+        console.error('Error initializing event:', error);
         showAlert('danger', `Error: ${error.message}`);
         toggleLoadingOverlay(false);
     }
 });
 
-// Handle form submission
-async function handleFormSubmit(event) {
+// Handle event submission
+async function handleEventSubmit(event) {
     event.preventDefault();
     
-    if (!validateForm(event.target)) {
+    if (!validateEvent(event.target)) {
         return;
     }
     
@@ -83,11 +83,11 @@ async function handleFormSubmit(event) {
 window.addEventListener('online', async () => {
     try {
         toggleLoadingOverlay(true);
-        await initializeForm();
-        showAlert('success', 'Connection restored. Event form reloaded successfully.');
+        await initializeEvent();
+        showAlert('success', 'Connection restored. Event reloaded successfully.');
     } catch (error) {
-        console.error('Error auto-recovering form:', error);
-        showAlert('warning', 'Failed to automatically reload event form.');
+        console.error('Error auto-recovering event:', error);
+        showAlert('warning', 'Failed to automatically reload event.');
     } finally {
         toggleLoadingOverlay(false);
     }

@@ -18,7 +18,7 @@ class EventHandler:
                 EventType.EVENT_DELETED.value: EventHandler._handle_event_deleted,
             }
 
-            handler = handler_map.get(event.type)
+            handler = handler_map.get(str(event.type))
             if handler:
                 handler(event)
                 event.processed = True
@@ -40,14 +40,14 @@ class EventHandler:
     def _handle_event_created(event: Event):
         """Handle event creation"""
         event_data = event.data
-        event_config = EventConfiguration(
-            event_reference=event_data['event_reference'],
-            event_type=event_data['event_type'],
-            event_description=event_data.get('event_description'),
-            event_metadata=event_data.get('event_metadata', {}),
-            event_type_metadata=event_data.get('event_type_metadata', {}),
-            event_dates=event_data.get('event_dates', {"dates": []})
-        )
+        # Create event configuration with validated data
+        event_config = EventConfiguration()
+        event_config.event_reference = event_data['event_reference']
+        event_config.event_type = event_data['event_type']
+        event_config.event_description = event_data.get('event_description')
+        event_config.event_metadata = event_data.get('event_metadata', {})
+        event_config.event_type_metadata = event_data.get('event_type_metadata', {})
+        event_config.event_dates = event_data.get('event_dates', {"dates": []})
         db.session.add(event_config)
 
     @staticmethod
