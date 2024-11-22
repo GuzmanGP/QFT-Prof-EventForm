@@ -10,6 +10,7 @@ import {
 } from './utils.js';
 
 export async function initializeForm() {
+    console.log('Initializing Form...');
     const form = document.getElementById('formConfiguration');
     const eventDatesContainer = document.getElementById('eventDates');
     const addDateButton = document.getElementById('addEventDate');
@@ -17,6 +18,10 @@ export async function initializeForm() {
     if (!form || !eventDatesContainer || !addDateButton) {
         throw new Error('Required form elements not found');
     }
+
+    // Initialize event dates
+    console.log('Initializing Event Dates...');
+    initializeEventDates();
 
     try {
         // Load initial form data if available

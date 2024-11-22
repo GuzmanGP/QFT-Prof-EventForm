@@ -144,6 +144,7 @@ function removeLastField(container) {
 }
 
 export function setupCounterButtons(buttons, container, display) {
+    console.log('Setting up counter buttons...');
     console.group('Setting up Counter Buttons');
     console.log('Initializing for container:', container?.id);
 
@@ -172,6 +173,7 @@ export function setupCounterButtons(buttons, container, display) {
         button.addEventListener('click', () => {
             try {
                 const isIncrease = button.classList.contains('increase-count');
+                console.log('Button clicked:', { type: isIncrease ? 'increase' : 'decrease' });
                 const currentCount = parseInt(display.textContent) || 0;
                 const newCount = isIncrease ? currentCount + 1 : Math.max(0, currentCount - 1);
 
