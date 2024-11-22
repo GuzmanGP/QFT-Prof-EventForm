@@ -1,16 +1,10 @@
 import streamlit as st
-import os
 from datetime import datetime
-from database import db
+from app import app, db
 from models import Event, EventConfiguration, EventType
 from event_handler import EventHandler
-from app import app
-from routes import *
 
-# Initialize Flask app
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://neondb_owner:Ot9Sm1ANvkMc@ep-rough-tree-a4b9uu7e.us-east-1.aws.neon.tech/neondb?sslmode=require"
-db.init_app(app)
-
+# Initialize database tables
 with app.app_context():
     db.create_all()
 
@@ -141,8 +135,8 @@ def main():
                         "event_metadata": event_metadata,
                         "event_type_metadata": event_type_metadata,
                         "event_dates": {"dates": event_dates},
-                        "validity_start_date": validity_start.isoformat() if validity_start else None,
-                        "validity_end_date": validity_end.isoformat() if validity_end else None
+                        "validity_start_date": validity_start.strftime("%Y-%m-%d") if validity_start else None,
+                        "validity_end_date": validity_end.strftime("%Y-%m-%d") if validity_end else None
                     },
                     event_config_id=event_config.id
                 )
