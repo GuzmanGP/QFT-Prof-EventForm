@@ -11,44 +11,56 @@ import {
 
 export async function initializeForm() {
     console.log('Initializing Form...');
-    const form = document.getElementById('formConfiguration');
-    const eventDatesContainer = document.getElementById('eventDates');
-    const addDateButton = document.getElementById('addEventDate');
-
-    if (!form || !eventDatesContainer || !addDateButton) {
-        throw new Error('Required form elements not found');
-    }
-
-    // Initialize event dates
-    console.log('Initializing Event Dates...');
-    initializeEventDates();
-
     try {
-        // Load initial form data if available
-        if (window.initialFormData) {
-            console.debug('Initial form data found:', window.initialFormData);
-            await loadForm(window.initialFormData);
-        } else {
-            console.debug('Initializing new event form');
-            console.log('Setting up event dates section...');
-            const eventDatesSection = document.querySelector('#eventDates')?.parentElement;
-            
-            if (!eventDatesSection) {
-                throw new Error('No se encontró la sección de fechas del evento');
-            }
-            
-            const eventDatesButtons = eventDatesSection.querySelectorAll('.counter-button');
-            const eventDatesDisplay = eventDatesSection.querySelector('.counter-display');
+        const form = document.getElementById('formConfiguration');
+        const eventDatesContainer = document.getElementById('eventDates');
+        const addDateButton = document.getElementById('addEventDate');
 
-            if (eventDatesButtons && eventDatesDisplay) {
-                console.log('Found event dates elements:', {
-                    buttons: eventDatesButtons.length,
-                    display: eventDatesDisplay.id
-                });
-                setupCounterButtons(Array.from(eventDatesButtons), eventDatesSection, eventDatesDisplay);
+        if (!form || !eventDatesContainer || !addDateButton) {
+            throw new Error('Required form elements not found');
+        }
+
+        // Initialize event dates
+        console.log('Initializing Event Dates...');
+        try {
+            initializeEventDates();
+        } catch (error) {
+            console.error('Error initializing event dates:', error);
+            showAlert('danger', `Error initializing event dates: ${error.message}`);
+            throw error;
+        }
+
+        try {
+            // Load initial form data if available
+            if (window.initialFormData) {
+                console.debug('Initial form data found:', window.initialFormData);
+                await loadForm(window.initialFormData);
             } else {
-                throw new Error('No se encontraron los elementos necesarios para las fechas del evento');
+                console.debug('Initializing new event form');
+                console.log('Setting up event dates section...');
+                const eventDatesSection = document.querySelector('#eventDates')?.parentElement;
+                
+                if (!eventDatesSection) {
+                    throw new Error('Event dates section not found');
+                }
+                
+                const eventDatesButtons = eventDatesSection.querySelectorAll('.counter-button');
+                const eventDatesDisplay = eventDatesSection.querySelector('.counter-display');
+
+                if (eventDatesButtons && eventDatesDisplay) {
+                    console.log('Found event dates elements:', {
+                        buttons: eventDatesButtons.length,
+                        display: eventDatesDisplay.id
+                    });
+                    setupCounterButtons(Array.from(eventDatesButtons), eventDatesSection, eventDatesDisplay);
+                } else {
+                    throw new Error('Required event date elements not found');
+                }
             }
+        } catch (error) {
+            console.error('Error initializing form data:', error);
+            showAlert('danger', `Error initializing form data: ${error.message}`);
+            throw error;
         }
     } catch (error) {
         console.error('Error initializing form:', error);
@@ -56,66 +68,89 @@ export async function initializeForm() {
         throw error;
     }
 
-        // Setup metadata counters with improved initialization and validation
-        console.log('Starting metadata counters initialization...');
-        
-        // Ensure DOM is fully loaded
-        if (document.readyState === 'loading') {
-            console.log('DOM not fully loaded, waiting...');
-            await new Promise(resolve => {
-                document.addEventListener('DOMContentLoaded', resolve);
-            });
-        }
-        
-        console.log('DOM ready, setting up metadata counters...');
-        const metadataSections = document.querySelectorAll('.metadata-section');
-        console.log(`Found ${metadataSections.length} metadata sections`);
-        
-        if (metadataSections.length === 0) {
-            console.warn('No metadata sections found in the document');
-            return;
-        }
-        
-        // Initialize all metadata sections with improved validation
-        for (const section of metadataSections) {
-            const container = section.querySelector('.metadata-container');
-            const buttons = section.querySelectorAll('.counter-button');
-            const display = section.querySelector('.counter-display');
+        try {
+            // Setup metadata counters with improved initialization and validation
+            console.log('Starting metadata counters initialization...');
             
-            if (!container || !buttons.length || !display) {
-                console.error('Required elements not found for section:', section);
-                continue;
+            // Ensure DOM is fully loaded
+            if (document.readyState === 'loading') {
+                console.log('DOM not fully loaded, waiting...');
+                await new Promise(resolve => {
+                    document.addEventListener('DOMContentLoaded', resolve);
+                });
             }
             
-            console.log('Setting up counter for:', {
-                container: container.id,
-                buttonCount: buttons.length,
-                displayId: display.id
-            });
+            console.log('DOM ready, setting up metadata counters...');
+            const metadataSections = document.querySelectorAll('.metadata-section');
+            console.log(`Found ${metadataSections.length} metadata sections`);
             
-            setupCounterButtons(Array.from(buttons), container, display);
-        }
+            if (metadataSections.length === 0) {
+                console.warn('No metadata sections found in the document');
+                return;
+            }
+            
+            // Initialize all metadata sections with improved validation
+            for (const section of metadataSections) {
+                try {
+                    const container = section.querySelector('.metadata-container');
+                    const buttons = section.querySelectorAll('.counter-button');
+                    const display = section.querySelector('.counter-display');
+                    
+                    if (!container || !buttons.length || !display) {
+                        console.error('Required elements not found for section:', section);
+                        continue;
+                    }
+                    
+                    console.log('Setting up counter for:', {
+                        container: container.id,
+                        buttonCount: buttons.length,
+                        displayId: display.id
+                    });
+                    
+                    setupCounterButtons(Array.from(buttons), container, display);
+                } catch (sectionError) {
+                    console.error('Error setting up metadata section:', sectionError);
+                    showAlert('warning', `Error setting up metadata section: ${sectionError.message}`);
+                    // Continue with other sections
+                }
+            }
 
-        // Form submission handler
-        if (form) {
-            form.addEventListener('submit', handleFormSubmit);
-        }
+            // Form submission handler
+            try {
+                if (form) {
+                    form.addEventListener('submit', handleFormSubmit);
+                }
 
-        // Add reset button handler
-        const resetButton = form?.querySelector('button[type="reset"]');
-        if (resetButton) {
-            resetButton.addEventListener('click', () => {
-                console.debug('Form reset initiated');
-                form.reset();
-                // Reset all metadata fields
-                document.querySelectorAll('.metadata-container').forEach(container => {
-                    container.innerHTML = '';
-                });
-                // Reset all counters
-                document.querySelectorAll('.counter-display').forEach(display => {
-                    display.textContent = '0';
-                });
-            });
+                // Add reset button handler
+                const resetButton = form?.querySelector('button[type="reset"]');
+                if (resetButton) {
+                    resetButton.addEventListener('click', () => {
+                        try {
+                            console.debug('Form reset initiated');
+                            form.reset();
+                            // Reset all metadata fields
+                            document.querySelectorAll('.metadata-container').forEach(container => {
+                                container.innerHTML = '';
+                            });
+                            // Reset all counters
+                            document.querySelectorAll('.counter-display').forEach(display => {
+                                display.textContent = '0';
+                            });
+                        } catch (resetError) {
+                            console.error('Error resetting form:', resetError);
+                            showAlert('danger', `Error resetting form: ${resetError.message}`);
+                        }
+                    });
+                }
+            } catch (formSetupError) {
+                console.error('Error setting up form handlers:', formSetupError);
+                showAlert('danger', `Error setting up form handlers: ${formSetupError.message}`);
+                throw formSetupError;
+            }
+        } catch (metadataError) {
+            console.error('Error setting up metadata:', metadataError);
+            showAlert('danger', `Error setting up metadata: ${metadataError.message}`);
+            throw metadataError;
         }
     } catch (error) {
         console.error('Error in initializeForm:', error);
