@@ -1,6 +1,6 @@
 import os
 from flask import Flask
-from models import db
+from database import db
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "dev_key_123"
@@ -14,6 +14,3 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()  # Create all tables
-
-# Import routes after app initialization
-from routes import *

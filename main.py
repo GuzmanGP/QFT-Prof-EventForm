@@ -1,10 +1,18 @@
 import streamlit as st
 import os
 from datetime import datetime
-from sqlalchemy.orm import DeclarativeBase
-from models import db, Event, EventConfiguration, EventType
+from database import db
+from models import Event, EventConfiguration, EventType
 from event_handler import EventHandler
 from app import app
+from routes import *
+
+# Initialize Flask app
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://neondb_owner:Ot9Sm1ANvkMc@ep-rough-tree-a4b9uu7e.us-east-1.aws.neon.tech/neondb?sslmode=require"
+db.init_app(app)
+
+with app.app_context():
+    db.create_all()
 
 # Set page config
 st.set_page_config(page_title="Form Configuration System", layout="wide")

@@ -1,13 +1,7 @@
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import JSONB
 from enum import Enum
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
-
-class Base(DeclarativeBase):
-    pass
-
-db = SQLAlchemy(model_class=Base)
+from database import db
 
 class EventType(Enum):
     EVENT_CREATED = "event_created"
