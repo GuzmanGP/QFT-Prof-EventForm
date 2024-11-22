@@ -5,6 +5,9 @@ import { showFieldError, clearFieldError } from './validationUtils.js';
 const MAX_FIELDS = 20;
 
 export function updateCounterDisplay(containerId) {
+    console.group('Counter Update');
+    console.log('Updating counter for:', containerId);
+    
     try {
         const container = document.getElementById(containerId);
         if (!container) {
@@ -13,11 +16,17 @@ export function updateCounterDisplay(containerId) {
         }
 
         const count = container.querySelectorAll('.input-group').length;
+        console.log('Current count:', count);
+        
         const countDisplay = document.getElementById(`${containerId}Count`);
+        console.log('Count display element:', countDisplay?.id);
+        
         const increaseButton = document.querySelector(`.increase-count[data-target="${containerId}"]`);
+        console.log('Increase button found:', !!increaseButton);
         
         if (countDisplay) {
             countDisplay.textContent = count.toString();
+            console.log('Updated display to:', count);
         }
         
         // Disable/enable increase button based on count
@@ -25,8 +34,10 @@ export function updateCounterDisplay(containerId) {
             increaseButton.disabled = count >= MAX_FIELDS;
             if (count >= MAX_FIELDS) {
                 increaseButton.classList.add('disabled');
+                console.log('Disabled increase button (max fields reached)');
             } else {
                 increaseButton.classList.remove('disabled');
+                console.log('Enabled increase button');
             }
         }
 
@@ -42,10 +53,14 @@ export function updateCounterDisplay(containerId) {
                 }
             });
             hiddenInput.value = JSON.stringify(metadata);
+            console.log('Updated hidden input with metadata:', metadata);
         }
     } catch (error) {
-        console.error('Error updating counter display:', error);
+        console.error('Error updating counter:', error);
         showAlert('danger', 'Error updating metadata counter');
+        throw error;
+    } finally {
+        console.groupEnd();
     }
 }
 

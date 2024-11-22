@@ -240,17 +240,51 @@ function updateEventDatesInput() {
     }
 }
 
-function updateCounterDisplay() {
+function updateEventDatesCounter() {
+    console.group('Event Dates Counter');
+    console.log('Updating event dates counter');
+    
     try {
-        const count = document.querySelectorAll('.event-date').length;
-        const countDisplay = document.getElementById('eventDatesCount');
-        if (countDisplay) {
-            countDisplay.textContent = count.toString();
+        const container = document.getElementById('eventDates');
+        if (!container) {
+            console.error('Event dates container not found');
+            throw new Error('Event dates container not found');
+        }
+
+        const count = container.querySelectorAll('.event-date').length;
+        const display = document.getElementById('eventDatesCount');
+        
+        console.log('Current dates count:', count);
+        console.log('Display element:', display?.id);
+        
+        if (display) {
+            display.textContent = count.toString();
+            console.log('Updated display to:', count);
+        } else {
+            console.warn('Display element not found');
+        }
+
+        // Update hidden input if it exists
+        const hiddenInput = document.getElementById('eventDatesInput');
+        if (hiddenInput) {
+            const dates = Array.from(container.querySelectorAll('.event-date'))
+                .map(input => input.value)
+                .filter(date => date);
+            hiddenInput.value = JSON.stringify({ dates });
+            console.log('Updated hidden input with dates:', dates);
         }
     } catch (error) {
-        console.error('Error updating counter display:', error);
+        console.error('Error updating event dates counter:', error);
+        showAlert('danger', 'Error updating event dates counter');
         throw error;
+    } finally {
+        console.groupEnd();
     }
+}
+
+// Rename the old function to maintain compatibility
+function updateCounterDisplay() {
+    return updateEventDatesCounter();
 }
 
 export function loadEventDates(dates = []) {
